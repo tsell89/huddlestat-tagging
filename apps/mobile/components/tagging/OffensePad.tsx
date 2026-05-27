@@ -5,6 +5,8 @@ import { FGPad } from "@/components/tagging/FGPad";
 import { PassPad } from "@/components/tagging/PassPad";
 import { PuntPad } from "@/components/tagging/PuntPad";
 import { RunPad } from "@/components/tagging/RunPad";
+import type { LocalPlay } from "@/lib/db/types";
+import { applyPasserLeaderDefault } from "@/lib/tagging/jerseyGridRank";
 import {
   applyPlayTypeChange,
   ensureOffensePadDraft,
@@ -25,6 +27,7 @@ type OffensePadProps = {
   onChange: (draft: PlaylistData) => void;
   activePlayerSlot: PlayerSlotKey | null;
   onActivePlayerSlotChange: (slot: PlayerSlotKey | null) => void;
+  gamePlays: LocalPlay[];
   tackleEnd: TackleEnd;
   onTackleEndChange: (end: TackleEnd) => void;
   puntSpots: PuntSpots;
@@ -44,6 +47,7 @@ export function OffensePad({
   onChange,
   activePlayerSlot,
   onActivePlayerSlotChange,
+  gamePlays,
   tackleEnd,
   onTackleEndChange,
   puntSpots,
@@ -58,7 +62,10 @@ export function OffensePad({
   onPenaltyFoulSpotChange,
 }: OffensePadProps) {
   function handlePlayTypeChange(playType: OffensePlayType) {
-    const next = applyPlayTypeChange(draft, playType);
+    const next = applyPasserLeaderDefault(
+      applyPlayTypeChange(draft, playType),
+      gamePlays,
+    );
     onChange(next);
     onActivePlayerSlotChange(
       getVisiblePlayerSlots(playType, next.result)[0] ?? null,
@@ -77,6 +84,7 @@ export function OffensePad({
           onChange={onChange}
           activePlayerSlot={activePlayerSlot}
           onActivePlayerSlotChange={onActivePlayerSlotChange}
+          gamePlays={gamePlays}
           tackleEnd={tackleEnd}
           onTackleEndChange={onTackleEndChange}
           fumbleSpots={fumbleSpots}
@@ -90,6 +98,7 @@ export function OffensePad({
           onChange={onChange}
           activePlayerSlot={activePlayerSlot}
           onActivePlayerSlotChange={onActivePlayerSlotChange}
+          gamePlays={gamePlays}
           tackleEnd={tackleEnd}
           onTackleEndChange={onTackleEndChange}
           intSpots={intSpots}
@@ -103,6 +112,7 @@ export function OffensePad({
           onChange={onChange}
           activePlayerSlot={activePlayerSlot}
           onActivePlayerSlotChange={onActivePlayerSlotChange}
+          gamePlays={gamePlays}
           puntSpots={puntSpots}
           onPuntSpotsChange={onPuntSpotsChange}
           blockedSpots={blockedSpots}
@@ -116,6 +126,7 @@ export function OffensePad({
           onChange={onChange}
           activePlayerSlot={activePlayerSlot}
           onActivePlayerSlotChange={onActivePlayerSlotChange}
+          gamePlays={gamePlays}
           blockedSpots={blockedSpots}
           onBlockedSpotsChange={onBlockedSpotsChange}
           penaltyFoulSpot={penaltyFoulSpot}

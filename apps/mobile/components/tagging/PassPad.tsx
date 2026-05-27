@@ -5,6 +5,8 @@ import { TackleSpotPanel } from "@/components/tagging/TackleSpotPanel";
 import { InterceptionReturnSpotsPanel } from "@/components/tagging/InterceptionReturnSpots";
 import { PenaltySpotPanel } from "@/components/tagging/PenaltySpotPanel";
 import { OffensePlayerSection } from "@/components/tagging/OffensePlayerSection";
+import type { LocalPlay } from "@/lib/db/types";
+import { applyPasserLeaderDefault } from "@/lib/tagging/jerseyGridRank";
 import {
   applyResultChange,
   getAlternateResultsForPlayType,
@@ -25,6 +27,7 @@ type PassPadProps = {
   onChange: (draft: PlaylistData) => void;
   activePlayerSlot: PlayerSlotKey | null;
   onActivePlayerSlotChange: (slot: PlayerSlotKey | null) => void;
+  gamePlays: LocalPlay[];
   tackleEnd: TackleEnd;
   onTackleEndChange: (end: TackleEnd) => void;
   intSpots: InterceptionReturnSpots;
@@ -38,6 +41,7 @@ export function PassPad({
   onChange,
   activePlayerSlot,
   onActivePlayerSlotChange,
+  gamePlays,
   tackleEnd,
   onTackleEndChange,
   intSpots,
@@ -55,7 +59,11 @@ export function PassPad({
           options={alternates}
           value={draft.result}
           onChange={(result) => {
-            onChange(applyResultChange(draft, result));
+            const next = applyPasserLeaderDefault(
+              applyResultChange(draft, result),
+              gamePlays,
+            );
+            onChange(next);
             const slots = getVisiblePlayerSlots(draft.playType, result);
             onActivePlayerSlotChange(slots[0] ?? null);
           }}
@@ -94,6 +102,7 @@ export function PassPad({
         onChange={onChange}
         activePlayerSlot={activePlayerSlot}
         onActivePlayerSlotChange={onActivePlayerSlotChange}
+        gamePlays={gamePlays}
       />
     </View>
   );

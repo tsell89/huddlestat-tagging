@@ -1,5 +1,8 @@
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { JerseyQuickGrid } from "@/components/tagging/JerseyQuickGrid";
+import type { LocalPlay } from "@/lib/db/types";
+import { buildJerseyGridRankings } from "@/lib/tagging/jerseyGridRank";
 import {
   getPlayerSlotLabel,
   getVisiblePlayerSlots,
@@ -13,6 +16,7 @@ type OffensePlayerSectionProps = {
   onChange: (draft: PlaylistData) => void;
   activePlayerSlot: PlayerSlotKey | null;
   onActivePlayerSlotChange: (slot: PlayerSlotKey | null) => void;
+  gamePlays: LocalPlay[];
 };
 
 function getSlotValue(draft: PlaylistData, slot: PlayerSlotKey): PlayerRef {
@@ -36,12 +40,18 @@ export function OffensePlayerSection({
   onChange,
   activePlayerSlot,
   onActivePlayerSlotChange,
+  gamePlays,
 }: OffensePlayerSectionProps) {
   const visibleSlots = getVisiblePlayerSlots(draft.playType, draft.result);
   const activeSlot =
     activePlayerSlot && visibleSlots.includes(activePlayerSlot)
       ? activePlayerSlot
       : (visibleSlots[0] ?? null);
+
+  const jerseyEntries = useMemo(
+    () => (activeSlot ? buildJerseyGridRankings(gamePlays, activeSlot) : []),
+    [activeSlot, gamePlays],
+  );
 
   if (visibleSlots.length === 0) return null;
 
@@ -74,6 +84,7 @@ export function OffensePlayerSection({
       {activeSlot ? (
         <View style={styles.jerseyWrap}>
           <JerseyQuickGrid
+            entries={jerseyEntries}
             slotLabel={getPlayerSlotLabel(
               activeSlot,
               draft.playType,

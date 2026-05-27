@@ -2,6 +2,7 @@ import { PlayType, type PlaylistData } from "@huddlestat/shared";
 import { KickoffTaggingPad } from "@/components/tagging/KickoffTaggingPad";
 import { OffensePad } from "@/components/tagging/OffensePad";
 import { ScoringPad } from "@/components/tagging/ScoringPad";
+import type { LocalPlay } from "@/lib/db/types";
 import {
   isScoringPlayType,
   shouldShowOffensePad,
@@ -21,6 +22,7 @@ type TaggingPadProps = {
   onChange: (draft: PlaylistData) => void;
   activePlayerSlot: PlayerSlotKey | null;
   onActivePlayerSlotChange: (slot: PlayerSlotKey | null) => void;
+  gamePlays: LocalPlay[];
   kickoffSpots: KickoffReturnSpots;
   onKickoffSpotsChange: (spots: KickoffReturnSpots) => void;
   kickoffRole: KickoffRole;

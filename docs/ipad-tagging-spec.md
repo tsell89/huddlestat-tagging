@@ -1,6 +1,6 @@
 # iPad Tagging Spec (living document)
 
-> **Status:** Package H complete (2026-05-27) — live ball: INT, fumble, blocked kicks, penalties, FG no good chain. Prior: Package G (2026-05-27).
+> **Status:** Package D2 complete (2026-05-27) — usage-weighted jersey grid + passer auto-default. Prior: Package H (2026-05-27) — live ball: INT, fumble, blocked kicks, penalties, FG no good chain. Prior: Package G (2026-05-27).
 >
 > **Related:** [field-position-model.md](./field-position-model.md) · [dev-quickstart.md](./dev-quickstart.md) · [next-session-tagging-ux.md](./next-session-tagging-ux.md)
 >
@@ -381,7 +381,7 @@ API: `buildJerseyGridRankings()` in `lib/tagging/jerseyGridRank.ts`.
 | **B** | `nextDraftAfterPlay`, fix `advanceSituation`, touchback @ Own 20, unit tests |
 | **C** | `TackleSpotPanel`; remove gain slider |
 | **D** | OffensePad + RunPad + PassPad + PlayTypeRow + situational taps |
-| **D2** | Usage-weighted `JerseyQuickGrid` |
+| **D2** | Usage-weighted `JerseyQuickGrid` ✓ |
 | **E** | PuntPad |
 | **F** | FGPad |
 | **G** | **ScoringPad + kickoff team declaration** ✓ |

@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Result, type PlaylistData, type YardLine } from "@huddlestat/shared";
 import { TapGrid } from "@/components/tagging/TapGrid";
 import { OffensePlayerSection } from "@/components/tagging/OffensePlayerSection";
+import type { LocalPlay } from "@/lib/db/types";
 import { PuntReturnSpotsPanel } from "@/components/tagging/PuntReturnSpots";
 import { BlockedKickRecoverySpotsPanel } from "@/components/tagging/BlockedKickRecoverySpots";
 import { PenaltySpotPanel } from "@/components/tagging/PenaltySpotPanel";
@@ -25,6 +26,7 @@ type PuntPadProps = {
   onChange: (draft: PlaylistData) => void;
   activePlayerSlot: PlayerSlotKey | null;
   onActivePlayerSlotChange: (slot: PlayerSlotKey | null) => void;
+  gamePlays: LocalPlay[];
   puntSpots: PuntSpots;
   onPuntSpotsChange: (spots: PuntSpots) => void;
   blockedSpots: BlockedKickRecoverySpots;
@@ -38,6 +40,7 @@ export function PuntPad({
   onChange,
   activePlayerSlot,
   onActivePlayerSlotChange,
+  gamePlays,
   puntSpots,
   onPuntSpotsChange,
   blockedSpots,
@@ -114,6 +117,7 @@ export function PuntPad({
         onChange={onChange}
         activePlayerSlot={activePlayerSlot}
         onActivePlayerSlotChange={onActivePlayerSlotChange}
+        gamePlays={gamePlays}
       />
     </View>
   );
