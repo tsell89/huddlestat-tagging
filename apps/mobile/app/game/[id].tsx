@@ -48,6 +48,14 @@ import {
   type TackleEnd,
 } from "@/lib/tagging/tackleSpot";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
+import {
+  applyKickoffRole,
+  firstKickoffPlayerSlot,
+  getKickoffRole,
+  kickoffRoleFromDraft,
+  setKickoffRole,
+  type KickoffRole,
+} from "@/lib/tagging/kickoffRole";
 import { useSync } from "@/context/sync-context";
 
 function playToDraft(play: LocalPlay): PlaylistData {
@@ -77,18 +85,36 @@ function playToDraft(play: LocalPlay): PlaylistData {
   };
 }
 
+function isKickoffDraft(draft: PlaylistData): boolean {
+  return (
+    draft.playType === PlayType.Kickoff ||
+    draft.playType === PlayType.KickoffReceive
+  );
+}
+
+function withKickoffRole(draft: PlaylistData, role: KickoffRole): PlaylistData {
+  return isKickoffDraft(draft) ? applyKickoffRole(draft, role) : draft;
+}
+
 function buildLiveDraft(
   plays: LocalPlay[],
   nextNum: number,
   teamCode: string,
+  kickoffRole: KickoffRole,
 ): PlaylistData {
   const last = plays[plays.length - 1];
   if (last) {
     return ensureOffensePadDraft(
-      liveDraftFromLastPlay(playToDraft(last), nextNum, teamCode),
+      withKickoffRole(
+        liveDraftFromLastPlay(playToDraft(last), nextNum, teamCode),
+        kickoffRole,
+      ),
     );
   }
-  return defaultKickoffPlay(nextNum, teamCode, { result: Result.Return });
+  return withKickoffRole(
+    defaultKickoffPlay(nextNum, teamCode, { result: Result.Return }),
+    kickoffRole,
+  );
 }
 
 function applySpotDraft(
@@ -136,6 +162,7 @@ export default function TaggingScreen() {
   const [puntSpots, setPuntSpots] = useState<PuntSpots>(() =>
     initPuntSpotsFromDraft(null),
   );
+  const [kickoffRole, setKickoffRoleState] = useState<KickoffRole>("kick");
   const [tackleEnd, setTackleEnd] = useState<TackleEnd>(() =>
     initTackleEndFromDraft(defaultKickoffPlay(1, "WHS")),
   );
@@ -158,9 +185,11 @@ export default function TaggingScreen() {
     setUnsyncedCount(await countUnsyncedPlays(id));
     const nextNum = await getNextPlayNumber(id);
     setNextPlayNumber(nextNum);
+    const role = await getKickoffRole(id);
+    setKickoffRoleState(role);
 
     if (!offLiveRef.current) {
-      const liveDraft = buildLiveDraft(existing, nextNum, g.teamCode);
+      const liveDraft = buildLiveDraft(existing, nextNum, g.teamCode, role);
       const kickoff = initKickoffSpotsFromDraft(liveDraft);
       const punt = initPuntSpotsFromDraft(liveDraft);
       setKickoffSpots(kickoff);
@@ -193,7 +222,12 @@ export default function TaggingScreen() {
     if (!game) return;
     setEditingPlayId(null);
     setCatchUpMode(false);
-    const liveDraft = buildLiveDraft(plays, nextPlayNumber, game.teamCode);
+    const liveDraft = buildLiveDraft(
+      plays,
+      nextPlayNumber,
+      game.teamCode,
+      kickoffRole,
+    );
     const kickoff = initKickoffSpotsFromDraft(liveDraft);
     const punt = initPuntSpotsFromDraft(liveDraft);
     setKickoffSpots(kickoff);
@@ -222,7 +256,7 @@ export default function TaggingScreen() {
     if (!game) return;
     setCatchUpMode(true);
     setEditingPlayId(null);
-    const d = buildLiveDraft(plays, nextPlayNumber, game.teamCode);
+    const d = buildLiveDraft(plays, nextPlayNumber, game.teamCode, kickoffRole);
     const withNum = { ...d, playNumber: nextPlayNumber };
     const kickoff = initKickoffSpotsFromDraft(withNum);
     const punt = initPuntSpotsFromDraft(withNum);
@@ -232,6 +266,19 @@ export default function TaggingScreen() {
     setTackleEnd(end);
     setDraft(applySpotDraft(withNum, kickoff, punt, end));
     setActivePlayerSlot(firstPlayerSlot(withNum));
+  }
+
+  function handleKickoffRoleChange(role: KickoffRole) {
+    setKickoffRoleState(role);
+    if (id) {
+      void setKickoffRole(id, role);
+    }
+    setDraft((d) => {
+      if (!d || !isKickoffDraft(d)) return d;
+      const next = applyKickoffRole(d, role);
+      setActivePlayerSlot(firstKickoffPlayerSlot(next));
+      return next;
+    });
   }
 
   function handleKickoffSpotsChange(spots: KickoffReturnSpots) {
@@ -330,7 +377,12 @@ export default function TaggingScreen() {
         setCatchUpMode(false);
         const nextNum = await getNextPlayNumber(id);
         setNextPlayNumber(nextNum);
-        const liveDraft = buildLiveDraft(newPlays, nextNum, game.teamCode);
+        const liveDraft = buildLiveDraft(
+          newPlays,
+          nextNum,
+          game.teamCode,
+          kickoffRole,
+        );
         const kickoff = initKickoffSpotsFromDraft(liveDraft);
         const punt = initPuntSpotsFromDraft(liveDraft);
         setKickoffSpots(kickoff);
@@ -344,8 +396,11 @@ export default function TaggingScreen() {
         setPlays((prev) => [...prev, saved]);
         const nextNum = draft.playNumber + 1;
         setNextPlayNumber(nextNum);
-        const next = ensureOffensePadDraft(
-          nextDraftAfterPlay(toSave, nextNum, game.teamCode),
+        const next = withKickoffRole(
+          ensureOffensePadDraft(
+            nextDraftAfterPlay(toSave, nextNum, game.teamCode),
+          ),
+          kickoffRole,
         );
         const kickoff = initKickoffSpotsFromDraft(next);
         const punt = initPuntSpotsFromDraft(next);
@@ -393,6 +448,10 @@ export default function TaggingScreen() {
             onActivePlayerSlotChange={setActivePlayerSlot}
             kickoffSpots={kickoffSpots}
             onKickoffSpotsChange={handleKickoffSpotsChange}
+            kickoffRole={
+              isKickoffDraft(draft) ? kickoffRoleFromDraft(draft) : kickoffRole
+            }
+            onKickoffRoleChange={handleKickoffRoleChange}
             puntSpots={puntSpots}
             onPuntSpotsChange={handlePuntSpotsChange}
             tackleEnd={tackleEnd}

@@ -37,6 +37,39 @@ export function defaultKickoffPlay(
   };
 }
 
+/** Scoring snap after a touchdown (XP/2pt or block by ODK). */
+export function defaultScoringPlayAfterTd(
+  playNumber: number,
+  team: string,
+  odk: (typeof ODK)[keyof typeof ODK],
+): PlaylistData {
+  const defense = odk === ODK.Defense;
+  const playType = defense ? PlayType.ExtraPointBlock : PlayType.ExtraPoint;
+  const result = defense ? Result.Blocked : Result.Good;
+  return {
+    ...defaultOffensivePlay(playNumber, team),
+    odk,
+    playType,
+    result,
+    yardLine: XP_YARD_LINE,
+    down: 1,
+    distance: 1,
+    gainLoss: 0,
+    passer: emptyPlayerRef,
+    receiver: emptyPlayerRef,
+    rusher: emptyPlayerRef,
+    tackler1: emptyPlayerRef,
+    tackler2: emptyPlayerRef,
+    recoveredBy: emptyPlayerRef,
+    returner: emptyPlayerRef,
+    kicker: emptyPlayerRef,
+    interceptedBy: emptyPlayerRef,
+    completion: undefined,
+    returnYards: undefined,
+    kickYards: undefined,
+  };
+}
+
 /** Defaults for a new offensive snap (caller fills playNumber + team) */
 export function defaultOffensivePlay(
   playNumber: number,

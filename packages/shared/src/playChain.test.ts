@@ -106,6 +106,100 @@ describe("canonical drive (spec §2.4)", () => {
   });
 });
 
+describe("TD → scoring → kickoff chain", () => {
+  test("rush TD (offense) → Extra Pt. Good pre-loaded", () => {
+    const td = basePlay({
+      playNumber: 3,
+      playType: PlayType.Run,
+      result: Result.RushTd,
+      yardLine: 5,
+      down: 1,
+      distance: 10,
+      gainLoss: 5,
+      odk: ODK.Offense,
+    });
+
+    const scoring = nextDraftAfterPlay(td, 4, TEAM);
+    assert.equal(scoring.playType, PlayType.ExtraPoint);
+    assert.equal(scoring.result, Result.Good);
+    assert.equal(scoring.odk, ODK.Offense);
+    assert.equal(scoring.yardLine, 3);
+    assert.equal(scoring.playNumber, 4);
+  });
+
+  test("complete TD (offense) → Extra Pt. Good pre-loaded", () => {
+    const td = basePlay({
+      playNumber: 7,
+      playType: PlayType.Pass,
+      result: Result.CompleteTd,
+      yardLine: 12,
+      down: 2,
+      distance: 8,
+      gainLoss: 12,
+      odk: ODK.Offense,
+    });
+
+    const scoring = nextDraftAfterPlay(td, 8, TEAM);
+    assert.equal(scoring.playType, PlayType.ExtraPoint);
+    assert.equal(scoring.result, Result.Good);
+  });
+
+  test("rush TD (defense perspective) → Extra Pt. Block pre-loaded", () => {
+    const td = basePlay({
+      playNumber: 10,
+      playType: PlayType.Run,
+      result: Result.RushTd,
+      yardLine: -5,
+      down: 1,
+      distance: 10,
+      gainLoss: 5,
+      odk: ODK.Defense,
+    });
+
+    const scoring = nextDraftAfterPlay(td, 11, TEAM);
+    assert.equal(scoring.playType, PlayType.ExtraPointBlock);
+    assert.equal(scoring.result, Result.Blocked);
+    assert.equal(scoring.odk, ODK.Defense);
+  });
+
+  test("XP Good → kickoff", () => {
+    const xp = basePlay({
+      playNumber: 4,
+      playType: PlayType.ExtraPoint,
+      result: Result.Good,
+      yardLine: 3,
+      down: 1,
+      distance: 1,
+      gainLoss: 0,
+      odk: ODK.Offense,
+      kicker: { jersey: "3", name: "Kicker" },
+    });
+
+    const ko = nextDraftAfterPlay(xp, 5, TEAM);
+    assert.equal(ko.playType, PlayType.Kickoff);
+    assert.equal(ko.odk, ODK.Kicking);
+    assert.equal(ko.down, 0);
+    assert.equal(ko.playNumber, 5);
+  });
+
+  test("2 Pt. Good → kickoff", () => {
+    const twoPt = basePlay({
+      playNumber: 6,
+      playType: PlayType.TwoPoint,
+      result: Result.Good,
+      yardLine: 1,
+      down: 1,
+      distance: 2,
+      gainLoss: 0,
+      odk: ODK.Offense,
+    });
+
+    const ko = nextDraftAfterPlay(twoPt, 7, TEAM);
+    assert.equal(ko.playType, PlayType.Kickoff);
+    assert.equal(ko.odk, ODK.Kicking);
+  });
+});
+
 describe("touchback @ Own 20 (HS)", () => {
   test("kickoff touchback places next snap at Own 20", () => {
     const ko = {

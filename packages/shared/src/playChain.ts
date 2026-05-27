@@ -7,6 +7,7 @@ import {
 import {
   defaultKickoffPlay,
   defaultOffensivePlay,
+  defaultScoringPlayAfterTd,
 } from "./defaults.js";
 import type { PlaylistData, YardLine } from "./index.js";
 import {
@@ -97,6 +98,10 @@ function isKickoffPlay(playType: PlaylistData["playType"]): boolean {
   return (
     playType === PlayType.Kickoff || playType === PlayType.KickoffReceive
   );
+}
+
+function isTouchdownResult(result: PlaylistData["result"]): boolean {
+  return result === Result.RushTd || result === Result.CompleteTd;
 }
 
 function isScoringGood(play: Pick<PlaylistData, "playType" | "result">): boolean {
@@ -238,6 +243,10 @@ export function nextDraftAfterPlay(
 
   if (isScoringGood(play)) {
     return defaultKickoffPlay(nextPlayNumber, team);
+  }
+
+  if (isTouchdownResult(play.result) && isScrimmagePlay(play.playType)) {
+    return defaultScoringPlayAfterTd(nextPlayNumber, team, play.odk);
   }
 
   const situation = advanceSituation(play);
