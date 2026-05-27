@@ -486,6 +486,44 @@ describe("Package H — live ball", () => {
     assert.equal(next.down, 1);
   });
 
+  test("blocked FG → possession @ return end", () => {
+    const fg = basePlay({
+      playType: PlayType.FieldGoal,
+      result: Result.Blocked,
+      yardLine: 28,
+      down: 4,
+      distance: 13,
+      completion: "recover:15|end:-32",
+      returnYards: 47,
+      gainLoss: -60,
+      odk: ODK.Offense,
+    });
+
+    assert.equal(yardLineAfterPlay(fg), -32);
+    const next = nextDraftAfterPlay(fg, 5, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.yardLine, 32);
+    assert.equal(next.down, 1);
+  });
+
+  test("fumble safety → turnover @ own goal", () => {
+    const fumble = basePlay({
+      playType: PlayType.Run,
+      result: Result.Fumble,
+      yardLine: -25,
+      down: 2,
+      distance: 7,
+      completion: "fumble:-22|recover:5|end:SA|by:D",
+      gainLoss: -27,
+      odk: ODK.Offense,
+    });
+
+    assert.equal(yardLineAfterPlay(fumble), 0);
+    const next = nextDraftAfterPlay(fumble, 6, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.yardLine, 0);
+  });
+
   test("holding penalty replays same down from spot of foul", () => {
     const penalty = basePlay({
       playType: PlayType.Run,

@@ -104,9 +104,12 @@ function decodeBlockedKickEnd(completion?: string): YardLine | null {
 
 export type FumbleRecoverySide = "offense" | "defense";
 
+export type FumbleEndKind = "yardline" | "touchdown" | "safety";
+
 export type FumbleCompletion = {
   fumbleAt: YardLine;
   endYardLine: YardLine;
+  endKind: FumbleEndKind;
   recoveredAt?: YardLine;
   recoveredBy: FumbleRecoverySide;
 };
@@ -124,13 +127,18 @@ export function decodeFumbleCompletion(
   const fumbleAt = Number(match[1]) as YardLine;
   const recoveredAt = match[2] ? (Number(match[2]) as YardLine) : undefined;
   const endToken = match[3];
+  const endKind: FumbleEndKind =
+    endToken === "TD"
+      ? "touchdown"
+      : endToken === "SA"
+        ? "safety"
+        : "yardline";
   const endYardLine =
-    endToken === "TD" || endToken === "SA"
-      ? 0
-      : (Number(endToken) as YardLine);
+    endKind === "yardline" ? (Number(endToken) as YardLine) : 0;
   return {
     fumbleAt,
     endYardLine,
+    endKind,
     recoveredAt,
     recoveredBy: match[4] === "O" ? "offense" : "defense",
   };

@@ -18,6 +18,7 @@ import {
 import {
   clampToRange,
   returnEndHudlYardLine,
+  returnEndZoneSide,
   type ReturnEnd,
 } from "@/lib/tagging/kickoffReturn";
 
@@ -64,15 +65,17 @@ export function decodeFumbleSpotsFromCompletion(
 ): FumbleRecoverySpots | null {
   const decoded = decodeFumbleCompletion(completion);
   if (!decoded) return null;
-  const end: ReturnEnd =
-    decoded.endYardLine === 0
+  const returnEnd: ReturnEnd =
+    decoded.endKind === "touchdown"
       ? { kind: "touchdown" }
-      : { kind: "yardline", yardLine: decoded.endYardLine };
+      : decoded.endKind === "safety"
+        ? { kind: "safety" }
+        : { kind: "yardline", yardLine: decoded.endYardLine };
   return {
     fumbleAt: decoded.fumbleAt,
     recoveredBy: decoded.recoveredBy,
     recoveredAt: decoded.recoveredAt ?? decoded.endYardLine,
-    returnEnd: end,
+    returnEnd,
   };
 }
 
@@ -103,7 +106,11 @@ export function applyFumbleSpotsToDraft(
     return draft;
   }
   const endYard = returnEndHudlYardLine(spots.returnEnd);
-  const gainLoss = yardsAdvanced(draft.yardLine, endYard);
+  const gainLoss = yardsAdvanced(
+    draft.yardLine,
+    endYard,
+    returnEndZoneSide(spots.returnEnd),
+  );
   return {
     ...draft,
     gainLoss,
