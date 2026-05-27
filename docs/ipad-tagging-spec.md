@@ -1,6 +1,6 @@
 # iPad Tagging Spec (living document)
 
-> **Status:** Package G complete (2026-05-27) — ScoringPad, TD→XP chain, kickoff we kick/we receive. Prior: Package A (2026-05-28).
+> **Status:** Package H complete (2026-05-27) — live ball: INT, fumble, blocked kicks, penalties, FG no good chain. Prior: Package G (2026-05-27).
 >
 > **Related:** [field-position-model.md](./field-position-model.md) · [dev-quickstart.md](./dev-quickstart.md) · [next-session-tagging-ux.md](./next-session-tagging-ux.md)
 >
@@ -318,7 +318,7 @@ API: `buildJerseyGridRankings()` in `lib/tagging/jerseyGridRank.ts`.
 | 2 Pt. | Good | Scoring | Kickoff |
 | 2 Pt. Block | Blocked | Scoring | Kickoff |
 
-**Remaining code gaps:** live ball (pkg H), XP/2pt no-good on offense, kickoff return TD → scoring, post-block kickoff edge cases (§10).
+**Remaining code gaps:** XP/2pt no-good on offense, kickoff return TD → scoring, post-block kickoff edge cases (§10).
 
 ---
 
@@ -385,7 +385,7 @@ API: `buildJerseyGridRankings()` in `lib/tagging/jerseyGridRank.ts`.
 | **E** | PuntPad |
 | **F** | FGPad |
 | **G** | **ScoringPad + kickoff team declaration** ✓ |
-| **H** | Live ball: fumble, INT, blocked kicks, penalties |
+| **H** | **Live ball: fumble, INT, blocked kicks, penalties** ✓ |
 | **I** | iPad QA drive |
 
 **Deferred:** stats revisit UX (quarter/halftime), fake punt/FG, full penalty library, KO penalty edge cases.

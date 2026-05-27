@@ -47,6 +47,25 @@ import {
   needsTackleSpot,
   type TackleEnd,
 } from "@/lib/tagging/tackleSpot";
+import {
+  applyInterceptionSpotsToDraft,
+  initInterceptionSpotsFromDraft,
+  type InterceptionReturnSpots,
+} from "@/lib/tagging/interceptionReturn";
+import {
+  applyFumbleSpotsToDraft,
+  initFumbleSpotsFromDraft,
+  type FumbleRecoverySpots,
+} from "@/lib/tagging/fumbleRecovery";
+import {
+  applyBlockedKickSpotsToDraft,
+  initBlockedKickSpotsFromDraft,
+  type BlockedKickRecoverySpots,
+} from "@/lib/tagging/blockedKickRecovery";
+import {
+  applyPenaltySpotToDraft,
+  initPenaltyFoulSpotFromDraft,
+} from "@/lib/tagging/penaltySpot";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 import {
   applyKickoffRole,
@@ -117,18 +136,43 @@ function buildLiveDraft(
   );
 }
 
+function initLiveBallSpotsFromDraft(draft: PlaylistData | null) {
+  return {
+    intSpots: initInterceptionSpotsFromDraft(draft),
+    fumbleSpots: initFumbleSpotsFromDraft(draft),
+    blockedSpots: initBlockedKickSpotsFromDraft(draft),
+    penaltyFoulSpot: initPenaltyFoulSpotFromDraft(draft),
+  };
+}
+
 function applySpotDraft(
   draft: PlaylistData,
   kickoff: KickoffReturnSpots,
   punt: PuntSpots,
   end: TackleEnd,
+  intSpots: InterceptionReturnSpots,
+  fumbleSpots: FumbleRecoverySpots,
+  blockedSpots: BlockedKickRecoverySpots,
+  penaltyFoulSpot: number,
 ) {
-  return applyTackleSpotToDraft(
-    applyPuntSpotsToDraft(
-      applyKickoffSpotsToDraft(ensureOffensePadDraft(draft), kickoff),
-      punt,
+  return applyPenaltySpotToDraft(
+    applyBlockedKickSpotsToDraft(
+      applyFumbleSpotsToDraft(
+        applyInterceptionSpotsToDraft(
+          applyTackleSpotToDraft(
+            applyPuntSpotsToDraft(
+              applyKickoffSpotsToDraft(ensureOffensePadDraft(draft), kickoff),
+              punt,
+            ),
+            end,
+          ),
+          intSpots,
+        ),
+        fumbleSpots,
+      ),
+      blockedSpots,
     ),
-    end,
+    penaltyFoulSpot as PlaylistData["yardLine"],
   );
 }
 
@@ -166,6 +210,18 @@ export default function TaggingScreen() {
   const [tackleEnd, setTackleEnd] = useState<TackleEnd>(() =>
     initTackleEndFromDraft(defaultKickoffPlay(1, "WHS")),
   );
+  const [intSpots, setIntSpots] = useState<InterceptionReturnSpots>(() =>
+    initInterceptionSpotsFromDraft(null),
+  );
+  const [fumbleSpots, setFumbleSpots] = useState<FumbleRecoverySpots>(() =>
+    initFumbleSpotsFromDraft(null),
+  );
+  const [blockedSpots, setBlockedSpots] = useState<BlockedKickRecoverySpots>(() =>
+    initBlockedKickSpotsFromDraft(null),
+  );
+  const [penaltyFoulSpot, setPenaltyFoulSpot] = useState<number>(() =>
+    initPenaltyFoulSpotFromDraft(null),
+  );
   const offLiveRef = useRef(false);
 
   useEffect(() => {
@@ -196,7 +252,23 @@ export default function TaggingScreen() {
       setPuntSpots(punt);
       const end = initTackleEndFromDraft(liveDraft);
       setTackleEnd(end);
-      setDraft(applySpotDraft(liveDraft, kickoff, punt, end));
+      const liveBall = initLiveBallSpotsFromDraft(liveDraft);
+      setIntSpots(liveBall.intSpots);
+      setFumbleSpots(liveBall.fumbleSpots);
+      setBlockedSpots(liveBall.blockedSpots);
+      setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
+      setDraft(
+        applySpotDraft(
+          liveDraft,
+          kickoff,
+          punt,
+          end,
+          liveBall.intSpots,
+          liveBall.fumbleSpots,
+          liveBall.blockedSpots,
+          liveBall.penaltyFoulSpot,
+        ),
+      );
       setActivePlayerSlot(firstPlayerSlot(liveDraft));
     }
   }, [id]);
@@ -234,7 +306,23 @@ export default function TaggingScreen() {
     setPuntSpots(punt);
     const end = initTackleEndFromDraft(liveDraft);
     setTackleEnd(end);
-    setDraft(applySpotDraft(liveDraft, kickoff, punt, end));
+    const liveBall = initLiveBallSpotsFromDraft(liveDraft);
+    setIntSpots(liveBall.intSpots);
+    setFumbleSpots(liveBall.fumbleSpots);
+    setBlockedSpots(liveBall.blockedSpots);
+    setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
+    setDraft(
+      applySpotDraft(
+        liveDraft,
+        kickoff,
+        punt,
+        end,
+        liveBall.intSpots,
+        liveBall.fumbleSpots,
+        liveBall.blockedSpots,
+        liveBall.penaltyFoulSpot,
+      ),
+    );
     setActivePlayerSlot(firstPlayerSlot(liveDraft));
   }
 
@@ -248,7 +336,23 @@ export default function TaggingScreen() {
     setPuntSpots(punt);
     const end = initTackleEndFromDraft(d);
     setTackleEnd(end);
-    setDraft(applySpotDraft(d, kickoff, punt, end));
+    const liveBall = initLiveBallSpotsFromDraft(d);
+    setIntSpots(liveBall.intSpots);
+    setFumbleSpots(liveBall.fumbleSpots);
+    setBlockedSpots(liveBall.blockedSpots);
+    setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
+    setDraft(
+      applySpotDraft(
+        d,
+        kickoff,
+        punt,
+        end,
+        liveBall.intSpots,
+        liveBall.fumbleSpots,
+        liveBall.blockedSpots,
+        liveBall.penaltyFoulSpot,
+      ),
+    );
     setActivePlayerSlot(firstPlayerSlot(d));
   }
 
@@ -264,7 +368,23 @@ export default function TaggingScreen() {
     setPuntSpots(punt);
     const end = initTackleEndFromDraft(withNum);
     setTackleEnd(end);
-    setDraft(applySpotDraft(withNum, kickoff, punt, end));
+    const liveBall = initLiveBallSpotsFromDraft(withNum);
+    setIntSpots(liveBall.intSpots);
+    setFumbleSpots(liveBall.fumbleSpots);
+    setBlockedSpots(liveBall.blockedSpots);
+    setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
+    setDraft(
+      applySpotDraft(
+        withNum,
+        kickoff,
+        punt,
+        end,
+        liveBall.intSpots,
+        liveBall.fumbleSpots,
+        liveBall.blockedSpots,
+        liveBall.penaltyFoulSpot,
+      ),
+    );
     setActivePlayerSlot(firstPlayerSlot(withNum));
   }
 
@@ -292,6 +412,28 @@ export default function TaggingScreen() {
   function handleTackleEndChange(end: TackleEnd) {
     setTackleEnd(end);
     setDraft((d) => (d ? applyTackleSpotToDraft(d, end) : d));
+  }
+
+  function handleIntSpotsChange(spots: InterceptionReturnSpots) {
+    setIntSpots(spots);
+    setDraft((d) => (d ? applyInterceptionSpotsToDraft(d, spots) : d));
+  }
+
+  function handleFumbleSpotsChange(spots: FumbleRecoverySpots) {
+    setFumbleSpots(spots);
+    setDraft((d) => (d ? applyFumbleSpotsToDraft(d, spots) : d));
+  }
+
+  function handleBlockedSpotsChange(spots: BlockedKickRecoverySpots) {
+    setBlockedSpots(spots);
+    setDraft((d) => (d ? applyBlockedKickSpotsToDraft(d, spots) : d));
+  }
+
+  function handlePenaltyFoulSpotChange(spot: number) {
+    setPenaltyFoulSpot(spot);
+    setDraft((d) =>
+      d ? applyPenaltySpotToDraft(d, spot as PlaylistData["yardLine"]) : d,
+    );
   }
 
   function handleDraftChange(next: PlaylistData) {
@@ -336,8 +478,128 @@ export default function TaggingScreen() {
       return;
     }
 
+    if (isPunt && next.result === Result.Blocked) {
+      const spotInputsChanged =
+        draft?.playType !== next.playType ||
+        draft?.result !== next.result ||
+        draft?.yardLine !== next.yardLine;
+
+      if (spotInputsChanged) {
+        const spots = initBlockedKickSpotsFromDraft(next);
+        setBlockedSpots(spots);
+        setDraft(applyBlockedKickSpotsToDraft(next, spots));
+      } else {
+        setDraft(applyBlockedKickSpotsToDraft(next, blockedSpots));
+      }
+      return;
+    }
+
+    if (isPunt && next.result === Result.Penalty) {
+      const spotInputsChanged =
+        draft?.playType !== next.playType ||
+        draft?.result !== next.result ||
+        draft?.yardLine !== next.yardLine;
+
+      if (spotInputsChanged) {
+        const foul = initPenaltyFoulSpotFromDraft(next);
+        setPenaltyFoulSpot(foul);
+        setDraft(applyPenaltySpotToDraft(next, foul));
+      } else {
+        setDraft(
+          applyPenaltySpotToDraft(
+            next,
+            penaltyFoulSpot as PlaylistData["yardLine"],
+          ),
+        );
+      }
+      return;
+    }
+
     if (isPunt) {
       setDraft(next);
+      return;
+    }
+
+    if (
+      next.playType === PlayType.Pass &&
+      next.result === Result.Interception
+    ) {
+      const spotInputsChanged =
+        draft?.playType !== next.playType ||
+        draft?.result !== next.result ||
+        draft?.yardLine !== next.yardLine;
+
+      if (spotInputsChanged) {
+        const spots = initInterceptionSpotsFromDraft(next);
+        setIntSpots(spots);
+        setDraft(applyInterceptionSpotsToDraft(next, spots));
+      } else {
+        setDraft(applyInterceptionSpotsToDraft(next, intSpots));
+      }
+      return;
+    }
+
+    if (
+      (next.playType === PlayType.Run || next.playType === PlayType.Pass) &&
+      next.result === Result.Fumble
+    ) {
+      const spotInputsChanged =
+        draft?.playType !== next.playType ||
+        draft?.result !== next.result ||
+        draft?.yardLine !== next.yardLine;
+
+      if (spotInputsChanged) {
+        const spots = initFumbleSpotsFromDraft(next);
+        setFumbleSpots(spots);
+        setDraft(applyFumbleSpotsToDraft(next, spots));
+      } else {
+        setDraft(applyFumbleSpotsToDraft(next, fumbleSpots));
+      }
+      return;
+    }
+
+    if (
+      (next.playType === PlayType.Run ||
+        next.playType === PlayType.Pass ||
+        next.playType === PlayType.FieldGoal) &&
+      next.result === Result.Penalty
+    ) {
+      const spotInputsChanged =
+        draft?.playType !== next.playType ||
+        draft?.result !== next.result ||
+        draft?.yardLine !== next.yardLine;
+
+      if (spotInputsChanged) {
+        const foul = initPenaltyFoulSpotFromDraft(next);
+        setPenaltyFoulSpot(foul);
+        setDraft(applyPenaltySpotToDraft(next, foul));
+      } else {
+        setDraft(
+          applyPenaltySpotToDraft(
+            next,
+            penaltyFoulSpot as PlaylistData["yardLine"],
+          ),
+        );
+      }
+      return;
+    }
+
+    if (
+      next.playType === PlayType.FieldGoal &&
+      next.result === Result.Blocked
+    ) {
+      const spotInputsChanged =
+        draft?.playType !== next.playType ||
+        draft?.result !== next.result ||
+        draft?.yardLine !== next.yardLine;
+
+      if (spotInputsChanged) {
+        const spots = initBlockedKickSpotsFromDraft(next);
+        setBlockedSpots(spots);
+        setDraft(applyBlockedKickSpotsToDraft(next, spots));
+      } else {
+        setDraft(applyBlockedKickSpotsToDraft(next, blockedSpots));
+      }
       return;
     }
 
@@ -387,7 +649,23 @@ export default function TaggingScreen() {
         setPuntSpots(punt);
         const end = initTackleEndFromDraft(liveDraft);
         setTackleEnd(end);
-        setDraft(applySpotDraft(liveDraft, kickoff, punt, end));
+        const liveBall = initLiveBallSpotsFromDraft(liveDraft);
+        setIntSpots(liveBall.intSpots);
+        setFumbleSpots(liveBall.fumbleSpots);
+        setBlockedSpots(liveBall.blockedSpots);
+        setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
+        setDraft(
+          applySpotDraft(
+            liveDraft,
+            kickoff,
+            punt,
+            end,
+            liveBall.intSpots,
+            liveBall.fumbleSpots,
+            liveBall.blockedSpots,
+            liveBall.penaltyFoulSpot,
+          ),
+        );
         setActivePlayerSlot(firstPlayerSlot(liveDraft));
       } else {
         const saved = await saveLocalPlay(id, toSave);
@@ -406,7 +684,23 @@ export default function TaggingScreen() {
         setPuntSpots(punt);
         const end = initTackleEndFromDraft(next);
         setTackleEnd(end);
-        setDraft(applySpotDraft(next, kickoff, punt, end));
+        const liveBall = initLiveBallSpotsFromDraft(next);
+        setIntSpots(liveBall.intSpots);
+        setFumbleSpots(liveBall.fumbleSpots);
+        setBlockedSpots(liveBall.blockedSpots);
+        setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
+        setDraft(
+          applySpotDraft(
+            next,
+            kickoff,
+            punt,
+            end,
+            liveBall.intSpots,
+            liveBall.fumbleSpots,
+            liveBall.blockedSpots,
+            liveBall.penaltyFoulSpot,
+          ),
+        );
         setActivePlayerSlot(firstPlayerSlot(next));
         setCatchUpMode(false);
       }
@@ -454,6 +748,14 @@ export default function TaggingScreen() {
             onPuntSpotsChange={handlePuntSpotsChange}
             tackleEnd={tackleEnd}
             onTackleEndChange={handleTackleEndChange}
+            intSpots={intSpots}
+            onIntSpotsChange={handleIntSpotsChange}
+            fumbleSpots={fumbleSpots}
+            onFumbleSpotsChange={handleFumbleSpotsChange}
+            blockedSpots={blockedSpots}
+            onBlockedSpotsChange={handleBlockedSpotsChange}
+            penaltyFoulSpot={penaltyFoulSpot}
+            onPenaltyFoulSpotChange={handlePenaltyFoulSpotChange}
           />
         </View>
 

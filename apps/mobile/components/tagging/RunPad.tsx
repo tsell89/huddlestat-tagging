@@ -1,7 +1,9 @@
-import { StyleSheet, Text, View } from "react-native";
-import { Result, type PlaylistData } from "@huddlestat/shared";
+import { StyleSheet, View } from "react-native";
+import { Result, type PlaylistData, type YardLine } from "@huddlestat/shared";
 import { TapGrid } from "@/components/tagging/TapGrid";
 import { TackleSpotPanel } from "@/components/tagging/TackleSpotPanel";
+import { FumbleRecoverySpotsPanel } from "@/components/tagging/FumbleRecoverySpots";
+import { PenaltySpotPanel } from "@/components/tagging/PenaltySpotPanel";
 import { OffensePlayerSection } from "@/components/tagging/OffensePlayerSection";
 import {
   applyResultChange,
@@ -14,6 +16,7 @@ import {
   isTouchdownTackleResult,
   type TackleEnd,
 } from "@/lib/tagging/tackleSpot";
+import type { FumbleRecoverySpots } from "@/lib/tagging/fumbleRecovery";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 type RunPadProps = {
@@ -23,6 +26,10 @@ type RunPadProps = {
   onActivePlayerSlotChange: (slot: PlayerSlotKey | null) => void;
   tackleEnd: TackleEnd;
   onTackleEndChange: (end: TackleEnd) => void;
+  fumbleSpots: FumbleRecoverySpots;
+  onFumbleSpotsChange: (spots: FumbleRecoverySpots) => void;
+  penaltyFoulSpot: YardLine;
+  onPenaltyFoulSpotChange: (spot: YardLine) => void;
 };
 
 export function RunPad({
@@ -32,6 +39,10 @@ export function RunPad({
   onActivePlayerSlotChange,
   tackleEnd,
   onTackleEndChange,
+  fumbleSpots,
+  onFumbleSpotsChange,
+  penaltyFoulSpot,
+  onPenaltyFoulSpotChange,
 }: RunPadProps) {
   const alternates = getAlternateResultsForPlayType(draft.playType);
   const showTackleSpot = needsTackleSpot(draft.playType, draft.result);
@@ -62,16 +73,18 @@ export function RunPad({
           />
         </View>
       ) : draft.result === Result.Fumble ? (
-        <View style={styles.deferredNote}>
-          <Text style={styles.deferredText}>
-            Fumble recovery spots — Package H
-          </Text>
+        <View style={styles.section}>
+          <FumbleRecoverySpotsPanel
+            spots={fumbleSpots}
+            onChange={onFumbleSpotsChange}
+          />
         </View>
       ) : draft.result === Result.Penalty ? (
-        <View style={styles.deferredNote}>
-          <Text style={styles.deferredText}>
-            Penalty spot — Package H
-          </Text>
+        <View style={styles.section}>
+          <PenaltySpotPanel
+            foulSpot={penaltyFoulSpot}
+            onChange={onPenaltyFoulSpotChange}
+          />
         </View>
       ) : null}
 

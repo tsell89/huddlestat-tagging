@@ -1,8 +1,10 @@
 import { StyleSheet, Text, View } from "react-native";
-import { Result, type PlaylistData } from "@huddlestat/shared";
+import { Result, type PlaylistData, type YardLine } from "@huddlestat/shared";
 import { TapGrid } from "@/components/tagging/TapGrid";
 import { OffensePlayerSection } from "@/components/tagging/OffensePlayerSection";
 import { PuntReturnSpotsPanel } from "@/components/tagging/PuntReturnSpots";
+import { BlockedKickRecoverySpotsPanel } from "@/components/tagging/BlockedKickRecoverySpots";
+import { PenaltySpotPanel } from "@/components/tagging/PenaltySpotPanel";
 import { FieldPositionSlider } from "@/components/tagging/FieldPositionSlider";
 import {
   applyResultChange,
@@ -15,6 +17,7 @@ import {
   downedYardLineToRatio,
   type PuntSpots,
 } from "@/lib/tagging/puntReturn";
+import type { BlockedKickRecoverySpots } from "@/lib/tagging/blockedKickRecovery";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 type PuntPadProps = {
@@ -24,6 +27,10 @@ type PuntPadProps = {
   onActivePlayerSlotChange: (slot: PlayerSlotKey | null) => void;
   puntSpots: PuntSpots;
   onPuntSpotsChange: (spots: PuntSpots) => void;
+  blockedSpots: BlockedKickRecoverySpots;
+  onBlockedSpotsChange: (spots: BlockedKickRecoverySpots) => void;
+  penaltyFoulSpot: YardLine;
+  onPenaltyFoulSpotChange: (spot: YardLine) => void;
 };
 
 export function PuntPad({
@@ -33,6 +40,10 @@ export function PuntPad({
   onActivePlayerSlotChange,
   puntSpots,
   onPuntSpotsChange,
+  blockedSpots,
+  onBlockedSpotsChange,
+  penaltyFoulSpot,
+  onPenaltyFoulSpotChange,
 }: PuntPadProps) {
   const alternates = getAlternateResultsForPlayType(draft.playType);
 
@@ -83,14 +94,18 @@ export function PuntPad({
           </Text>
         </View>
       ) : draft.result === Result.Blocked ? (
-        <View style={styles.note}>
-          <Text style={styles.noteText}>
-            Blocked punt recovery — Package H
-          </Text>
+        <View style={styles.section}>
+          <BlockedKickRecoverySpotsPanel
+            spots={blockedSpots}
+            onChange={onBlockedSpotsChange}
+          />
         </View>
       ) : draft.result === Result.Penalty ? (
-        <View style={styles.note}>
-          <Text style={styles.noteText}>Penalty spot — Package H</Text>
+        <View style={styles.section}>
+          <PenaltySpotPanel
+            foulSpot={penaltyFoulSpot}
+            onChange={onPenaltyFoulSpotChange}
+          />
         </View>
       ) : null}
 

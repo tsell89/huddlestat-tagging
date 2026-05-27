@@ -11,6 +11,10 @@ import type { KickoffReturnSpots } from "@/lib/tagging/kickoffReturn";
 import type { KickoffRole } from "@/lib/tagging/kickoffRole";
 import type { PuntSpots } from "@/lib/tagging/puntReturn";
 import type { TackleEnd } from "@/lib/tagging/tackleSpot";
+import type { InterceptionReturnSpots } from "@/lib/tagging/interceptionReturn";
+import type { FumbleRecoverySpots } from "@/lib/tagging/fumbleRecovery";
+import type { BlockedKickRecoverySpots } from "@/lib/tagging/blockedKickRecovery";
+import type { YardLine } from "@huddlestat/shared";
 
 type TaggingPadProps = {
   draft: PlaylistData;
@@ -25,6 +29,14 @@ type TaggingPadProps = {
   onPuntSpotsChange: (spots: PuntSpots) => void;
   tackleEnd: TackleEnd;
   onTackleEndChange: (end: TackleEnd) => void;
+  intSpots: InterceptionReturnSpots;
+  onIntSpotsChange: (spots: InterceptionReturnSpots) => void;
+  fumbleSpots: FumbleRecoverySpots;
+  onFumbleSpotsChange: (spots: FumbleRecoverySpots) => void;
+  blockedSpots: BlockedKickRecoverySpots;
+  onBlockedSpotsChange: (spots: BlockedKickRecoverySpots) => void;
+  penaltyFoulSpot: YardLine;
+  onPenaltyFoulSpotChange: (spot: YardLine) => void;
 };
 
 function isKickoffPlay(draft: PlaylistData): boolean {

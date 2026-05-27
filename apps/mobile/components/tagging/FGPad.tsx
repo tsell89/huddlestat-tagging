@@ -1,7 +1,9 @@
 import { StyleSheet, Text, View } from "react-native";
-import { Result, type PlaylistData } from "@huddlestat/shared";
+import { Result, type PlaylistData, type YardLine } from "@huddlestat/shared";
 import { TapGrid } from "@/components/tagging/TapGrid";
 import { OffensePlayerSection } from "@/components/tagging/OffensePlayerSection";
+import { BlockedKickRecoverySpotsPanel } from "@/components/tagging/BlockedKickRecoverySpots";
+import { PenaltySpotPanel } from "@/components/tagging/PenaltySpotPanel";
 import {
   applyResultChange,
   getAlternateResultsForPlayType,
@@ -17,12 +19,17 @@ import {
   type FgNoGoodChoice,
 } from "@/lib/tagging/fieldGoal";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
+import type { BlockedKickRecoverySpots } from "@/lib/tagging/blockedKickRecovery";
 
 type FGPadProps = {
   draft: PlaylistData;
   onChange: (draft: PlaylistData) => void;
   activePlayerSlot: PlayerSlotKey | null;
   onActivePlayerSlotChange: (slot: PlayerSlotKey | null) => void;
+  blockedSpots: BlockedKickRecoverySpots;
+  onBlockedSpotsChange: (spots: BlockedKickRecoverySpots) => void;
+  penaltyFoulSpot: YardLine;
+  onPenaltyFoulSpotChange: (spot: YardLine) => void;
 };
 
 function withKickYards(draft: PlaylistData): PlaylistData {
@@ -34,6 +41,10 @@ export function FGPad({
   onChange,
   activePlayerSlot,
   onActivePlayerSlotChange,
+  blockedSpots,
+  onBlockedSpotsChange,
+  penaltyFoulSpot,
+  onPenaltyFoulSpotChange,
 }: FGPadProps) {
   const alternates = getAlternateResultsForPlayType(draft.playType);
   const attemptYards = fgAttemptYards(draft.yardLine);
@@ -90,14 +101,18 @@ export function FGPad({
           ) : null}
         </View>
       ) : draft.result === Result.Blocked ? (
-        <View style={styles.deferredNote}>
-          <Text style={styles.deferredText}>
-            Blocked kick recovery spots — Package H
-          </Text>
+        <View style={styles.section}>
+          <BlockedKickRecoverySpotsPanel
+            spots={blockedSpots}
+            onChange={onBlockedSpotsChange}
+          />
         </View>
       ) : draft.result === Result.Penalty ? (
-        <View style={styles.deferredNote}>
-          <Text style={styles.deferredText}>Penalty spot — Package H</Text>
+        <View style={styles.section}>
+          <PenaltySpotPanel
+            foulSpot={penaltyFoulSpot}
+            onChange={onPenaltyFoulSpotChange}
+          />
         </View>
       ) : null}
 

@@ -286,7 +286,7 @@ export function getVisiblePlayerSlots(
     case PlayType.Pass:
       if (result === Result.Incomplete) return ["passer"];
       if (result === Result.TippedPass) return ["passer", "tackler1"];
-      if (result === Result.Interception) return ["passer", "interceptedBy"];
+      if (result === Result.Interception) return ["passer", "interceptedBy", "tackler1"];
       if (result === Result.Sack) return ["rusher", "tackler1"];
       if (result === Result.CompleteTd) return ["passer", "receiver"];
       if (result === Result.Penalty) return ["passer"];
@@ -438,6 +438,47 @@ export function applyScoringPlayTypeChange(
   };
 }
 
+/** Whether saved completion string matches the active play type + result. */
+function completionMatchesResult(
+  playType: PlaylistData["playType"],
+  result: PlaylistData["result"],
+  completion?: string,
+): boolean {
+  if (!completion) return false;
+  if (result === Result.Interception) return completion.startsWith("catch:");
+  if (result === Result.Fumble) return completion.startsWith("fumble:");
+  if (result === Result.Penalty) return completion.startsWith("foul:");
+  if (
+    result === Result.Blocked &&
+    (playType === PlayType.Punt || playType === PlayType.FieldGoal)
+  ) {
+    return completion.startsWith("recover:");
+  }
+  if (needsTackleSpot(playType, result)) {
+    return completion.startsWith("tackle:");
+  }
+  if (playType === PlayType.Punt && result === Result.Return) {
+    return completion.startsWith("recv:");
+  }
+  if (playType === PlayType.Punt && result === Result.Downed) {
+    return (
+      completion.startsWith("end:") &&
+      !completion.startsWith("recv:") &&
+      !isFgNoGoodCompletion(completion)
+    );
+  }
+  if (playType === PlayType.FieldGoal && result === Result.NoGood) {
+    return isFgNoGoodCompletion(completion);
+  }
+  if (
+    (playType === PlayType.Kickoff || playType === PlayType.KickoffReceive) &&
+    result === Result.Return
+  ) {
+    return completion.startsWith("catch:");
+  }
+  return false;
+}
+
 export function applyResultChange(
   draft: PlaylistData,
   result: PlaylistData["result"],
@@ -445,11 +486,15 @@ export function applyResultChange(
   const { playType } = draft;
   const noGain =
     result === Result.Incomplete || result === Result.TippedPass;
+  const keepCompletion =
+    !noGain &&
+    draft.result === result &&
+    completionMatchesResult(playType, result, draft.completion);
   const next: PlaylistData = {
     ...draft,
     result,
     gainLoss: noGain ? 0 : draft.gainLoss,
-    completion: noGain ? undefined : draft.completion,
+    completion: keepCompletion ? draft.completion : undefined,
     tackler1: emptyIfHidden("tackler1", playType, result, draft.tackler1),
     tackler2: emptyIfHidden("tackler2", playType, result, draft.tackler2),
     receiver: emptyIfHidden("receiver", playType, result, draft.receiver),

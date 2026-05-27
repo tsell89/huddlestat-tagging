@@ -357,6 +357,193 @@ describe("incomplete / tipped pass", () => {
   });
 });
 
+describe("Package H — live ball", () => {
+  test("INT return → COP @ return end, flips odk", () => {
+    const intPlay = basePlay({
+      playType: PlayType.Pass,
+      result: Result.Interception,
+      yardLine: -25,
+      down: 2,
+      distance: 7,
+      completion: "catch:15|end:-32",
+      returnYards: 47,
+      gainLoss: -7,
+      odk: ODK.Offense,
+    });
+
+    assert.equal(yardLineAfterPlay(intPlay), -32);
+    assert.deepEqual(advanceSituation(intPlay), {
+      down: 1,
+      distance: 10,
+      yardLine: 32,
+    });
+
+    const next = nextDraftAfterPlay(intPlay, 5, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
+    assert.equal(next.yardLine, 32);
+  });
+
+  test("fumble lost (defense) → turnover @ return end", () => {
+    const fumble = basePlay({
+      playType: PlayType.Run,
+      result: Result.Fumble,
+      yardLine: -25,
+      down: 2,
+      distance: 7,
+      completion: "fumble:-22|recover:10|end:-32|by:D",
+      gainLoss: -57,
+      odk: ODK.Offense,
+    });
+
+    assert.equal(yardLineAfterPlay(fumble), -32);
+    const next = nextDraftAfterPlay(fumble, 6, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.yardLine, 32);
+    assert.equal(next.down, 1);
+  });
+
+  test("fumble offense recovery → same series @ spot", () => {
+    const fumble = basePlay({
+      playType: PlayType.Run,
+      result: Result.Fumble,
+      yardLine: -25,
+      down: 2,
+      distance: 7,
+      completion: "fumble:-22|end:-22|by:O",
+      gainLoss: -3,
+      odk: ODK.Offense,
+    });
+
+    assert.deepEqual(advanceSituation(fumble), {
+      down: 3,
+      distance: 10,
+      yardLine: -22,
+    });
+    const next = nextDraftAfterPlay(fumble, 6, TEAM);
+    assert.equal(next.odk, ODK.Offense);
+    assert.equal(next.yardLine, -22);
+    assert.equal(next.down, 3);
+  });
+
+  test("FG no good in field → opponent @ LOS (flipped)", () => {
+    const fg = basePlay({
+      playType: PlayType.FieldGoal,
+      result: Result.NoGood,
+      yardLine: 28,
+      down: 4,
+      distance: 13,
+      completion: "end:field",
+      gainLoss: 0,
+      odk: ODK.Offense,
+    });
+
+    assert.equal(yardLineAfterPlay(fg), 28);
+    const next = nextDraftAfterPlay(fg, 5, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.yardLine, -28);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
+  });
+
+  test("FG no good into end zone → touchback @ Own 20", () => {
+    const fg = basePlay({
+      playType: PlayType.FieldGoal,
+      result: Result.NoGood,
+      yardLine: 5,
+      down: 4,
+      distance: 2,
+      completion: "end:TB",
+      gainLoss: 0,
+      odk: ODK.Offense,
+    });
+
+    assert.equal(yardLineAfterPlay(fg), -20);
+    const next = nextDraftAfterPlay(fg, 5, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.yardLine, -20);
+    assert.equal(next.down, 1);
+  });
+
+  test("blocked punt → possession @ return end", () => {
+    const punt = basePlay({
+      playType: PlayType.Punt,
+      result: Result.Blocked,
+      yardLine: 35,
+      down: 4,
+      distance: 8,
+      completion: "recover:20|end:-32",
+      returnYards: 52,
+      gainLoss: -67,
+      odk: ODK.Offense,
+    });
+
+    assert.equal(yardLineAfterPlay(punt), -32);
+    const next = nextDraftAfterPlay(punt, 6, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.yardLine, 32);
+    assert.equal(next.down, 1);
+  });
+
+  test("blocked FG → possession @ return end", () => {
+    const fg = basePlay({
+      playType: PlayType.FieldGoal,
+      result: Result.Blocked,
+      yardLine: 28,
+      down: 4,
+      distance: 13,
+      completion: "recover:15|end:-32",
+      returnYards: 47,
+      gainLoss: -60,
+      odk: ODK.Offense,
+    });
+
+    assert.equal(yardLineAfterPlay(fg), -32);
+    const next = nextDraftAfterPlay(fg, 5, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.yardLine, 32);
+    assert.equal(next.down, 1);
+  });
+
+  test("fumble safety → turnover @ own goal", () => {
+    const fumble = basePlay({
+      playType: PlayType.Run,
+      result: Result.Fumble,
+      yardLine: -25,
+      down: 2,
+      distance: 7,
+      completion: "fumble:-22|recover:5|end:SA|by:D",
+      gainLoss: -27,
+      odk: ODK.Offense,
+    });
+
+    assert.equal(yardLineAfterPlay(fumble), 0);
+    const next = nextDraftAfterPlay(fumble, 6, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.yardLine, 0);
+  });
+
+  test("holding penalty replays same down from spot of foul", () => {
+    const penalty = basePlay({
+      playType: PlayType.Run,
+      result: Result.Penalty,
+      yardLine: -40,
+      down: 2,
+      distance: 10,
+      completion: "foul:-42",
+      gainLoss: 0,
+      odk: ODK.Offense,
+    });
+
+    assert.deepEqual(advanceSituation(penalty), {
+      down: 2,
+      distance: 18,
+      yardLine: -32,
+    });
+  });
+});
+
 describe("failed 4th down", () => {
   test("short run on 4th auto COP and flips possession", () => {
     const run = basePlay({

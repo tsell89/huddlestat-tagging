@@ -1,7 +1,9 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Result, type PlaylistData } from "@huddlestat/shared";
 import { TapGrid } from "@/components/tagging/TapGrid";
 import { TackleSpotPanel } from "@/components/tagging/TackleSpotPanel";
+import { InterceptionReturnSpotsPanel } from "@/components/tagging/InterceptionReturnSpots";
+import { PenaltySpotPanel } from "@/components/tagging/PenaltySpotPanel";
 import { OffensePlayerSection } from "@/components/tagging/OffensePlayerSection";
 import {
   applyResultChange,
@@ -14,6 +16,8 @@ import {
   isTouchdownTackleResult,
   type TackleEnd,
 } from "@/lib/tagging/tackleSpot";
+import type { InterceptionReturnSpots } from "@/lib/tagging/interceptionReturn";
+import type { YardLine } from "@huddlestat/shared";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 type PassPadProps = {
@@ -23,6 +27,10 @@ type PassPadProps = {
   onActivePlayerSlotChange: (slot: PlayerSlotKey | null) => void;
   tackleEnd: TackleEnd;
   onTackleEndChange: (end: TackleEnd) => void;
+  intSpots: InterceptionReturnSpots;
+  onIntSpotsChange: (spots: InterceptionReturnSpots) => void;
+  penaltyFoulSpot: YardLine;
+  onPenaltyFoulSpotChange: (spot: YardLine) => void;
 };
 
 export function PassPad({
@@ -32,6 +40,10 @@ export function PassPad({
   onActivePlayerSlotChange,
   tackleEnd,
   onTackleEndChange,
+  intSpots,
+  onIntSpotsChange,
+  penaltyFoulSpot,
+  onPenaltyFoulSpotChange,
 }: PassPadProps) {
   const alternates = getAlternateResultsForPlayType(draft.playType);
   const showTackleSpot = needsTackleSpot(draft.playType, draft.result);
@@ -62,10 +74,18 @@ export function PassPad({
           />
         </View>
       ) : draft.result === Result.Interception ? (
-        <View style={styles.deferredNote}>
-          <Text style={styles.deferredText}>
-            INT caught-at + returned-to — Package H
-          </Text>
+        <View style={styles.section}>
+          <InterceptionReturnSpotsPanel
+            spots={intSpots}
+            onChange={onIntSpotsChange}
+          />
+        </View>
+      ) : draft.result === Result.Penalty ? (
+        <View style={styles.section}>
+          <PenaltySpotPanel
+            foulSpot={penaltyFoulSpot}
+            onChange={onPenaltyFoulSpotChange}
+          />
         </View>
       ) : null}
 
