@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   LayoutChangeEvent,
   PanResponder,
@@ -36,6 +36,8 @@ type FieldPositionSliderProps = {
 };
 
 const END_BTN_WIDTH = 72;
+const THUMB_INSET = 8;
+const THUMB_TRAVEL_PAD = 16;
 
 export function FieldPositionSlider({
   label,
@@ -51,23 +53,90 @@ export function FieldPositionSlider({
   hideTrack = false,
   displayValue,
 }: FieldPositionSliderProps) {
+  const trackRef = useRef<View>(null);
+  const trackWidthRef = useRef(0);
+  const trackPageXRef = useRef(0);
+  const onChangeRef = useRef(onChange);
+  const valueForRatioRef = useRef(valueForRatio);
+  const hideTrackRef = useRef(hideTrack);
+  const draggingRef = useRef(false);
   const [trackWidth, setTrackWidth] = useState(0);
-  const ratio = ratioForValue(value);
-  const thumbLeft = trackWidth > 0 ? ratio * (trackWidth - 16) : 0;
-  const valueLabel = displayValue ?? formatFieldPosition(value);
+  const [dragRatio, setDragRatio] = useState<number | null>(null);
 
-  const pan = PanResponder.create({
-    onStartShouldSetPanResponder: () => !hideTrack,
-    onMoveShouldSetPanResponder: () => !hideTrack,
-    onPanResponderGrant: (evt) => setFromX(evt.nativeEvent.locationX),
-    onPanResponderMove: (evt) => setFromX(evt.nativeEvent.locationX),
-  });
+  onChangeRef.current = onChange;
+  valueForRatioRef.current = valueForRatio;
+  hideTrackRef.current = hideTrack;
 
-  function setFromX(x: number) {
-    if (trackWidth <= 0 || hideTrack) return;
-    const r = Math.min(1, Math.max(0, (x - 8) / (trackWidth - 16)));
-    onChange(valueForRatio(r));
-  }
+  const syncTrackMetrics = useCallback(() => {
+    trackRef.current?.measureInWindow((pageX, _pageY, width) => {
+      trackPageXRef.current = pageX;
+      trackWidthRef.current = width;
+      setTrackWidth(width);
+    });
+  }, []);
+
+  const ratioFromPageX = useCallback((pageX: number): number | null => {
+    const width = trackWidthRef.current;
+    if (width <= THUMB_TRAVEL_PAD || hideTrackRef.current) return null;
+    const localX = pageX - trackPageXRef.current;
+    const usable = width - THUMB_TRAVEL_PAD;
+    return Math.min(1, Math.max(0, (localX - THUMB_INSET) / usable));
+  }, []);
+
+  const applyRatio = useCallback((ratio: number, commit: boolean) => {
+    setDragRatio(ratio);
+    if (commit) {
+      onChangeRef.current(valueForRatioRef.current(ratio));
+    }
+  }, []);
+
+  const setFromPageX = useCallback(
+    (pageX: number, commit: boolean) => {
+      const ratio = ratioFromPageX(pageX);
+      if (ratio === null) return;
+      applyRatio(ratio, commit);
+    },
+    [applyRatio, ratioFromPageX],
+  );
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => !hideTrackRef.current,
+        onMoveShouldSetPanResponder: () => !hideTrackRef.current,
+        onPanResponderGrant: (evt) => {
+          draggingRef.current = true;
+          const touchPageX = evt.nativeEvent.pageX;
+          trackRef.current?.measureInWindow((pageX, _pageY, width) => {
+            trackPageXRef.current = pageX;
+            trackWidthRef.current = width;
+            setTrackWidth(width);
+            setFromPageX(touchPageX, true);
+          });
+        },
+        onPanResponderMove: (evt) => {
+          setFromPageX(evt.nativeEvent.pageX, true);
+        },
+        onPanResponderRelease: () => {
+          draggingRef.current = false;
+          setDragRatio(null);
+        },
+        onPanResponderTerminate: () => {
+          draggingRef.current = false;
+          setDragRatio(null);
+        },
+      }),
+    [setFromPageX, syncTrackMetrics],
+  );
+
+  const activeRatio = dragRatio ?? ratioForValue(value);
+  const thumbTravel = Math.max(0, trackWidth - THUMB_TRAVEL_PAD);
+  const thumbLeft = trackWidth > 0 ? activeRatio * thumbTravel : 0;
+  const valueLabel =
+    displayValue ??
+    (dragRatio !== null
+      ? formatFieldPosition(valueForRatio(dragRatio))
+      : formatFieldPosition(value));
 
   return (
     <View style={styles.wrap}>
@@ -81,11 +150,14 @@ export function FieldPositionSlider({
           <View style={styles.trackSpacer} />
         ) : (
           <View
+            ref={trackRef}
             style={styles.trackColumn}
-            onLayout={(e: LayoutChangeEvent) =>
-              setTrackWidth(e.nativeEvent.layout.width)
-            }
-            {...pan.panHandlers}
+            onLayout={(e: LayoutChangeEvent) => {
+              trackWidthRef.current = e.nativeEvent.layout.width;
+              setTrackWidth(e.nativeEvent.layout.width);
+              syncTrackMetrics();
+            }}
+            {...panResponder.panHandlers}
           >
             <View style={styles.track}>
               <View style={[styles.midMark, { left: "50%" }]} />

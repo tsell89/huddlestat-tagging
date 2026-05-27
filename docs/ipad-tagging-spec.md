@@ -1,6 +1,6 @@
 # iPad Tagging Spec (living document)
 
-> **Status:** Package D2 complete (2026-05-27) — usage-weighted jersey grid + passer auto-default. Prior: Package H (2026-05-27) — live ball: INT, fumble, blocked kicks, penalties, FG no good chain. Prior: Package G (2026-05-27).
+> **Status:** Package I in progress (2026-05-27) — automated QA pass; manual iPad session pending ([package-i-qa-report.md](./package-i-qa-report.md)). Package D2 complete — usage-weighted jersey grid + passer auto-default. Prior: Package H — live ball. Prior: Package G.
 >
 > **Related:** [field-position-model.md](./field-position-model.md) · [dev-quickstart.md](./dev-quickstart.md) · [next-session-tagging-ux.md](./next-session-tagging-ux.md)
 >
@@ -386,7 +386,7 @@ API: `buildJerseyGridRankings()` in `lib/tagging/jerseyGridRank.ts`.
 | **F** | FGPad |
 | **G** | **ScoringPad + kickoff team declaration** ✓ |
 | **H** | **Live ball: fumble, INT, blocked kicks, penalties** ✓ |
-| **I** | iPad QA drive |
+| **I** | **iPad QA drive** — automated ✓ (39 tests, typecheck); manual iPad **blocked** ([report](./package-i-qa-report.md)) |
 
 **Deferred:** stats revisit UX (quarter/halftime), fake punt/FG, full penalty library, KO penalty edge cases.
 
