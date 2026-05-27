@@ -8,7 +8,13 @@ export {
   emptyPlayerRef,
   type YardLine,
 } from "./constants.js";
-export { defaultKickoffPlay, defaultOffensivePlay } from "./defaults.js";
+export {
+  defaultKickoffPlay,
+  defaultOffensivePlay,
+  defaultScoringPlayAfterTd,
+  TWO_POINT_YARD_LINE,
+  XP_YARD_LINE,
+} from "./defaults.js";
 export {
   FIELD_OPP_GOAL,
   FIELD_OWN_GOAL,

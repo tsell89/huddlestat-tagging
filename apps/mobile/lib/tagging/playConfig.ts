@@ -2,6 +2,8 @@ import {
   ODK,
   PlayType,
   Result,
+  TWO_POINT_YARD_LINE,
+  XP_YARD_LINE,
   type PlaylistData,
   type YardLine,
 } from "@huddlestat/shared";
@@ -36,6 +38,27 @@ export const OFFENSE_PLAY_TYPES = [
 ] as const;
 
 export type OffensePlayType = (typeof OFFENSE_PLAY_TYPES)[number];
+
+/** Scoring play types routed to ScoringPad (not OffensePad). */
+export const SCORING_PLAY_TYPES = [
+  PlayType.ExtraPoint,
+  PlayType.TwoPoint,
+  PlayType.ExtraPointBlock,
+  PlayType.TwoPointBlock,
+] as const;
+
+export type ScoringPlayType = (typeof SCORING_PLAY_TYPES)[number];
+
+export function isScoringPlayType(
+  playType: PlaylistData["playType"],
+): playType is ScoringPlayType {
+  return (
+    playType === PlayType.ExtraPoint ||
+    playType === PlayType.TwoPoint ||
+    playType === PlayType.ExtraPointBlock ||
+    playType === PlayType.TwoPointBlock
+  );
+}
 
 export type PlayTypeTapSize = "large" | "medium" | "small" | "tiny";
 
@@ -77,6 +100,7 @@ export function isOffensePadPlayType(
 }
 
 export function shouldShowOffensePad(draft: PlaylistData): boolean {
+  if (isScoringPlayType(draft.playType)) return false;
   return (
     isOffensePadPlayType(draft.playType) ||
     (draft.odk === ODK.Offense && draft.down >= 1 && !draft.playType)
@@ -85,6 +109,7 @@ export function shouldShowOffensePad(draft: PlaylistData): boolean {
 
 /** New offensive series defaults to RunPad with Rush selected. */
 export function ensureOffensePadDraft(draft: PlaylistData): PlaylistData {
+  if (isScoringPlayType(draft.playType)) return draft;
   if (draft.odk === ODK.Offense && draft.down >= 1 && !draft.playType) {
     return applyPlayTypeChange(draft, PlayType.Run);
   }
@@ -190,6 +215,12 @@ export function getDefaultResultForPlayType(
       return Result.Downed;
     case PlayType.FieldGoal:
       return Result.Good;
+    case PlayType.ExtraPoint:
+    case PlayType.TwoPoint:
+      return Result.Good;
+    case PlayType.ExtraPointBlock:
+    case PlayType.TwoPointBlock:
+      return Result.Blocked;
     default:
       return "";
   }
@@ -228,6 +259,12 @@ export function getAlternateResultsForPlayType(
       return [Result.Downed, Result.Return, Result.Touchback, Result.Blocked, Result.Penalty];
     case PlayType.FieldGoal:
       return [Result.Good, Result.NoGood, Result.Blocked, Result.Penalty];
+    case PlayType.ExtraPoint:
+    case PlayType.TwoPoint:
+      return [Result.Good];
+    case PlayType.ExtraPointBlock:
+    case PlayType.TwoPointBlock:
+      return [Result.Blocked];
     default:
       return [];
   }
@@ -270,6 +307,12 @@ export function getVisiblePlayerSlots(
       return [];
     case PlayType.FieldGoal:
       return ["kicker"];
+    case PlayType.ExtraPoint:
+    case PlayType.TwoPoint:
+      return ["kicker"];
+    case PlayType.ExtraPointBlock:
+    case PlayType.TwoPointBlock:
+      return ["tackler1"];
     default:
       return [];
   }
@@ -306,6 +349,11 @@ export function getYardsMode(
     case PlayType.PuntReceive:
       return result === Result.Return ? "return" : "none";
     case PlayType.FieldGoal:
+      return "none";
+    case PlayType.ExtraPoint:
+    case PlayType.TwoPoint:
+    case PlayType.ExtraPointBlock:
+    case PlayType.TwoPointBlock:
       return "none";
     default:
       return "none";
@@ -364,6 +412,30 @@ export function applyPlayTypeChange(
   }
 
   return next;
+}
+
+/** Switch XP ↔ 2pt (or block variants) on ScoringPad. */
+export function applyScoringPlayTypeChange(
+  draft: PlaylistData,
+  playType: ScoringPlayType,
+): PlaylistData {
+  const result = getDefaultResultForPlayType(playType);
+  const twoPoint =
+    playType === PlayType.TwoPoint || playType === PlayType.TwoPointBlock;
+  const yardLine = twoPoint ? TWO_POINT_YARD_LINE : XP_YARD_LINE;
+  const distance = twoPoint ? 2 : 1;
+  return {
+    ...draft,
+    playType,
+    result,
+    yardLine,
+    distance,
+    gainLoss: 0,
+    completion: undefined,
+    kicker: emptyIfHidden("kicker", playType, result, draft.kicker),
+    tackler1: emptyIfHidden("tackler1", playType, result, draft.tackler1),
+    tackler2: emptyIfHidden("tackler2", playType, result, draft.tackler2),
+  };
 }
 
 export function applyResultChange(

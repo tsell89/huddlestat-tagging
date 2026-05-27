@@ -7,6 +7,7 @@ import {
 import {
   defaultKickoffPlay,
   defaultOffensivePlay,
+  defaultScoringPlayAfterTd,
 } from "./defaults.js";
 import type { PlaylistData, YardLine } from "./index.js";
 import {
@@ -99,12 +100,32 @@ function isKickoffPlay(playType: PlaylistData["playType"]): boolean {
   );
 }
 
+function isPuntPlay(playType: PlaylistData["playType"]): boolean {
+  return playType === PlayType.Punt || playType === PlayType.PuntReceive;
+}
+
+function isTouchdownResult(result: PlaylistData["result"]): boolean {
+  return result === Result.RushTd || result === Result.CompleteTd;
+}
+
 function isScoringGood(play: Pick<PlaylistData, "playType" | "result">): boolean {
   if (play.result !== Result.Good) return false;
   return (
     play.playType === PlayType.FieldGoal ||
     play.playType === PlayType.ExtraPoint ||
     play.playType === PlayType.TwoPoint
+  );
+}
+
+/** Completed scoring snap that advances to kickoff (Good XP/2pt/FG or blocked attempt). */
+function isScoringComplete(
+  play: Pick<PlaylistData, "playType" | "result">,
+): boolean {
+  if (isScoringGood(play)) return true;
+  if (play.result !== Result.Blocked) return false;
+  return (
+    play.playType === PlayType.ExtraPointBlock ||
+    play.playType === PlayType.TwoPointBlock
   );
 }
 
@@ -115,28 +136,28 @@ export function yardLineAfterPlay(
     "playType" | "result" | "yardLine" | "gainLoss" | "completion"
   >,
 ): YardLine {
-  if (play.playType === PlayType.Kickoff && play.result === Result.Touchback) {
+  if (isKickoffPlay(play.playType) && play.result === Result.Touchback) {
     return HS_TOUCHBACK_YARD_LINE;
   }
 
   if (
-    (play.playType === PlayType.Punt || play.playType === PlayType.PuntReceive) &&
+    isPuntPlay(play.playType) &&
     play.result === Result.Touchback
   ) {
     return HS_TOUCHBACK_YARD_LINE;
   }
 
-  if (play.playType === PlayType.Kickoff && play.result === Result.Return) {
+  if (isKickoffPlay(play.playType) && play.result === Result.Return) {
     const end = decodeKickoffReturnEnd(play.completion);
     if (end !== null) return end;
   }
 
-  if (play.playType === PlayType.Punt && play.result === Result.Return) {
+  if (isPuntPlay(play.playType) && play.result === Result.Return) {
     const end = decodePuntReturnEnd(play.completion);
     if (end !== null) return end;
   }
 
-  if (play.playType === PlayType.Punt && play.result === Result.Downed) {
+  if (isPuntPlay(play.playType) && play.result === Result.Downed) {
     const end = decodePuntDownedEnd(play.completion);
     if (end !== null) return end;
   }
@@ -236,8 +257,12 @@ export function nextDraftAfterPlay(
 ): PlaylistData {
   const play = normalizePlayOnSave(savedPlay);
 
-  if (isScoringGood(play)) {
+  if (isScoringComplete(play)) {
     return defaultKickoffPlay(nextPlayNumber, team);
+  }
+
+  if (isTouchdownResult(play.result) && isScrimmagePlay(play.playType)) {
+    return defaultScoringPlayAfterTd(nextPlayNumber, team, play.odk);
   }
 
   const situation = advanceSituation(play);

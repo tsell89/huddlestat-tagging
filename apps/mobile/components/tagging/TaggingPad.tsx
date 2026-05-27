@@ -1,11 +1,14 @@
 import { PlayType, type PlaylistData } from "@huddlestat/shared";
 import { KickoffTaggingPad } from "@/components/tagging/KickoffTaggingPad";
 import { OffensePad } from "@/components/tagging/OffensePad";
+import { ScoringPad } from "@/components/tagging/ScoringPad";
 import {
+  isScoringPlayType,
   shouldShowOffensePad,
   type PlayerSlotKey,
 } from "@/lib/tagging/playConfig";
 import type { KickoffReturnSpots } from "@/lib/tagging/kickoffReturn";
+import type { KickoffRole } from "@/lib/tagging/kickoffRole";
 import type { PuntSpots } from "@/lib/tagging/puntReturn";
 import type { TackleEnd } from "@/lib/tagging/tackleSpot";
 
@@ -16,6 +19,8 @@ type TaggingPadProps = {
   onActivePlayerSlotChange: (slot: PlayerSlotKey | null) => void;
   kickoffSpots: KickoffReturnSpots;
   onKickoffSpotsChange: (spots: KickoffReturnSpots) => void;
+  kickoffRole: KickoffRole;
+  onKickoffRoleChange: (role: KickoffRole) => void;
   puntSpots: PuntSpots;
   onPuntSpotsChange: (spots: PuntSpots) => void;
   tackleEnd: TackleEnd;
@@ -32,6 +37,10 @@ function isKickoffPlay(draft: PlaylistData): boolean {
 export function TaggingPad(props: TaggingPadProps) {
   if (isKickoffPlay(props.draft)) {
     return <KickoffTaggingPad {...props} />;
+  }
+
+  if (isScoringPlayType(props.draft.playType)) {
+    return <ScoringPad {...props} />;
   }
 
   if (shouldShowOffensePad(props.draft)) {

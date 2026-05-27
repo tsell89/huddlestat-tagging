@@ -1,6 +1,6 @@
 # iPad Tagging Spec (living document)
 
-> **Status:** Package A complete (2026-05-28) — HS high school football tagging UX for iPad Pro landscape.
+> **Status:** Package G complete (2026-05-27) — ScoringPad, TD→XP chain, kickoff we kick/we receive. Prior: Package A (2026-05-28).
 >
 > **Related:** [field-position-model.md](./field-position-model.md) · [dev-quickstart.md](./dev-quickstart.md) · [next-session-tagging-ux.md](./next-session-tagging-ux.md)
 >
@@ -144,7 +144,7 @@ Each pad: **type badge or PlayTypeRow → result row → spot UI → player slot
 - Return: **Caught at** + **Returned to** sliders; computed return yards
 - Touchback: no spots → receiving team **@ Own 20** (HS — update from current Own 25 default)
 - Players: Kicker, Returner, Tackler(s) per result
-- **TODO:** declare **we kick / we receive** on pad
+- **We kick / we receive** toggle on pad top row; persisted per game (`kickoffRole` in SQLite `meta`)
 - Tap budget: **≤4**
 
 ### 4.2 OffensePad shell
@@ -248,14 +248,14 @@ IF Blocked: recovery spots (pkg H)
 | No Good (into EZ) | Touchback **@ Own 20** |
 | Blocked | Live ball — pkg H |
 
-### 4.7 ScoringPad *(not in UI yet)*
+### 4.7 ScoringPad *(implemented — Package G)*
 
-After TD: pre-load **Extra Pt.** (O) or **Extra Pt. Block** (D); hide generic play-type grid.
+After TD: pre-load **Extra Pt.** (O) or **Extra Pt. Block** (D); hide generic play-type grid. XP ↔ 2pt toggle only (no redundant result row when default is fixed).
 
-| Type | Default | Next on Good |
-|------|---------|--------------|
+| Type | Default | Next after save |
+|------|---------|-----------------|
 | Extra Pt. / 2 Pt. | Good | Kickoff |
-| Extra Pt. Block / 2 Pt. Block | Blocked | Kickoff chain TBD |
+| Extra Pt. Block / 2 Pt. Block | Blocked | Kickoff |
 
 ### 4.8 Defense tagging
 
@@ -314,8 +314,11 @@ API: `buildJerseyGridRankings()` in `lib/tagging/jerseyGridRank.ts`.
 | FG | No Good (into EZ) | FGPad | Touchback @ Own 20 |
 | FG | Blocked | FGPad | pkg H |
 | Extra Pt. | Good | Scoring | Kickoff |
+| Extra Pt. Block | Blocked | Scoring | Kickoff |
+| 2 Pt. | Good | Scoring | Kickoff |
+| 2 Pt. Block | Blocked | Scoring | Kickoff |
 
-**Current code gaps:** `nextDraftAfterSave` always blanks play type; failed 4th gives bogus 1st & 10; touchback uses Own 25; no TD→XP routing.
+**Remaining code gaps:** live ball (pkg H), XP/2pt no-good on offense, kickoff return TD → scoring, post-block kickoff edge cases (§10).
 
 ---
 
@@ -357,16 +360,16 @@ API: `buildJerseyGridRankings()` in `lib/tagging/jerseyGridRank.ts`.
 | 2026-05-28 | OffensePad: RunPad + PassPad; PlayTypeRow always visible; mid-play switch |
 | 2026-05-28 | Usage-weighted jersey grid; passer auto-default |
 | 2026-05-28 | **Package A spec written** |
+| 2026-05-27 | **Package G:** ScoringPad; TD→XP/2pt or block chain; we kick/we receive on KickoffPad |
 
 ---
 
 ## 10. Open questions
 
 - XP attempt yard line: Hudl −3 vs +3 at opponent goal
-- After opponent TD + our XP block: who kicks off?
+- After opponent TD + our XP block: who kicks off? (toggle defaults to last choice)
 - 2pt player slot matrix
 - Auto COP saved row: `result: COP` only (planned yes)
-- Kickoff: we kick / we receive toggle
 
 ---
 
@@ -381,7 +384,7 @@ API: `buildJerseyGridRankings()` in `lib/tagging/jerseyGridRank.ts`.
 | **D2** | Usage-weighted `JerseyQuickGrid` |
 | **E** | PuntPad |
 | **F** | FGPad |
-| **G** | ScoringPad + kickoff team declaration |
+| **G** | **ScoringPad + kickoff team declaration** ✓ |
 | **H** | Live ball: fumble, INT, blocked kicks, penalties |
 | **I** | iPad QA drive |
 

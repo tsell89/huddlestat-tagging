@@ -11,13 +11,18 @@ import {
 } from "@/lib/tagging/playConfig";
 import type { KickoffReturnSpots } from "@/lib/tagging/kickoffReturn";
 import { kickoffSlotLabel } from "@/lib/tagging/kickoffReturn";
+import type { KickoffRole } from "@/lib/tagging/kickoffRole";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
+
+const KICKOFF_ROLE_OPTIONS = ["We kick", "We receive"] as const;
 
 type KickoffTaggingPadProps = {
   draft: PlaylistData;
   onChange: (draft: PlaylistData) => void;
   kickoffSpots: KickoffReturnSpots;
   onKickoffSpotsChange: (spots: KickoffReturnSpots) => void;
+  kickoffRole: KickoffRole;
+  onKickoffRoleChange: (role: KickoffRole) => void;
   activePlayerSlot: PlayerSlotKey | null;
   onActivePlayerSlotChange: (slot: PlayerSlotKey | null) => void;
 };
@@ -43,6 +48,8 @@ export function KickoffTaggingPad({
   onChange,
   kickoffSpots,
   onKickoffSpotsChange,
+  kickoffRole,
+  onKickoffRoleChange,
   activePlayerSlot,
   onActivePlayerSlotChange,
 }: KickoffTaggingPadProps) {
@@ -66,6 +73,18 @@ export function KickoffTaggingPad({
 
   return (
     <View style={styles.pad}>
+      <View style={styles.roleRow}>
+        <TapGrid
+          options={KICKOFF_ROLE_OPTIONS}
+          value={kickoffRole === "kick" ? "We kick" : "We receive"}
+          onChange={(label) => {
+            onKickoffRoleChange(label === "We kick" ? "kick" : "receive");
+          }}
+          columns={2}
+          size="dense"
+        />
+      </View>
+
       <View style={styles.topRow}>
         <View style={styles.koBadge}>
           <Text style={styles.koBadgeText}>Kickoff</Text>
@@ -152,6 +171,13 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
     gap: 6,
     minHeight: 0,
+  },
+  roleRow: {
+    backgroundColor: LAYOUT.colors.sectionBg,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: LAYOUT.colors.sectionBorder,
+    padding: LAYOUT.compactSectionPadding,
   },
   topRow: {
     flexDirection: "row",
