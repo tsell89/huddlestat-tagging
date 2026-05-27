@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { ODK, PlayType, type PlaylistData } from "@huddlestat/shared";
 import { TapGrid } from "@/components/tagging/TapGrid";
 import { OffensePlayerSection } from "@/components/tagging/OffensePlayerSection";
+import type { LocalPlay } from "@/lib/db/types";
 import {
   applyResultChange,
   applyScoringPlayTypeChange,
@@ -17,6 +18,7 @@ type ScoringPadProps = {
   onChange: (draft: PlaylistData) => void;
   activePlayerSlot: PlayerSlotKey | null;
   onActivePlayerSlotChange: (slot: PlayerSlotKey | null) => void;
+  gamePlays: LocalPlay[];
 };
 
 const OFFENSE_SCORING_TYPES = [PlayType.ExtraPoint, PlayType.TwoPoint] as const;
@@ -43,6 +45,7 @@ export function ScoringPad({
   onChange,
   activePlayerSlot,
   onActivePlayerSlotChange,
+  gamePlays,
 }: ScoringPadProps) {
   const typeOptions = scoringTypeOptions(draft);
   const resultOptions = getAlternateResultsForPlayType(draft.playType);
@@ -93,6 +96,7 @@ export function ScoringPad({
         onChange={onChange}
         activePlayerSlot={activePlayerSlot}
         onActivePlayerSlotChange={onActivePlayerSlotChange}
+        gamePlays={gamePlays}
       />
     </View>
   );

@@ -75,6 +75,7 @@ import {
   setKickoffRole,
   type KickoffRole,
 } from "@/lib/tagging/kickoffRole";
+import { applyPasserLeaderDefault } from "@/lib/tagging/jerseyGridRank";
 import { useSync } from "@/context/sync-context";
 
 function playToDraft(play: LocalPlay): PlaylistData {
@@ -176,6 +177,32 @@ function applySpotDraft(
   );
 }
 
+function finalizeTaggingDraft(
+  draft: PlaylistData,
+  gamePlays: LocalPlay[],
+  kickoff: KickoffReturnSpots,
+  punt: PuntSpots,
+  end: TackleEnd,
+  intSpots: InterceptionReturnSpots,
+  fumbleSpots: FumbleRecoverySpots,
+  blockedSpots: BlockedKickRecoverySpots,
+  penaltyFoulSpot: number,
+): PlaylistData {
+  return applyPasserLeaderDefault(
+    applySpotDraft(
+      draft,
+      kickoff,
+      punt,
+      end,
+      intSpots,
+      fumbleSpots,
+      blockedSpots,
+      penaltyFoulSpot,
+    ),
+    gamePlays,
+  );
+}
+
 function firstPlayerSlot(draft: PlaylistData): PlayerSlotKey | null {
   const slots = getVisiblePlayerSlots(draft.playType, draft.result);
   return slots[0] ?? null;
@@ -258,8 +285,9 @@ export default function TaggingScreen() {
       setBlockedSpots(liveBall.blockedSpots);
       setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
       setDraft(
-        applySpotDraft(
+        finalizeTaggingDraft(
           liveDraft,
+          existing,
           kickoff,
           punt,
           end,
@@ -312,8 +340,9 @@ export default function TaggingScreen() {
     setBlockedSpots(liveBall.blockedSpots);
     setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
     setDraft(
-      applySpotDraft(
+      finalizeTaggingDraft(
         liveDraft,
+        plays,
         kickoff,
         punt,
         end,
@@ -342,8 +371,9 @@ export default function TaggingScreen() {
     setBlockedSpots(liveBall.blockedSpots);
     setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
     setDraft(
-      applySpotDraft(
+      finalizeTaggingDraft(
         d,
+        plays,
         kickoff,
         punt,
         end,
@@ -374,8 +404,9 @@ export default function TaggingScreen() {
     setBlockedSpots(liveBall.blockedSpots);
     setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
     setDraft(
-      applySpotDraft(
+      finalizeTaggingDraft(
         withNum,
+        plays,
         kickoff,
         punt,
         end,
@@ -655,8 +686,9 @@ export default function TaggingScreen() {
         setBlockedSpots(liveBall.blockedSpots);
         setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
         setDraft(
-          applySpotDraft(
+          finalizeTaggingDraft(
             liveDraft,
+            newPlays,
             kickoff,
             punt,
             end,
@@ -690,8 +722,9 @@ export default function TaggingScreen() {
         setBlockedSpots(liveBall.blockedSpots);
         setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
         setDraft(
-          applySpotDraft(
+          finalizeTaggingDraft(
             next,
+            [...plays, saved],
             kickoff,
             punt,
             end,
@@ -738,6 +771,7 @@ export default function TaggingScreen() {
             onChange={handleDraftChange}
             activePlayerSlot={activePlayerSlot}
             onActivePlayerSlotChange={setActivePlayerSlot}
+            gamePlays={plays}
             kickoffSpots={kickoffSpots}
             onKickoffSpotsChange={handleKickoffSpotsChange}
             kickoffRole={

@@ -5,6 +5,7 @@ import { TackleSpotPanel } from "@/components/tagging/TackleSpotPanel";
 import { InterceptionReturnSpotsPanel } from "@/components/tagging/InterceptionReturnSpots";
 import { PenaltySpotPanel } from "@/components/tagging/PenaltySpotPanel";
 import { OffensePlayerSection } from "@/components/tagging/OffensePlayerSection";
+import type { LocalPlay } from "@/lib/db/types";
 import {
   applyResultChange,
   getAlternateResultsForPlayType,
@@ -25,6 +26,7 @@ type PassPadProps = {
   onChange: (draft: PlaylistData) => void;
   activePlayerSlot: PlayerSlotKey | null;
   onActivePlayerSlotChange: (slot: PlayerSlotKey | null) => void;
+  gamePlays: LocalPlay[];
   tackleEnd: TackleEnd;
   onTackleEndChange: (end: TackleEnd) => void;
   intSpots: InterceptionReturnSpots;
@@ -38,6 +40,7 @@ export function PassPad({
   onChange,
   activePlayerSlot,
   onActivePlayerSlotChange,
+  gamePlays,
   tackleEnd,
   onTackleEndChange,
   intSpots,
@@ -94,6 +97,7 @@ export function PassPad({
         onChange={onChange}
         activePlayerSlot={activePlayerSlot}
         onActivePlayerSlotChange={onActivePlayerSlotChange}
+        gamePlays={gamePlays}
       />
     </View>
   );

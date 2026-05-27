@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Result, type PlaylistData, type YardLine } from "@huddlestat/shared";
 import { TapGrid } from "@/components/tagging/TapGrid";
 import { OffensePlayerSection } from "@/components/tagging/OffensePlayerSection";
+import type { LocalPlay } from "@/lib/db/types";
 import { BlockedKickRecoverySpotsPanel } from "@/components/tagging/BlockedKickRecoverySpots";
 import { PenaltySpotPanel } from "@/components/tagging/PenaltySpotPanel";
 import {
@@ -26,6 +27,7 @@ type FGPadProps = {
   onChange: (draft: PlaylistData) => void;
   activePlayerSlot: PlayerSlotKey | null;
   onActivePlayerSlotChange: (slot: PlayerSlotKey | null) => void;
+  gamePlays: LocalPlay[];
   blockedSpots: BlockedKickRecoverySpots;
   onBlockedSpotsChange: (spots: BlockedKickRecoverySpots) => void;
   penaltyFoulSpot: YardLine;
@@ -41,6 +43,7 @@ export function FGPad({
   onChange,
   activePlayerSlot,
   onActivePlayerSlotChange,
+  gamePlays,
   blockedSpots,
   onBlockedSpotsChange,
   penaltyFoulSpot,
@@ -121,6 +124,7 @@ export function FGPad({
         onChange={(next) => onChange(withKickYards(next))}
         activePlayerSlot={activePlayerSlot}
         onActivePlayerSlotChange={onActivePlayerSlotChange}
+        gamePlays={gamePlays}
       />
     </View>
   );

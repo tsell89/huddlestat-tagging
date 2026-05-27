@@ -1,8 +1,11 @@
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Result, type PlaylistData, type PlayerRef } from "@huddlestat/shared";
 import { TapGrid } from "@/components/tagging/TapGrid";
 import { KickoffReturnSpotsPanel } from "@/components/tagging/KickoffReturnSpots";
 import { JerseyQuickGrid } from "@/components/tagging/JerseyQuickGrid";
+import type { LocalPlay } from "@/lib/db/types";
+import { buildJerseyGridRankings } from "@/lib/tagging/jerseyGridRank";
 import {
   applyResultChange,
   getAlternateResultsForPlayType,
@@ -25,6 +28,7 @@ type KickoffTaggingPadProps = {
   onKickoffRoleChange: (role: KickoffRole) => void;
   activePlayerSlot: PlayerSlotKey | null;
   onActivePlayerSlotChange: (slot: PlayerSlotKey | null) => void;
+  gamePlays: LocalPlay[];
 };
 
 function getSlotValue(draft: PlaylistData, slot: PlayerSlotKey): PlayerRef {
@@ -52,6 +56,7 @@ export function KickoffTaggingPad({
   onKickoffRoleChange,
   activePlayerSlot,
   onActivePlayerSlotChange,
+  gamePlays,
 }: KickoffTaggingPadProps) {
   const allAlternates = getAlternateResultsForPlayType(draft.playType);
   const alternates =
@@ -70,6 +75,11 @@ export function KickoffTaggingPad({
   const activeJersey = activeSlot
     ? getSlotValue(draft, activeSlot).jersey
     : "";
+
+  const jerseyEntries = useMemo(
+    () => (activeSlot ? buildJerseyGridRankings(gamePlays, activeSlot) : []),
+    [activeSlot, gamePlays],
+  );
 
   return (
     <View style={styles.pad}>
@@ -146,6 +156,7 @@ export function KickoffTaggingPad({
       {activeSlot ? (
         <View style={styles.jerseyWrap}>
           <JerseyQuickGrid
+            entries={jerseyEntries}
             slotLabel={kickoffSlotLabel(activeSlot)}
             selectedJersey={activeJersey}
             onSelectJersey={(jersey) => {

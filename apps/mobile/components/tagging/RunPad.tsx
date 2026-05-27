@@ -5,6 +5,7 @@ import { TackleSpotPanel } from "@/components/tagging/TackleSpotPanel";
 import { FumbleRecoverySpotsPanel } from "@/components/tagging/FumbleRecoverySpots";
 import { PenaltySpotPanel } from "@/components/tagging/PenaltySpotPanel";
 import { OffensePlayerSection } from "@/components/tagging/OffensePlayerSection";
+import type { LocalPlay } from "@/lib/db/types";
 import {
   applyResultChange,
   getAlternateResultsForPlayType,
@@ -24,6 +25,7 @@ type RunPadProps = {
   onChange: (draft: PlaylistData) => void;
   activePlayerSlot: PlayerSlotKey | null;
   onActivePlayerSlotChange: (slot: PlayerSlotKey | null) => void;
+  gamePlays: LocalPlay[];
   tackleEnd: TackleEnd;
   onTackleEndChange: (end: TackleEnd) => void;
   fumbleSpots: FumbleRecoverySpots;
@@ -37,6 +39,7 @@ export function RunPad({
   onChange,
   activePlayerSlot,
   onActivePlayerSlotChange,
+  gamePlays,
   tackleEnd,
   onTackleEndChange,
   fumbleSpots,
@@ -93,6 +96,7 @@ export function RunPad({
         onChange={onChange}
         activePlayerSlot={activePlayerSlot}
         onActivePlayerSlotChange={onActivePlayerSlotChange}
+        gamePlays={gamePlays}
       />
     </View>
   );

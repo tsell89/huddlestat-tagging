@@ -18,6 +18,7 @@ import {
 import { hudlToFieldPosition } from "@/lib/tagging/fieldPosition100";
 import { touchbackDraftPatch } from "@/lib/tagging/kickoffReturn";
 import { needsTackleSpot } from "@/lib/tagging/tackleSpot";
+import { POSITION_GROUPS as POSITION_GROUP_MAP } from "./positionGroups";
 
 export { needsTackleSpot } from "@/lib/tagging/tackleSpot";
 
@@ -183,17 +184,8 @@ export function getPlayTypeTapSizes(
 }
 
 /** Position groups for roster sort (Gate 3 — you will tune these lists) */
-export const POSITION_GROUPS: Record<PlayerSlotKey, readonly string[]> = {
-  passer: ["QB"],
-  rusher: ["RB", "FB", "QB"],
-  receiver: ["WR", "TE", "RB"],
-  tackler1: ["LB", "DE", "DT", "S", "CB", "OLB", "MLB"],
-  tackler2: ["LB", "DE", "DT", "S", "CB", "OLB", "MLB"],
-  kicker: ["K"],
-  returner: ["WR", "RB", "CB", "S"],
-  interceptedBy: ["CB", "S", "LB"],
-  recoveredBy: ["DL", "LB", "DE", "DT"],
-};
+export const POSITION_GROUPS: Record<PlayerSlotKey, readonly string[]> =
+  POSITION_GROUP_MAP;
 
 /**
  * When a play type is chosen, auto-set the default result (e.g. Run → Rush).

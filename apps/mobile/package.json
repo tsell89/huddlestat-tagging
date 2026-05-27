@@ -12,6 +12,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "typecheck": "tsc --noEmit",
+    "test": "tsx --test lib/tagging/jerseyGridRank.test.ts",
     "lint": "echo 'no lint configured'"
   },
   "dependencies": {
@@ -37,6 +38,7 @@
     "@babel/core": "^7.27.1",
     "@types/react": "~19.1.10",
     "babel-plugin-module-resolver": "^5.0.3",
+    "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   }
 }
