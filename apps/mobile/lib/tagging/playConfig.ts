@@ -286,7 +286,7 @@ export function getVisiblePlayerSlots(
     case PlayType.Pass:
       if (result === Result.Incomplete) return ["passer"];
       if (result === Result.TippedPass) return ["passer", "tackler1"];
-      if (result === Result.Interception) return ["passer", "interceptedBy"];
+      if (result === Result.Interception) return ["passer", "interceptedBy", "tackler1"];
       if (result === Result.Sack) return ["rusher", "tackler1"];
       if (result === Result.CompleteTd) return ["passer", "receiver"];
       if (result === Result.Penalty) return ["passer"];

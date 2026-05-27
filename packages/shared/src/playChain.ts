@@ -3,6 +3,7 @@ import {
   PlayType,
   Result,
   emptyPlayerRef,
+  type YardLine,
 } from "./constants.js";
 import {
   defaultKickoffPlay,
@@ -11,10 +12,12 @@ import {
 } from "./defaults.js";
 import type { PlaylistData, YardLine } from "./index.js";
 import {
+  FIELD_OWN_GOAL,
   HS_TOUCHBACK_YARD_LINE,
   fieldPositionToHudl,
   flipHudlYardLinePerspective,
   hudlToFieldPosition,
+  yardsAdvanced,
 } from "./fieldPosition100.js";
 
 export type SituationFields = Pick<
@@ -84,6 +87,121 @@ function decodePuntDownedEnd(completion?: string): YardLine | null {
   const match = /^end:(TD|SA|-?\d+)$/.exec(completion);
   if (!match || match[1] === "TD" || match[1] === "SA") return null;
   return Number(match[1]) as YardLine;
+}
+
+/** INT / live-ball return — catch:+15|end:-32 */
+function decodeCatchReturnEnd(completion?: string): YardLine | null {
+  return decodeKickoffReturnEnd(completion);
+}
+
+/** Blocked punt/FG recovery — recover:+15|end:-32 */
+function decodeBlockedKickEnd(completion?: string): YardLine | null {
+  if (!completion?.startsWith("recover:")) return null;
+  const match = /^recover:(-?\d+)(?:\|end:(TD|SA|-?\d+))?$/.exec(completion);
+  if (!match) return null;
+  if (!match[2] || match[2] === "TD" || match[2] === "SA") return 0;
+  return Number(match[2]) as YardLine;
+}
+
+export type FumbleRecoverySide = "offense" | "defense";
+
+export type FumbleCompletion = {
+  fumbleAt: YardLine;
+  endYardLine: YardLine;
+  recoveredAt?: YardLine;
+  recoveredBy: FumbleRecoverySide;
+};
+
+/** Fumble — fumble:-25|end:-22|by:O or fumble:-25|recover:10|end:-32|by:D */
+export function decodeFumbleCompletion(
+  completion?: string,
+): FumbleCompletion | null {
+  if (!completion?.startsWith("fumble:")) return null;
+  const match =
+    /^fumble:(-?\d+)(?:\|recover:(-?\d+))?\|end:(TD|SA|-?\d+)\|by:(O|D)$/.exec(
+      completion,
+    );
+  if (!match) return null;
+  const fumbleAt = Number(match[1]) as YardLine;
+  const recoveredAt = match[2] ? (Number(match[2]) as YardLine) : undefined;
+  const endToken = match[3];
+  const endYardLine =
+    endToken === "TD" || endToken === "SA"
+      ? 0
+      : (Number(endToken) as YardLine);
+  return {
+    fumbleAt,
+    endYardLine,
+    recoveredAt,
+    recoveredBy: match[4] === "O" ? "offense" : "defense",
+  };
+}
+
+/** Holding penalty — foul:-42 (MVP: 10 yards from spot of foul). */
+export function decodePenaltyFoulSpot(completion?: string): YardLine | null {
+  if (!completion?.startsWith("foul:")) return null;
+  const match = /^foul:(-?\d+)$/.exec(completion);
+  if (!match) return null;
+  return Number(match[1]) as YardLine;
+}
+
+export const HOLDING_PENALTY_YARDS = 10;
+
+function isFgPlay(playType: PlaylistData["playType"]): boolean {
+  return playType === PlayType.FieldGoal;
+}
+
+function isFgNoGoodInField(completion?: string): boolean {
+  return completion === "end:field";
+}
+
+function isFgNoGoodTouchback(completion?: string): boolean {
+  return completion === "end:TB";
+}
+
+function isDefenseFumbleRecovery(completion?: string): boolean {
+  const decoded = decodeFumbleCompletion(completion);
+  return decoded?.recoveredBy === "defense";
+}
+
+function isLiveBallTurnover(play: PlayChainInput): boolean {
+  if (play.result === Result.Cop) return true;
+  if (play.result === Result.Interception) return true;
+  if (play.result === Result.Fumble && isDefenseFumbleRecovery(play.completion)) {
+    return true;
+  }
+  if (
+    isFgPlay(play.playType) &&
+    play.result === Result.NoGood &&
+    isFgNoGoodInField(play.completion)
+  ) {
+    return true;
+  }
+  if (
+    play.result === Result.Blocked &&
+    (isPuntPlay(play.playType) || isFgPlay(play.playType))
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function penaltySituation(play: PlayChainInput): SituationFields {
+  const foulSpot = decodePenaltyFoulSpot(play.completion) ?? play.yardLine;
+  const foulPos = hudlToFieldPosition(foulSpot);
+  const newPos = Math.max(
+    FIELD_OWN_GOAL,
+    foulPos - HOLDING_PENALTY_YARDS,
+  );
+  const newYardLine = fieldPositionToHudl(newPos);
+  const firstDownMarker =
+    hudlToFieldPosition(play.yardLine) + play.distance;
+  const newDistance = Math.max(1, firstDownMarker - newPos);
+  return {
+    down: play.down,
+    distance: newDistance,
+    yardLine: newYardLine,
+  };
 }
 
 function isNoGainResult(result: PlaylistData["result"]): boolean {
@@ -162,6 +280,37 @@ export function yardLineAfterPlay(
     if (end !== null) return end;
   }
 
+  if (play.result === Result.Interception) {
+    const end = decodeCatchReturnEnd(play.completion);
+    if (end !== null) return end;
+  }
+
+  if (play.result === Result.Fumble) {
+    const fumble = decodeFumbleCompletion(play.completion);
+    if (fumble) return fumble.endYardLine;
+  }
+
+  if (
+    play.result === Result.Blocked &&
+    (isPuntPlay(play.playType) || isFgPlay(play.playType))
+  ) {
+    const end = decodeBlockedKickEnd(play.completion);
+    if (end !== null) return end;
+  }
+
+  if (isFgPlay(play.playType) && play.result === Result.NoGood) {
+    if (isFgNoGoodTouchback(play.completion)) {
+      return HS_TOUCHBACK_YARD_LINE;
+    }
+    if (isFgNoGoodInField(play.completion)) {
+      return play.yardLine;
+    }
+  }
+
+  if (play.result === Result.Penalty) {
+    return penaltySituation(play).yardLine;
+  }
+
   if (isNoGainResult(play.result)) {
     return play.yardLine;
   }
@@ -219,6 +368,58 @@ export function advanceSituation(play: PlayChainInput): SituationFields {
     };
   }
 
+  if (play.result === Result.Penalty) {
+    return penaltySituation(play);
+  }
+
+  if (play.result === Result.Interception) {
+    return turnoverSituation(play, yardLineAfterPlay(play));
+  }
+
+  if (play.result === Result.Fumble) {
+    const fumble = decodeFumbleCompletion(play.completion);
+    if (fumble?.recoveredBy === "defense") {
+      return turnoverSituation(play, fumble.endYardLine);
+    }
+    if (fumble) {
+      const endYardLine = fumble.endYardLine;
+      const gain = yardsAdvanced(play.yardLine, endYardLine);
+      const firstDown = gain >= play.distance;
+      if (firstDown) {
+        return { down: 1, distance: 10, yardLine: endYardLine };
+      }
+      if (play.down >= 4) {
+        return turnoverSituation(play, endYardLine);
+      }
+      return {
+        down: play.down + 1,
+        distance: Math.max(1, play.distance - gain),
+        yardLine: endYardLine,
+      };
+    }
+  }
+
+  if (isFgPlay(play.playType) && play.result === Result.NoGood) {
+    if (isFgNoGoodTouchback(play.completion)) {
+      return {
+        down: 1,
+        distance: 10,
+        yardLine: HS_TOUCHBACK_YARD_LINE,
+      };
+    }
+    if (isFgNoGoodInField(play.completion)) {
+      return turnoverSituation(play, play.yardLine);
+    }
+  }
+
+  if (
+    play.result === Result.Blocked &&
+    (isPuntPlay(play.playType) || isFgPlay(play.playType))
+  ) {
+    const end = yardLineAfterPlay(play);
+    return turnoverSituation(play, end);
+  }
+
   if (isNoGainResult(play.result)) {
     if (play.down >= 4) {
       return turnoverSituation(play, play.yardLine);
@@ -268,8 +469,13 @@ export function nextDraftAfterPlay(
   const situation = advanceSituation(play);
   const afterKickoff = isKickoffPlay(play.playType);
   const afterTurnover =
-    play.result === Result.Cop ||
+    isLiveBallTurnover(play) ||
     (play.down === 4 && isScrimmagePlay(play.playType) && !afterKickoff);
+
+  const afterFgNoGoodTouchback =
+    isFgPlay(play.playType) &&
+    play.result === Result.NoGood &&
+    isFgNoGoodTouchback(play.completion);
 
   if (afterKickoff) {
     return {
@@ -279,7 +485,7 @@ export function nextDraftAfterPlay(
     };
   }
 
-  if (afterTurnover) {
+  if (afterTurnover || afterFgNoGoodTouchback) {
     return {
       ...defaultOffensivePlay(nextPlayNumber, team),
       ...situation,

@@ -30,11 +30,15 @@ export {
 } from "./fieldPosition100.js";
 export {
   advanceSituation,
+  decodeFumbleCompletion,
+  decodePenaltyFoulSpot,
+  HOLDING_PENALTY_YARDS,
   isFailedFourthDown,
   liveDraftFromLastPlay,
   nextDraftAfterPlay,
   normalizePlayOnSave,
   yardLineAfterPlay,
+  type FumbleRecoverySide,
   type PlayChainInput,
   type SituationFields,
 } from "./playChain.js";
