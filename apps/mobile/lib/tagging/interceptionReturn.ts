@@ -16,7 +16,7 @@ import {
   fieldPositionToHudl,
   yardsAdvanced,
 } from "@/lib/tagging/fieldPosition100";
-import { FIELD_MIN, FIELD_OPP_GOAL } from "@/lib/tagging/kickoffReturn";
+import { FIELD_MIN, FIELD_OPP_GOAL } from "@/lib/tagging/fieldPosition100";
 
 export type InterceptionReturnSpots = KickoffReturnSpots;
 

@@ -3,7 +3,6 @@ import {
   PlayType,
   Result,
   emptyPlayerRef,
-  type YardLine,
 } from "./constants.js";
 import {
   defaultKickoffPlay,
@@ -308,7 +307,13 @@ export function yardLineAfterPlay(
   }
 
   if (play.result === Result.Penalty) {
-    return penaltySituation(play).yardLine;
+    const foulSpot = decodePenaltyFoulSpot(play.completion) ?? play.yardLine;
+    const foulPos = hudlToFieldPosition(foulSpot);
+    const newPos = Math.max(
+      FIELD_OWN_GOAL,
+      foulPos - HOLDING_PENALTY_YARDS,
+    );
+    return fieldPositionToHudl(newPos);
   }
 
   if (isNoGainResult(play.result)) {

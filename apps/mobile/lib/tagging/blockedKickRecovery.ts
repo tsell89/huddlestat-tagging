@@ -111,14 +111,13 @@ export function applyBlockedKickSpotsToDraft(
   };
 }
 
+export { PUNT_RETURNED_DEFAULT } from "@/lib/tagging/puntReturn";
 export {
-  clampToRange,
-  fieldRatioToYardLine,
-  fieldYardLineToRatio,
   formatReturnEndDisplay,
-  PUNT_RETURNED_DEFAULT,
-  receivedRatioToYardLine,
-  receivedYardLineToRatio,
   returnedRatioToYardLine,
   returnedYardLineToRatio,
+} from "@/lib/tagging/kickoffReturn";
+export {
+  receivedRatioToYardLine,
+  receivedYardLineToRatio,
 } from "@/lib/tagging/puntReturn";

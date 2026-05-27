@@ -3,7 +3,6 @@ import type { FumbleRecoverySide } from "@huddlestat/shared";
 import { TapGrid } from "@/components/tagging/TapGrid";
 import { FieldPositionSlider } from "@/components/tagging/FieldPositionSlider";
 import {
-  computeReturnYards,
   fieldRatioToYardLine,
   fieldYardLineToRatio,
   formatReturnEndDisplay,
@@ -11,6 +10,7 @@ import {
   returnedYardLineToRatio,
   type FumbleRecoverySpots,
 } from "@/lib/tagging/fumbleRecovery";
+import { computeReturnYards } from "@/lib/tagging/kickoffReturn";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 const RECOVERY_SIDES = ["Offense", "Defense"] as const;

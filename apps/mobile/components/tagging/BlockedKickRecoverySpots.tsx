@@ -2,7 +2,6 @@ import { StyleSheet, Text, View } from "react-native";
 import { FieldPositionSlider } from "@/components/tagging/FieldPositionSlider";
 import {
   PUNT_RETURNED_DEFAULT,
-  computeReturnYards,
   formatReturnEndDisplay,
   receivedRatioToYardLine,
   receivedYardLineToRatio,
@@ -10,6 +9,7 @@ import {
   returnedYardLineToRatio,
   type BlockedKickRecoverySpots,
 } from "@/lib/tagging/blockedKickRecovery";
+import { computeReturnYards } from "@/lib/tagging/kickoffReturn";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 type BlockedKickRecoverySpotsProps = {

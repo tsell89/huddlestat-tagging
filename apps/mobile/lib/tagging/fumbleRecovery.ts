@@ -116,8 +116,6 @@ export {
   fieldRatioToYardLine,
   fieldYardLineToRatio,
   formatReturnEndDisplay,
-  receivedRatioToYardLine,
-  receivedYardLineToRatio,
   returnedRatioToYardLine,
   returnedYardLineToRatio,
 } from "@/lib/tagging/kickoffReturn";
