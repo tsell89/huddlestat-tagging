@@ -139,6 +139,28 @@ describe("buildJerseyGridRankings", () => {
     assert.equal(heroes[0]?.jersey, "55");
   });
 
+  test("ignores tackler counts when slot was not visible on the play", () => {
+    const plays: LocalPlay[] = [
+      mockPlay({
+        playNumber: 1,
+        playType: PlayType.Pass,
+        result: Result.Incomplete,
+        tackler1: { jersey: "45", name: "" },
+      }),
+      mockPlay({
+        playNumber: 2,
+        playType: PlayType.Run,
+        result: Result.Rush,
+        tackler1: { jersey: "45", name: "" },
+      }),
+    ];
+
+    const entry = buildJerseyGridRankings(plays, "tackler1").find(
+      (row) => row.jersey === "45",
+    );
+    assert.equal(entry?.count, 1);
+  });
+
   test("PBU on tipped pass uses light tackler weighting", () => {
     const plays: LocalPlay[] = [
       mockPlay({
@@ -233,5 +255,31 @@ describe("passer leader default", () => {
     );
 
     assert.equal(draft.passer.jersey, "12");
+  });
+
+  test("applyPasserLeaderDefault refills passer after switching into a passer-visible result", () => {
+    const plays: LocalPlay[] = [
+      mockPlay({
+        playNumber: 1,
+        playType: PlayType.Pass,
+        result: Result.Complete,
+        passer: { jersey: "7", name: "" },
+      }),
+    ];
+
+    const draft = applyPasserLeaderDefault(
+      {
+        ...defaultOffensivePlay(2, TEAM),
+        playType: PlayType.Pass,
+        result: Result.Complete,
+        passer: { jersey: "", name: "" },
+        receiver: { jersey: "", name: "" },
+        tackler1: { jersey: "", name: "" },
+        rusher: { jersey: "", name: "" },
+      },
+      plays,
+    );
+
+    assert.equal(draft.passer.jersey, "7");
   });
 });

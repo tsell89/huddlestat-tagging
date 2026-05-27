@@ -6,6 +6,7 @@ import { InterceptionReturnSpotsPanel } from "@/components/tagging/InterceptionR
 import { PenaltySpotPanel } from "@/components/tagging/PenaltySpotPanel";
 import { OffensePlayerSection } from "@/components/tagging/OffensePlayerSection";
 import type { LocalPlay } from "@/lib/db/types";
+import { applyPasserLeaderDefault } from "@/lib/tagging/jerseyGridRank";
 import {
   applyResultChange,
   getAlternateResultsForPlayType,
@@ -58,7 +59,11 @@ export function PassPad({
           options={alternates}
           value={draft.result}
           onChange={(result) => {
-            onChange(applyResultChange(draft, result));
+            const next = applyPasserLeaderDefault(
+              applyResultChange(draft, result),
+              gamePlays,
+            );
+            onChange(next);
             const slots = getVisiblePlayerSlots(draft.playType, result);
             onActivePlayerSlotChange(slots[0] ?? null);
           }}

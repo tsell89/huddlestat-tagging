@@ -1,6 +1,7 @@
 import { PlayType, Result, type PlaylistData, type PlayerRef } from "@huddlestat/shared";
 import type { LocalPlay } from "../db/types";
 import { POSITION_GROUPS, type PositionGroupSlot } from "./positionGroups";
+import { isPlayerSlotVisibleOnPlay } from "./visiblePlayerSlots";
 
 export type JerseyGridTier = "hero" | "frequent" | "standard" | "small";
 
@@ -112,31 +113,22 @@ function countJerseyUsage(plays: LocalPlay[], slot: PositionGroupSlot): Map<stri
   const counts = new Map<string, number>();
 
   for (const play of plays) {
+    if (!isPlayerSlotVisibleOnPlay(play, slot)) continue;
+
     switch (slot) {
       case "passer":
-        if (play.playType === PlayType.Pass && play.result !== Result.Sack) {
-          addCount(counts, jerseyFrom(play.passer));
-        }
+        addCount(counts, jerseyFrom(play.passer));
         break;
       case "rusher":
-        if (play.playType === PlayType.Run) {
-          addCount(counts, jerseyFrom(play.rusher));
-        } else if (play.playType === PlayType.Pass && play.result === Result.Sack) {
-          addCount(counts, jerseyFrom(play.rusher));
-        }
+        addCount(counts, jerseyFrom(play.rusher));
         break;
       case "receiver":
-        if (
-          play.playType === PlayType.Pass &&
-          (play.result === Result.Complete || play.result === Result.CompleteTd)
-        ) {
-          addCount(counts, jerseyFrom(play.receiver));
-        }
+        addCount(counts, jerseyFrom(play.receiver));
         break;
       case "tackler1":
         if (play.playType === PlayType.Pass && play.result === Result.TippedPass) {
           addCount(counts, jerseyFrom(play.tackler1), 0.5);
-        } else if (jerseyFrom(play.tackler1)) {
+        } else {
           addCount(counts, jerseyFrom(play.tackler1));
         }
         break;
@@ -144,39 +136,16 @@ function countJerseyUsage(plays: LocalPlay[], slot: PositionGroupSlot): Map<stri
         addCount(counts, jerseyFrom(play.tackler2));
         break;
       case "kicker":
-        if (
-          play.playType === PlayType.Kickoff ||
-          play.playType === PlayType.KickoffReceive ||
-          play.playType === PlayType.Punt ||
-          play.playType === PlayType.FieldGoal ||
-          play.playType === PlayType.ExtraPoint ||
-          play.playType === PlayType.TwoPoint
-        ) {
-          addCount(counts, jerseyFrom(play.kicker));
-        }
+        addCount(counts, jerseyFrom(play.kicker));
         break;
       case "returner":
-        if (
-          (play.playType === PlayType.Kickoff ||
-            play.playType === PlayType.KickoffReceive ||
-            play.playType === PlayType.PuntReceive) &&
-          play.result === Result.Return
-        ) {
-          addCount(counts, jerseyFrom(play.returner));
-        }
+        addCount(counts, jerseyFrom(play.returner));
         break;
       case "interceptedBy":
-        if (play.playType === PlayType.Pass && play.result === Result.Interception) {
-          addCount(counts, jerseyFrom(play.interceptedBy));
-        }
+        addCount(counts, jerseyFrom(play.interceptedBy));
         break;
       case "recoveredBy":
-        if (
-          (play.playType === PlayType.Run || play.playType === PlayType.Pass) &&
-          play.result === Result.Fumble
-        ) {
-          addCount(counts, jerseyFrom(play.recoveredBy));
-        }
+        addCount(counts, jerseyFrom(play.recoveredBy));
         break;
     }
   }
