@@ -113,6 +113,18 @@ function isScoringGood(play: Pick<PlaylistData, "playType" | "result">): boolean
   );
 }
 
+/** Completed scoring snap that advances to kickoff (Good XP/2pt/FG or blocked attempt). */
+function isScoringComplete(
+  play: Pick<PlaylistData, "playType" | "result">,
+): boolean {
+  if (isScoringGood(play)) return true;
+  if (play.result !== Result.Blocked) return false;
+  return (
+    play.playType === PlayType.ExtraPointBlock ||
+    play.playType === PlayType.TwoPointBlock
+  );
+}
+
 /** Ball spot after a play ends (next snap inherits this). */
 export function yardLineAfterPlay(
   play: Pick<
@@ -120,7 +132,7 @@ export function yardLineAfterPlay(
     "playType" | "result" | "yardLine" | "gainLoss" | "completion"
   >,
 ): YardLine {
-  if (play.playType === PlayType.Kickoff && play.result === Result.Touchback) {
+  if (isKickoffPlay(play.playType) && play.result === Result.Touchback) {
     return HS_TOUCHBACK_YARD_LINE;
   }
 
@@ -131,7 +143,7 @@ export function yardLineAfterPlay(
     return HS_TOUCHBACK_YARD_LINE;
   }
 
-  if (play.playType === PlayType.Kickoff && play.result === Result.Return) {
+  if (isKickoffPlay(play.playType) && play.result === Result.Return) {
     const end = decodeKickoffReturnEnd(play.completion);
     if (end !== null) return end;
   }
@@ -241,7 +253,7 @@ export function nextDraftAfterPlay(
 ): PlaylistData {
   const play = normalizePlayOnSave(savedPlay);
 
-  if (isScoringGood(play)) {
+  if (isScoringComplete(play)) {
     return defaultKickoffPlay(nextPlayNumber, team);
   }
 

@@ -198,6 +198,43 @@ describe("TD → scoring → kickoff chain", () => {
     assert.equal(ko.playType, PlayType.Kickoff);
     assert.equal(ko.odk, ODK.Kicking);
   });
+
+  test("XP block (defense) → kickoff", () => {
+    const block = basePlay({
+      playNumber: 11,
+      playType: PlayType.ExtraPointBlock,
+      result: Result.Blocked,
+      yardLine: 3,
+      down: 1,
+      distance: 1,
+      gainLoss: 0,
+      odk: ODK.Defense,
+      tackler1: { jersey: "44", name: "Blocker" },
+    });
+
+    const ko = nextDraftAfterPlay(block, 12, TEAM);
+    assert.equal(ko.playType, PlayType.Kickoff);
+    assert.equal(ko.odk, ODK.Kicking);
+    assert.equal(ko.down, 0);
+    assert.equal(ko.playNumber, 12);
+  });
+
+  test("2 Pt. block (defense) → kickoff", () => {
+    const block = basePlay({
+      playNumber: 13,
+      playType: PlayType.TwoPointBlock,
+      result: Result.Blocked,
+      yardLine: 1,
+      down: 1,
+      distance: 2,
+      gainLoss: 0,
+      odk: ODK.Defense,
+    });
+
+    const ko = nextDraftAfterPlay(block, 14, TEAM);
+    assert.equal(ko.playType, PlayType.Kickoff);
+    assert.equal(ko.odk, ODK.Kicking);
+  });
 });
 
 describe("touchback @ Own 20 (HS)", () => {
@@ -213,6 +250,40 @@ describe("touchback @ Own 20 (HS)", () => {
       down: 1,
       distance: 10,
       yardLine: -20,
+    });
+  });
+
+  test("kickoff receive touchback places next snap at Own 20", () => {
+    const koRec = {
+      ...defaultKickoffPlay(1, TEAM),
+      playType: PlayType.KickoffReceive,
+      result: Result.Touchback,
+      gainLoss: 0,
+    };
+
+    assert.equal(yardLineAfterPlay(koRec), -20);
+    assert.deepEqual(advanceSituation(koRec), {
+      down: 1,
+      distance: 10,
+      yardLine: -20,
+    });
+  });
+
+  test("kickoff receive return uses completion end spot", () => {
+    const koRec = {
+      ...defaultKickoffPlay(1, TEAM),
+      playType: PlayType.KickoffReceive,
+      result: Result.Return,
+      gainLoss: 20,
+      returnYards: 20,
+      completion: "catch:-5|end:-25",
+    };
+
+    assert.equal(yardLineAfterPlay(koRec), -25);
+    assert.deepEqual(advanceSituation(koRec), {
+      down: 1,
+      distance: 10,
+      yardLine: -25,
     });
   });
 });
