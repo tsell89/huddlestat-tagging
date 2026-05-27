@@ -100,6 +100,10 @@ function isKickoffPlay(playType: PlaylistData["playType"]): boolean {
   );
 }
 
+function isPuntPlay(playType: PlaylistData["playType"]): boolean {
+  return playType === PlayType.Punt || playType === PlayType.PuntReceive;
+}
+
 function isTouchdownResult(result: PlaylistData["result"]): boolean {
   return result === Result.RushTd || result === Result.CompleteTd;
 }
@@ -137,7 +141,7 @@ export function yardLineAfterPlay(
   }
 
   if (
-    (play.playType === PlayType.Punt || play.playType === PlayType.PuntReceive) &&
+    isPuntPlay(play.playType) &&
     play.result === Result.Touchback
   ) {
     return HS_TOUCHBACK_YARD_LINE;
@@ -148,12 +152,12 @@ export function yardLineAfterPlay(
     if (end !== null) return end;
   }
 
-  if (play.playType === PlayType.Punt && play.result === Result.Return) {
+  if (isPuntPlay(play.playType) && play.result === Result.Return) {
     const end = decodePuntReturnEnd(play.completion);
     if (end !== null) return end;
   }
 
-  if (play.playType === PlayType.Punt && play.result === Result.Downed) {
+  if (isPuntPlay(play.playType) && play.result === Result.Downed) {
     const end = decodePuntDownedEnd(play.completion);
     if (end !== null) return end;
   }

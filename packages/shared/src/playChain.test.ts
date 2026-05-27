@@ -288,6 +288,35 @@ describe("touchback @ Own 20 (HS)", () => {
   });
 });
 
+describe("punt receive chain", () => {
+  test("punt receive return uses completion end spot", () => {
+    const puntRec = basePlay({
+      playType: PlayType.PuntReceive,
+      result: Result.Return,
+      yardLine: 35,
+      down: 4,
+      distance: 8,
+      gainLoss: 12,
+      completion: "recv:15|end:-32",
+    });
+
+    assert.equal(yardLineAfterPlay(puntRec), -32);
+  });
+
+  test("punt receive touchback places next snap at Own 20", () => {
+    const puntRec = basePlay({
+      playType: PlayType.PuntReceive,
+      result: Result.Touchback,
+      yardLine: 40,
+      down: 4,
+      distance: 10,
+      gainLoss: 0,
+    });
+
+    assert.equal(yardLineAfterPlay(puntRec), -20);
+  });
+});
+
 describe("incomplete / tipped pass", () => {
   test("incomplete keeps spot, gainLoss=0, down advances", () => {
     const incomplete = basePlay({

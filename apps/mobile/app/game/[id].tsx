@@ -273,12 +273,10 @@ export default function TaggingScreen() {
     if (id) {
       void setKickoffRole(id, role);
     }
-    setDraft((d) => {
-      if (!d || !isKickoffDraft(d)) return d;
-      const next = applyKickoffRole(d, role);
-      setActivePlayerSlot(firstKickoffPlayerSlot(next));
-      return next;
-    });
+    if (!draft || !isKickoffDraft(draft)) return;
+    const next = applyKickoffRole(draft, role);
+    setDraft(next);
+    setActivePlayerSlot(firstKickoffPlayerSlot(next));
   }
 
   function handleKickoffSpotsChange(spots: KickoffReturnSpots) {

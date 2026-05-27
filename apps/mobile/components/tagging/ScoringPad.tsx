@@ -46,6 +46,7 @@ export function ScoringPad({
 }: ScoringPadProps) {
   const typeOptions = scoringTypeOptions(draft);
   const resultOptions = getAlternateResultsForPlayType(draft.playType);
+  const showResultRow = resultOptions.length > 1;
 
   return (
     <View style={styles.pad}>
@@ -70,19 +71,21 @@ export function ScoringPad({
             size="dense"
           />
         </View>
-        <View style={styles.resultWrap}>
-          <TapGrid
-            options={resultOptions}
-            value={draft.result}
-            onChange={(result) => {
-              onChange(applyResultChange(draft, result));
-              const slots = getVisiblePlayerSlots(draft.playType, result);
-              onActivePlayerSlotChange(slots[0] ?? null);
-            }}
-            columns={1}
-            size="dense"
-          />
-        </View>
+        {showResultRow ? (
+          <View style={styles.resultWrap}>
+            <TapGrid
+              options={resultOptions}
+              value={draft.result}
+              onChange={(result) => {
+                onChange(applyResultChange(draft, result));
+                const slots = getVisiblePlayerSlots(draft.playType, result);
+                onActivePlayerSlotChange(slots[0] ?? null);
+              }}
+              columns={1}
+              size="dense"
+            />
+          </View>
+        ) : null}
       </View>
 
       <OffensePlayerSection
