@@ -1,0 +1,25 @@
+{
+  "name": "@huddlestat/shared",
+  "version": "0.1.0",
+  "license": "MIT",
+  "description": "Hudl PlaylistData schema, field position model, and play chain logic",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/playChain.test.ts",
+    "lint": "echo 'no lint configured'"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "zod": "^3.24.2"
+  },
+  "dependencies": {
+    "zod": "^3.24.2"
+  }
+}
