@@ -1,0 +1,62 @@
+{
+  "meta": {
+    "scenarioId": "onside-recovery",
+    "gameId": "scenario-onside-recovery",
+    "rules": "HS",
+    "source": "hand",
+    "teamOffense": "TEAM_A",
+    "teamDefense": "OPP",
+    "periods": 4,
+    "redacted": true,
+    "description": "Short kick recovery — Package H live-ball path; chain spot at recovery end",
+    "skipReplayAfter": [1]
+  },
+  "plays": [
+    {
+      "playNumber": 1,
+      "quarter": 1,
+      "odk": "K",
+      "yardLine": -40,
+      "down": 0,
+      "distance": 0,
+      "hash": "M",
+      "gainLoss": 10,
+      "passer": { "jersey": "", "name": "" },
+      "receiver": { "jersey": "", "name": "" },
+      "rusher": { "jersey": "", "name": "" },
+      "result": "Return",
+      "team": "TEAM_A",
+      "tackler1": { "jersey": "", "name": "" },
+      "tackler2": { "jersey": "", "name": "" },
+      "recoveredBy": { "jersey": "88", "name": "" },
+      "returner": { "jersey": "", "name": "" },
+      "playType": "KO",
+      "kicker": { "jersey": "5", "name": "" },
+      "kickYards": 12,
+      "interceptedBy": { "jersey": "", "name": "" },
+      "completion": "catch:-32|end:-32"
+    },
+    {
+      "playNumber": 2,
+      "quarter": 1,
+      "odk": "O",
+      "yardLine": -32,
+      "down": 1,
+      "distance": 10,
+      "hash": "M",
+      "gainLoss": 0,
+      "passer": { "jersey": "", "name": "" },
+      "receiver": { "jersey": "", "name": "" },
+      "rusher": { "jersey": "", "name": "" },
+      "result": "Rush",
+      "team": "TEAM_A",
+      "tackler1": { "jersey": "", "name": "" },
+      "tackler2": { "jersey": "", "name": "" },
+      "recoveredBy": { "jersey": "", "name": "" },
+      "returner": { "jersey": "", "name": "" },
+      "playType": "Run",
+      "kicker": { "jersey": "", "name": "" },
+      "interceptedBy": { "jersey": "", "name": "" }
+    }
+  ]
+}

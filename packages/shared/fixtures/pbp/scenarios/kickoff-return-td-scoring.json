@@ -1,0 +1,61 @@
+{
+  "meta": {
+    "scenarioId": "kickoff-return-td-scoring",
+    "gameId": "scenario-kickoff-return-td",
+    "rules": "HS",
+    "source": "hand",
+    "teamOffense": "TEAM_A",
+    "teamDefense": "OPP",
+    "periods": 4,
+    "redacted": true,
+    "description": "KO Rec return TD → Extra Pt Good (scoring pad)"
+  },
+  "plays": [
+    {
+      "playNumber": 1,
+      "quarter": 1,
+      "odk": "O",
+      "yardLine": -40,
+      "down": 0,
+      "distance": 0,
+      "hash": "M",
+      "gainLoss": 95,
+      "passer": { "jersey": "", "name": "" },
+      "receiver": { "jersey": "", "name": "" },
+      "rusher": { "jersey": "", "name": "" },
+      "result": "Return",
+      "team": "TEAM_A",
+      "tackler1": { "jersey": "", "name": "" },
+      "tackler2": { "jersey": "", "name": "" },
+      "recoveredBy": { "jersey": "", "name": "" },
+      "returner": { "jersey": "12", "name": "" },
+      "playType": "KO Rec",
+      "kicker": { "jersey": "", "name": "" },
+      "returnYards": 95,
+      "interceptedBy": { "jersey": "", "name": "" },
+      "completion": "catch:-5|end:TD"
+    },
+    {
+      "playNumber": 2,
+      "quarter": 1,
+      "odk": "O",
+      "yardLine": 3,
+      "down": 1,
+      "distance": 1,
+      "hash": "M",
+      "gainLoss": 0,
+      "passer": { "jersey": "", "name": "" },
+      "receiver": { "jersey": "", "name": "" },
+      "rusher": { "jersey": "", "name": "" },
+      "result": "Good",
+      "team": "TEAM_A",
+      "tackler1": { "jersey": "", "name": "" },
+      "tackler2": { "jersey": "", "name": "" },
+      "recoveredBy": { "jersey": "", "name": "" },
+      "returner": { "jersey": "", "name": "" },
+      "playType": "Extra Pt.",
+      "kicker": { "jersey": "", "name": "" },
+      "interceptedBy": { "jersey": "", "name": "" }
+    }
+  ]
+}

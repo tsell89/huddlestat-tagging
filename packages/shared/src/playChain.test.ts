@@ -182,6 +182,58 @@ describe("TD → scoring → kickoff chain", () => {
     assert.equal(ko.playNumber, 5);
   });
 
+  test("KO return TD → Extra Pt scoring pad (odk O)", () => {
+    const koRec = basePlay({
+      playNumber: 1,
+      playType: PlayType.KickoffReceive,
+      result: Result.Return,
+      odk: ODK.Offense,
+      yardLine: -40,
+      down: 0,
+      distance: 0,
+      completion: "catch:-5|end:TD",
+    });
+
+    const scoring = nextDraftAfterPlay(koRec, 2, TEAM);
+    assert.equal(scoring.playType, PlayType.ExtraPoint);
+    assert.equal(scoring.result, Result.Good);
+    assert.equal(scoring.odk, ODK.Offense);
+  });
+
+  test("punt return TD (odk D) → Extra Pt scoring pad (odk O)", () => {
+    const puntRec = basePlay({
+      playNumber: 8,
+      playType: PlayType.PuntReceive,
+      result: Result.Return,
+      odk: ODK.Defense,
+      yardLine: 35,
+      down: 1,
+      distance: 10,
+      completion: "recv:20|end:TD",
+    });
+
+    const scoring = nextDraftAfterPlay(puntRec, 9, TEAM);
+    assert.equal(scoring.playType, PlayType.ExtraPoint);
+    assert.equal(scoring.odk, ODK.Offense);
+  });
+
+  test("INT return TD (odk D) → Extra Pt scoring pad (odk O)", () => {
+    const pick = basePlay({
+      playNumber: 3,
+      playType: PlayType.Pass,
+      result: Result.Interception,
+      odk: ODK.Defense,
+      yardLine: -30,
+      down: 2,
+      distance: 8,
+      completion: "catch:20|end:TD",
+    });
+
+    const scoring = nextDraftAfterPlay(pick, 4, TEAM);
+    assert.equal(scoring.playType, PlayType.ExtraPoint);
+    assert.equal(scoring.odk, ODK.Offense);
+  });
+
   test("HS OT: XP Good → opponent possession @ Own 10 (defense)", () => {
     const xp = basePlay({
       playNumber: 2,
@@ -325,6 +377,27 @@ describe("touchback @ Own 20 (HS)", () => {
 });
 
 describe("punt receive chain", () => {
+  test("4th-down punt downed → next odk D and Punt Rec", () => {
+    const punt = basePlay({
+      playNumber: 5,
+      playType: PlayType.Punt,
+      result: Result.Downed,
+      yardLine: -28,
+      down: 4,
+      distance: 2,
+      gainLoss: -35,
+      completion: "end:35",
+      odk: ODK.Offense,
+    });
+
+    const next = nextDraftAfterPlay(punt, 6, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.playType, PlayType.PuntReceive);
+    assert.equal(next.yardLine, -35);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
+  });
+
   test("punt receive return uses completion end spot", () => {
     const puntRec = basePlay({
       playType: PlayType.PuntReceive,

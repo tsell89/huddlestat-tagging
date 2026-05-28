@@ -2,6 +2,7 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import {
+  ODK,
   PlayType,
   Result,
   defaultKickoffPlay,
@@ -256,6 +257,17 @@ function canSaveDraft(draft: PlaylistData): boolean {
   if (!draft.playType || !draft.result) return false;
   // Gate 3: require jersey on each visible slot before save
   return true;
+}
+
+/** UX-14: after our FG/XP/2pt Good, next kickoff defaults to We kick. */
+function isOurConfirmedScore(play: PlaylistData): boolean {
+  return (
+    play.odk === ODK.Offense &&
+    play.result === Result.Good &&
+    (play.playType === PlayType.FieldGoal ||
+      play.playType === PlayType.ExtraPoint ||
+      play.playType === PlayType.TwoPoint)
+  );
 }
 
 export default function TaggingScreen() {
@@ -745,6 +757,10 @@ export default function TaggingScreen() {
         setActivePlayerSlot(firstPlayerSlot(liveDraft));
         const updatedGame = await applyScoreAfterSave(id, newPlays, game);
         setGame(updatedGame);
+        if (isOurConfirmedScore(toSave)) {
+          await setKickoffRole(id, "kick");
+          setKickoffRoleState("kick");
+        }
       } else {
         const saved = await saveLocalPlay(id, toSave);
         const newPlays = [...plays, saved];
@@ -788,6 +804,10 @@ export default function TaggingScreen() {
         setCatchUpMode(false);
         const updatedGame = await applyScoreAfterSave(id, newPlays, game);
         setGame(updatedGame);
+        if (isOurConfirmedScore(toSave)) {
+          await setKickoffRole(id, "kick");
+          setKickoffRoleState("kick");
+        }
       }
       setUnsyncedCount(await countUnsyncedPlays(id));
       await refreshCounts();

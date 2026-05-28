@@ -230,6 +230,34 @@ function isPuntPlay(playType: PlaylistData["playType"]): boolean {
   return playType === PlayType.Punt || playType === PlayType.PuntReceive;
 }
 
+function isReturnTouchdown(play: Pick<PlaylistData, "completion">): boolean {
+  const c = play.completion;
+  if (!c) return false;
+  return /end:TD/.test(c);
+}
+
+/** ODK for XP/2pt after a return TD (tagged-team perspective). */
+function scoringOdkAfterReturnTd(
+  play: Pick<PlaylistData, "playType" | "odk">,
+): (typeof ODK)[keyof typeof ODK] {
+  if (play.playType === PlayType.KickoffReceive) {
+    return play.odk === ODK.Offense ? ODK.Offense : ODK.Defense;
+  }
+  if (play.playType === PlayType.PuntReceive) {
+    return play.odk === ODK.Defense ? ODK.Offense : ODK.Defense;
+  }
+  return ODK.Offense;
+}
+
+function isSuccessfulFourthDownPunt(play: PlaylistData): boolean {
+  return (
+    play.playType === PlayType.Punt &&
+    play.down === 4 &&
+    play.result !== Result.Blocked &&
+    !isLiveBallTurnover(play)
+  );
+}
+
 function isTouchdownResult(result: PlaylistData["result"]): boolean {
   return result === Result.RushTd || result === Result.CompleteTd;
 }
@@ -502,8 +530,26 @@ export function nextDraftAfterPlay(
     return defaultKickoffPlay(nextPlayNumber, team);
   }
 
+  if (isReturnTouchdown(play)) {
+    return defaultScoringPlayAfterTd(
+      nextPlayNumber,
+      team,
+      scoringOdkAfterReturnTd(play),
+    );
+  }
+
   if (isTouchdownResult(play.result) && isScrimmagePlay(play.playType)) {
     return defaultScoringPlayAfterTd(nextPlayNumber, team, play.odk);
+  }
+
+  if (isSuccessfulFourthDownPunt(play)) {
+    return {
+      ...defaultOffensivePlay(nextPlayNumber, team),
+      ...advanceSituation(play),
+      odk: ODK.Defense,
+      playType: PlayType.PuntReceive,
+      ...emptyPlayers,
+    };
   }
 
   const situation = advanceSituation(play);
