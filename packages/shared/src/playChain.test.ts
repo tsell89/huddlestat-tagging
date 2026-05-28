@@ -12,9 +12,9 @@ import {
   FIELD_OPP_GOAL,
   hudlToFieldPosition,
   nextDraftAfterPlay,
-  yardsAdvanced,
   normalizePlayOnSave,
   yardLineAfterPlay,
+  yardsAdvanced,
   type PlaylistData,
 } from "./index.js";
 
@@ -239,6 +239,23 @@ describe("TD → scoring → kickoff chain", () => {
     const scoring = nextDraftAfterPlay(pick, 4, TEAM);
     assert.equal(scoring.playType, PlayType.ExtraPoint);
     assert.equal(scoring.odk, ODK.Offense);
+    assert.equal(scoring.yardLine, 3);
+  });
+
+  test("4th-down punt return TD routes to scoring before punt-rec flip", () => {
+    const punt = basePlay({
+      playNumber: 5,
+      playType: PlayType.Punt,
+      result: Result.Return,
+      odk: ODK.Offense,
+      yardLine: 40,
+      down: 4,
+      distance: 8,
+      completion: "recv:20|end:TD",
+    });
+
+    const scoring = nextDraftAfterPlay(punt, 6, TEAM);
+    assert.equal(scoring.playType, PlayType.ExtraPoint);
     assert.equal(scoring.yardLine, 3);
   });
 
