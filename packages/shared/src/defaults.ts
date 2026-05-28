@@ -108,6 +108,20 @@ export function defaultHsOtPossessionSnap(
   };
 }
 
+/** Next snap after our 4th-down punt — defense tags opponent Punt Rec. */
+export function defaultPuntReceivePlay(
+  playNumber: number,
+  team: string,
+  overrides?: Partial<PlaylistData>,
+): PlaylistData {
+  return {
+    ...defaultOffensivePlay(playNumber, team),
+    odk: ODK.Defense,
+    playType: PlayType.PuntReceive,
+    ...overrides,
+  };
+}
+
 /** Defaults for a new offensive snap (caller fills playNumber + team) */
 export function defaultOffensivePlay(
   playNumber: number,

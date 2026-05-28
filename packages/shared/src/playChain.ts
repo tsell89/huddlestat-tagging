@@ -8,6 +8,7 @@ import {
   defaultHsOtPossessionSnap,
   defaultKickoffPlay,
   defaultOffensivePlay,
+  defaultPuntReceivePlay,
   defaultScoringPlayAfterTd,
 } from "./defaults.js";
 import type { PlaylistData, YardLine } from "./index.js";
@@ -16,6 +17,7 @@ import {
   HS_TOUCHBACK_YARD_LINE,
   fieldPositionToHudl,
   flipHudlYardLinePerspective,
+  hudlForOpponentOffenseAtFieldSpot,
   hudlToFieldPosition,
   yardsAdvanced,
 } from "./fieldPosition100.js";
@@ -249,13 +251,44 @@ function scoringOdkAfterReturnTd(
   return ODK.Offense;
 }
 
-function isSuccessfulFourthDownPunt(play: PlaylistData): boolean {
+function isSuccessfulPuntEnding(play: PlayChainInput): boolean {
+  if (!isPuntPlay(play.playType) || play.result === Result.Blocked) {
+    return false;
+  }
+  if (isLiveBallTurnover(play)) return false;
   return (
-    play.playType === PlayType.Punt &&
-    play.down === 4 &&
-    play.result !== Result.Blocked &&
-    !isLiveBallTurnover(play)
+    play.result === Result.Downed ||
+    play.result === Result.Return ||
+    play.result === Result.Touchback
   );
+}
+
+function isSuccessfulFourthDownPunt(play: PlaylistData): boolean {
+  return play.playType === PlayType.Punt && play.down === 4 && isSuccessfulPuntEnding(play);
+}
+
+/**
+ * Ball spot for defense Punt Rec after our successful punt (4th-down flip).
+ *
+ * All yardage uses the tagged team's 0–100 field (0 = our goal, 100 = opponent goal).
+ *
+ * - Downed: `end:N` on the Punt row is our-offense Hudl → field spot → opponent-offense Hudl.
+ * - Return: `recv:|end:` is already opponent-offense Hudl at the return end spot.
+ * - Touchback: HS receiving spot (Own 20) already in opponent-offense Hudl.
+ */
+function puntReceiveSituation(play: PlayChainInput): SituationFields {
+  const endHudl = yardLineAfterPlay(play);
+
+  if (play.result === Result.Return || play.result === Result.Touchback) {
+    return { down: 1, distance: 10, yardLine: endHudl };
+  }
+
+  const fieldSpot = hudlToFieldPosition(endHudl);
+  return {
+    down: 1,
+    distance: 10,
+    yardLine: hudlForOpponentOffenseAtFieldSpot(fieldSpot),
+  };
 }
 
 function isTouchdownResult(result: PlaylistData["result"]): boolean {
@@ -544,10 +577,8 @@ export function nextDraftAfterPlay(
 
   if (isSuccessfulFourthDownPunt(play)) {
     return {
-      ...defaultOffensivePlay(nextPlayNumber, team),
-      ...advanceSituation(play),
-      odk: ODK.Defense,
-      playType: PlayType.PuntReceive,
+      ...defaultPuntReceivePlay(nextPlayNumber, team),
+      ...puntReceiveSituation(play),
       ...emptyPlayers,
     };
   }

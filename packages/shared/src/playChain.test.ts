@@ -9,6 +9,8 @@ import {
   defaultOffensivePlay,
   emptyPlayerRef,
   isFailedFourthDown,
+  FIELD_OPP_GOAL,
+  hudlToFieldPosition,
   nextDraftAfterPlay,
   normalizePlayOnSave,
   yardLineAfterPlay,
@@ -394,6 +396,116 @@ describe("punt receive chain", () => {
     assert.equal(next.odk, ODK.Defense);
     assert.equal(next.playType, PlayType.PuntReceive);
     assert.equal(next.yardLine, -35);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
+  });
+
+  test("4th-down punt return → next odk D and Punt Rec at return end", () => {
+    const punt = basePlay({
+      playNumber: 5,
+      playType: PlayType.Punt,
+      result: Result.Return,
+      yardLine: 40,
+      down: 4,
+      distance: 8,
+      gainLoss: -12,
+      returnYards: 12,
+      completion: "recv:35|end:-32",
+      odk: ODK.Offense,
+    });
+
+    const next = nextDraftAfterPlay(punt, 6, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.playType, PlayType.PuntReceive);
+    assert.equal(next.yardLine, -32);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
+  });
+
+  test("4th-down punt touchback → next odk D and Punt Rec @ Own 20", () => {
+    const punt = basePlay({
+      playNumber: 5,
+      playType: PlayType.Punt,
+      result: Result.Touchback,
+      yardLine: 5,
+      down: 4,
+      distance: 2,
+      gainLoss: 0,
+      odk: ODK.Offense,
+    });
+
+    const next = nextDraftAfterPlay(punt, 6, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.playType, PlayType.PuntReceive);
+    assert.equal(next.yardLine, -20);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
+  });
+
+  test("4th-down punt downed: field spot 5 → opponent offense @ spot 95", () => {
+    const punt = basePlay({
+      playNumber: 5,
+      playType: PlayType.Punt,
+      result: Result.Downed,
+      yardLine: -45,
+      down: 4,
+      distance: 5,
+      gainLoss: 5,
+      completion: "end:-5",
+      odk: ODK.Offense,
+    });
+
+    const fieldSpot = hudlToFieldPosition(-5);
+    assert.equal(fieldSpot, 5);
+    assert.equal(FIELD_OPP_GOAL - fieldSpot, 95);
+
+    const next = nextDraftAfterPlay(punt, 6, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.playType, PlayType.PuntReceive);
+    assert.equal(next.yardLine, 5);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
+  });
+
+  test("4th-down punt downed: field spot 65 → opponent offense @ spot 35", () => {
+    const punt = basePlay({
+      playNumber: 5,
+      playType: PlayType.Punt,
+      result: Result.Downed,
+      yardLine: -28,
+      down: 4,
+      distance: 2,
+      gainLoss: -35,
+      completion: "end:35",
+      odk: ODK.Offense,
+    });
+
+    const fieldSpot = hudlToFieldPosition(35);
+    assert.equal(fieldSpot, 65);
+    assert.equal(FIELD_OPP_GOAL - fieldSpot, 35);
+
+    const next = nextDraftAfterPlay(punt, 6, TEAM);
+    assert.equal(next.yardLine, -35);
+  });
+
+  test("4th-down punt return ending in opponent territory keeps recv end as-is", () => {
+    const punt = basePlay({
+      playNumber: 5,
+      playType: PlayType.Punt,
+      result: Result.Return,
+      yardLine: -40,
+      down: 4,
+      distance: 10,
+      gainLoss: 10,
+      returnYards: 10,
+      completion: "recv:-5|end:25",
+      odk: ODK.Offense,
+    });
+
+    const next = nextDraftAfterPlay(punt, 6, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.playType, PlayType.PuntReceive);
+    assert.equal(next.yardLine, 25);
     assert.equal(next.down, 1);
     assert.equal(next.distance, 10);
   });
