@@ -2,6 +2,18 @@ import { ODK, PlayType, Result, type PlaylistData } from "@huddlestat/shared";
 
 export type KickoffRole = "kick" | "receive";
 
+export function oppositeKickoffRole(role: KickoffRole): KickoffRole {
+  return role === "kick" ? "receive" : "kick";
+}
+
+/** 2H kickoff default: opposite of opening coin toss (defer convention). */
+export function secondHalfKickoffRoleFromOpening(
+  opening: KickoffRole | null,
+): KickoffRole {
+  if (opening === null) return "receive";
+  return oppositeKickoffRole(opening);
+}
+
 export function isKickoffDraft(draft: PlaylistData): boolean {
   return (
     draft.playType === PlayType.Kickoff ||

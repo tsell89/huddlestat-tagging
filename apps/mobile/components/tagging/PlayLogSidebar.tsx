@@ -1,6 +1,11 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { LocalPlay } from "@/lib/db/types";
 import {
+  catchUpHintMessage,
+  isQuarterBreakHint,
+  type CatchUpHint,
+} from "@/lib/tagging/catchUpHint";
+import {
   formatPlayPlayers,
   formatPlaySituation,
 } from "@/lib/tagging/formatPlayLog";
@@ -11,7 +16,7 @@ type PlayLogSidebarProps = {
   nextPlayNumber: number;
   editingPlayId: string | null;
   catchUpMode: boolean;
-  catchUpHint?: "halftime" | "generic" | null;
+  catchUpHint?: CatchUpHint | null;
   saving: boolean;
   saveDisabled: boolean;
   onCatchUp: () => void;
@@ -54,15 +59,26 @@ export function PlayLogSidebar({
       ) : null}
 
       {catchUpMode ? (
-        <Text style={styles.modeBanner}>
-          {catchUpHint === "halftime"
-            ? "Halftime catch-up — tag 2H kickoff sequence (Own 40, kickoff pad)."
-            : "Catch-up mode — insert missed snap; clip alignment fixed on export."}
-        </Text>
+        <View
+          style={[
+            styles.modeBannerBox,
+            isQuarterBreakHint(catchUpHint) && styles.quarterBreakBanner,
+          ]}
+        >
+          <Text
+            style={[
+              styles.modeBannerText,
+              isQuarterBreakHint(catchUpHint) && styles.quarterBreakBannerText,
+            ]}
+          >
+            {catchUpHintMessage(catchUpHint) ??
+              "Catch-up mode — insert missed snap; clip alignment fixed on export."}
+          </Text>
+        </View>
       ) : null}
 
       {editingPlayId ? (
-        <Text style={styles.modeBanner}>Editing a previous play</Text>
+        <Text style={styles.modeBannerText}>Editing a previous play</Text>
       ) : null}
 
       <View style={styles.playsBlock}>
@@ -160,11 +176,29 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#92400e",
   },
-  modeBanner: {
+  modeBannerBox: {
+    marginBottom: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: LAYOUT.colors.sectionBorder,
+    backgroundColor: LAYOUT.colors.placeholderBg,
+  },
+  quarterBreakBanner: {
+    backgroundColor: "#eff6ff",
+    borderColor: "#93c5fd",
+  },
+  modeBannerText: {
     fontSize: 12,
     color: LAYOUT.colors.textMuted,
-    marginBottom: 8,
     fontStyle: "italic",
+    lineHeight: 17,
+  },
+  quarterBreakBannerText: {
+    color: "#1e3a8a",
+    fontStyle: "normal",
+    fontWeight: "600",
   },
   playsBlock: {
     gap: 8,

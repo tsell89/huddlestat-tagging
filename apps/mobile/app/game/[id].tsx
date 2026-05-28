@@ -83,10 +83,14 @@ import {
   getKickoffRole,
   isKickoffDraft,
   kickoffRoleFromDraft,
+  persistOpeningKickoffRole,
+  recordOpeningKickoffRole,
   resolveKickoffRoleAfterSave,
+  secondHalfKickoffRole,
   setKickoffRole,
   type KickoffRole,
 } from "@/lib/tagging/kickoffRole";
+import type { CatchUpHint } from "@/lib/tagging/catchUpHint";
 import { applyPasserLeaderDefault } from "@/lib/tagging/jerseyGridRank";
 import {
   defaultOtOpeningDraft,
@@ -300,9 +304,7 @@ export default function TaggingScreen() {
     useState<PlayerSlotKey | null>(null);
   const [editingPlayId, setEditingPlayId] = useState<string | null>(null);
   const [catchUpMode, setCatchUpMode] = useState(false);
-  const [catchUpHint, setCatchUpHint] = useState<"halftime" | "generic" | null>(
-    null,
-  );
+  const [catchUpHint, setCatchUpHint] = useState<CatchUpHint | null>(null);
   const [showOtModal, setShowOtModal] = useState(false);
   const [kickoffSpots, setKickoffSpots] = useState<KickoffReturnSpots>(() =>
     initKickoffSpotsFromDraft(null),
@@ -347,6 +349,14 @@ export default function TaggingScreen() {
     setNextPlayNumber(nextNum);
     const role = await getKickoffRole(id);
     setKickoffRoleState(role);
+    if (existing.length > 0) {
+      const first = existing[0];
+      const openingFromPlay =
+        first.playType === PlayType.KickoffReceive ? "receive" : "kick";
+      if (first.playType === PlayType.Kickoff || first.playType === PlayType.KickoffReceive) {
+        await recordOpeningKickoffRole(id, openingFromPlay);
+      }
+    }
 
     if (!offLiveRef.current) {
       const liveDraft = buildLiveDraft(
@@ -511,19 +521,27 @@ export default function TaggingScreen() {
     setActivePlayerSlot(firstPlayerSlot(withNum));
   }
 
-  function startHalftimeCatchUp() {
+  function startQuarterReview(hint: CatchUpHint) {
+    setCatchUpMode(true);
+    setCatchUpHint(hint);
+    setEditingPlayId(null);
+  }
+
+  async function startHalftimeCatchUp() {
     if (!game || !id) return;
     setCatchUpMode(true);
-    setCatchUpHint("halftime");
+    setCatchUpHint("halftime-kickoff");
     setEditingPlayId(null);
-    void setKickoffRole(id, "receive").then(() => setKickoffRoleState("receive"));
+    const role = await secondHalfKickoffRole(id);
+    await setKickoffRole(id, role);
+    setKickoffRoleState(role);
     const d = withKickoffRole(
       defaultKickoffPlay(nextPlayNumber, game.teamCode, {
         quarter: 3,
         yardLine: -40,
         result: Result.Return,
       }),
-      "receive",
+      role,
     );
     const withNum = { ...d, playNumber: nextPlayNumber };
     const kickoff = initKickoffSpotsFromDraft(withNum);
@@ -560,6 +578,9 @@ export default function TaggingScreen() {
       return;
     }
     if (next === "FINAL") {
+      if (game.phase === "Q4") {
+        startQuarterReview("quarter-review-q4");
+      }
       await finalizeLocalGame(id);
       setGame({ ...game, phase: "FINAL", status: "final" });
       return;
@@ -567,6 +588,7 @@ export default function TaggingScreen() {
     if (next === "HALFTIME" && game.phase === "Q2") {
       await updateLocalGamePhase(id, "HALFTIME");
       setGame({ ...game, phase: "HALFTIME" });
+      startQuarterReview("quarter-review-q2");
       return;
     }
     if (next === "Q3" && game.phase === "HALFTIME") {
@@ -579,6 +601,11 @@ export default function TaggingScreen() {
     await updateLocalGamePhase(id, next);
     const updated = { ...game, phase: next };
     setGame(updated);
+    if (game.phase === "Q1" && next === "Q2") {
+      startQuarterReview("quarter-review-q1");
+    } else if (game.phase === "Q3" && next === "Q4") {
+      startQuarterReview("quarter-review-q3");
+    }
     if (q !== null && draft) {
       setDraft({ ...draft, quarter: q });
     }
@@ -637,6 +664,7 @@ export default function TaggingScreen() {
   function handleKickoffRoleChange(role: KickoffRole) {
     setKickoffRoleState(role);
     if (id) {
+      void persistOpeningKickoffRole(id, role, plays.length);
       void setKickoffRole(id, role);
     }
     if (!draft || !isKickoffDraft(draft)) return;
@@ -933,6 +961,13 @@ export default function TaggingScreen() {
         const updatedGame = await applyScoreAfterSave(id, newPlays, game);
         setGame(updatedGame);
       } else {
+        if (isKickoffDraft(toSave)) {
+          await persistOpeningKickoffRole(
+            id,
+            kickoffRoleFromDraft(toSave),
+            plays.length,
+          );
+        }
         const saved = await saveLocalPlay(id, toSave);
         const newPlays = [...plays, saved];
         setPlays(newPlays);
