@@ -2,7 +2,6 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import {
-  ODK,
   PlayType,
   Result,
   defaultKickoffPlay,
@@ -82,7 +81,9 @@ import {
   applyKickoffRole,
   firstKickoffPlayerSlot,
   getKickoffRole,
+  isKickoffDraft,
   kickoffRoleFromDraft,
+  resolveKickoffRoleAfterSave,
   setKickoffRole,
   type KickoffRole,
 } from "@/lib/tagging/kickoffRole";
@@ -120,13 +121,6 @@ function playToDraft(play: LocalPlay): PlaylistData {
     interceptedBy: play.interceptedBy,
     completion: play.completion,
   };
-}
-
-function isKickoffDraft(draft: PlaylistData): boolean {
-  return (
-    draft.playType === PlayType.Kickoff ||
-    draft.playType === PlayType.KickoffReceive
-  );
 }
 
 function withKickoffRole(draft: PlaylistData, role: KickoffRole): PlaylistData {
@@ -282,15 +276,15 @@ function canSaveDraft(draft: PlaylistData): boolean {
   return true;
 }
 
-/** UX-14: after our FG/XP/2pt Good, next kickoff defaults to We kick. */
-function isOurConfirmedScore(play: PlaylistData): boolean {
-  return (
-    play.odk === ODK.Offense &&
-    play.result === Result.Good &&
-    (play.playType === PlayType.FieldGoal ||
-      play.playType === PlayType.ExtraPoint ||
-      play.playType === PlayType.TwoPoint)
-  );
+async function persistKickoffRoleIfChanged(
+  gameId: string,
+  nextRole: KickoffRole,
+  currentRole: KickoffRole,
+  setRole: (role: KickoffRole) => void,
+): Promise<void> {
+  if (nextRole === currentRole) return;
+  await setKickoffRole(gameId, nextRole);
+  setRole(nextRole);
 }
 
 export default function TaggingScreen() {
@@ -889,13 +883,28 @@ export default function TaggingScreen() {
         setCatchUpMode(false);
         const nextNum = await getNextPlayNumber(id);
         setNextPlayNumber(nextNum);
-        const liveDraft = buildLiveDraft(
-          newPlays,
-          nextNum,
-          game.teamCode,
-          kickoffRole,
-          game.phase,
+        const lastPlay = newPlays[newPlays.length - 1];
+        const phaseQuarter = quarterForRegulationPhase(game.phase);
+        const quarter = phaseQuarter ?? lastPlay.quarter;
+        const chainSource = playToDraft(lastPlay);
+        const nextChainDraft = withQuarterFromLast(
+          ensureOffensePadDraft(
+            nextDraftForGame(chainSource, nextNum, game.teamCode, game.phase),
+          ),
+          quarter,
         );
+        const nextKickoffRole = resolveKickoffRoleAfterSave(
+          chainSource,
+          nextChainDraft,
+          kickoffRole,
+        );
+        await persistKickoffRoleIfChanged(
+          id,
+          nextKickoffRole,
+          kickoffRole,
+          setKickoffRoleState,
+        );
+        const liveDraft = withKickoffRole(nextChainDraft, nextKickoffRole);
         const kickoff = initKickoffSpotsFromDraft(liveDraft);
         const punt = initPuntSpotsFromDraft(liveDraft);
         setKickoffSpots(kickoff);
@@ -923,25 +932,30 @@ export default function TaggingScreen() {
         setActivePlayerSlot(firstPlayerSlot(liveDraft));
         const updatedGame = await applyScoreAfterSave(id, newPlays, game);
         setGame(updatedGame);
-        if (isOurConfirmedScore(toSave)) {
-          await setKickoffRole(id, "kick");
-          setKickoffRoleState("kick");
-        }
       } else {
         const saved = await saveLocalPlay(id, toSave);
         const newPlays = [...plays, saved];
         setPlays(newPlays);
         const nextNum = draft.playNumber + 1;
         setNextPlayNumber(nextNum);
-        const next = withQuarterFromLast(
-          withKickoffRole(
-            ensureOffensePadDraft(
-              nextDraftAfterPlayForGame(toSave, nextNum, game.teamCode, game.phase),
-            ),
-            kickoffRole,
+        const nextChainDraft = withQuarterFromLast(
+          ensureOffensePadDraft(
+            nextDraftAfterPlayForGame(toSave, nextNum, game.teamCode, game.phase),
           ),
           toSave.quarter,
         );
+        const nextKickoffRole = resolveKickoffRoleAfterSave(
+          toSave,
+          nextChainDraft,
+          kickoffRole,
+        );
+        await persistKickoffRoleIfChanged(
+          id,
+          nextKickoffRole,
+          kickoffRole,
+          setKickoffRoleState,
+        );
+        const next = withKickoffRole(nextChainDraft, nextKickoffRole);
         const kickoff = initKickoffSpotsFromDraft(next);
         const punt = initPuntSpotsFromDraft(next);
         setKickoffSpots(kickoff);
@@ -970,10 +984,6 @@ export default function TaggingScreen() {
         setCatchUpMode(false);
         const updatedGame = await applyScoreAfterSave(id, newPlays, game);
         setGame(updatedGame);
-        if (isOurConfirmedScore(toSave)) {
-          await setKickoffRole(id, "kick");
-          setKickoffRoleState("kick");
-        }
       }
       setUnsyncedCount(await countUnsyncedPlays(id));
       await refreshCounts();

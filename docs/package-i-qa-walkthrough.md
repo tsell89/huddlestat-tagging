@@ -2,6 +2,8 @@
 
 Use this doc **one step at a time** with Cursor. After each step, tell the agent what you see; it will mark pass/fail.
 
+**Full batched checklist (all scripts A–I):** [ipad-qa-checklist.md](./ipad-qa-checklist.md) · **Play-by-play scripts:** [ipad-qa-play-scripts.md](./ipad-qa-play-scripts.md)
+
 ---
 
 ## Part 0 — Which server is which?
@@ -279,6 +281,29 @@ Needed so we can reach **3rd & 8 @ Opp 23** for the sack test.
 
 ---
 
+### PLAY 7 — Post-FG kickoff role (UX-14)
+
+**Goal:** After **our** FG Good, next kickoff defaults to **We kick** (not opening We receive).
+
+| # | Do this |
+|---|---------|
+| 1 | **Do not tap** We kick / We receive yet — read the toggle |
+| 2 | Confirm toggle shows **We kick** |
+| 3 | (Optional) Tag kickoff · Touchback or Return · SAVE |
+| 4 | (Optional) Kill Expo Go · reopen game · confirm Play 7 still **We kick** |
+
+**Expected immediately after Play 6 save (before any tap):**
+
+| Check | Expected |
+|-------|----------|
+| Header | `PLAY #7 · Kickoff @ -40` (or similar) |
+| Pad | **Kickoff** pad |
+| Role toggle | **We kick** selected — **not** We receive from Play 1 |
+
+If **We receive** is shown, UX-14 **FAIL** — see [ipad-qa-checklist.md](./ipad-qa-checklist.md) Script A.
+
+---
+
 ## Part 6 — Report results to Cursor
 
 Copy this template and fill it in after you finish (or after each play):
@@ -288,6 +313,7 @@ PLAY 1: header="..." pad=... sidebar="..." PASS/FAIL
 PLAY 2: ...
 ...
 PLAY 6: ...
+PLAY 7: kickoff role toggle="We kick" PASS/FAIL
 ```
 
 Cursor will compare to the **Expected** tables and update Package I sign-off.
@@ -307,7 +333,7 @@ Cursor will compare to the **Expected** tables and update Package I sign-off.
 
 ---
 
-## After all 6 plays pass
+## After all 7 plays pass
 
-Tell Cursor: **“§2.4 complete — all pass.”**  
-It will update `docs/ipad-tagging-spec.md` §11 Package I to ✓ with today’s date.
+Tell Cursor: **“§2.4 + UX-14 complete — all pass.”**  
+Continue with [ipad-qa-checklist.md](./ipad-qa-checklist.md) scripts B–I for full Package I.

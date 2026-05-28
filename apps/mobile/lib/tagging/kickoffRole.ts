@@ -4,14 +4,14 @@ import {
   applyPlayTypeChange,
   getVisiblePlayerSlots,
 } from "@/lib/tagging/playConfig";
+import {
+  isKickoffDraft,
+  resolveKickoffRoleAfterSave,
+} from "@/lib/tagging/kickoffRoleResolve";
+import type { KickoffRole } from "@/lib/tagging/kickoffRoleResolve";
 
-export type KickoffRole = "kick" | "receive";
-
-const META_PREFIX = "kickoff_role:";
-
-function metaKey(gameId: string): string {
-  return `${META_PREFIX}${gameId}`;
-}
+export type { KickoffRole } from "@/lib/tagging/kickoffRoleResolve";
+export { isKickoffDraft, resolveKickoffRoleAfterSave };
 
 export function kickoffPlayTypeForRole(role: KickoffRole): typeof PlayType.Kickoff | typeof PlayType.KickoffReceive {
   return role === "kick" ? PlayType.Kickoff : PlayType.KickoffReceive;
@@ -28,6 +28,12 @@ export function applyKickoffRole(
   const playType = kickoffPlayTypeForRole(role);
   if (draft.playType === playType) return draft;
   return applyPlayTypeChange({ ...draft, playType }, playType);
+}
+
+const META_PREFIX = "kickoff_role:";
+
+function metaKey(gameId: string): string {
+  return `${META_PREFIX}${gameId}`;
 }
 
 export async function getKickoffRole(gameId: string): Promise<KickoffRole> {
