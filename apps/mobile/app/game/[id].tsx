@@ -6,20 +6,24 @@ import {
   PlayType,
   Result,
   defaultKickoffPlay,
-  liveDraftFromLastPlay,
-  nextDraftAfterPlay,
   deriveScoreFromPlays,
+  type GamePhase,
   normalizePlayOnSave,
   shouldFinalizeOtGame,
   type PlaylistData,
 } from "@huddlestat/shared";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
 import { PlayLogSidebar } from "@/components/tagging/PlayLogSidebar";
+import { GamePhaseBar } from "@/components/tagging/GamePhaseBar";
+import { StartOtModal } from "@/components/tagging/StartOtModal";
 import { TaggingHeader } from "@/components/tagging/TaggingHeader";
 import { TaggingPad } from "@/components/tagging/TaggingPad";
 import {
   finalizeLocalGame,
   getLocalGame,
+  updateLocalGamePhase,
+  updateLocalGameStatus,
+  updateLocalOtPossession,
   updateLocalScore,
 } from "@/lib/db/games";
 import {
@@ -83,6 +87,11 @@ import {
   type KickoffRole,
 } from "@/lib/tagging/kickoffRole";
 import { applyPasserLeaderDefault } from "@/lib/tagging/jerseyGridRank";
+import {
+  defaultOtOpeningDraft,
+  nextDraftAfterPlayForGame,
+  nextDraftForGame,
+} from "@/lib/tagging/nextDraftForGame";
 import { useSync } from "@/context/sync-context";
 
 function playToDraft(play: LocalPlay): PlaylistData {
@@ -157,19 +166,30 @@ async function applyScoreAfterSave(
   };
 }
 
+function quarterForRegulationPhase(phase: GamePhase): number | null {
+  if (phase === "Q1") return 1;
+  if (phase === "Q2") return 2;
+  if (phase === "Q3") return 3;
+  if (phase === "Q4") return 4;
+  if (phase === "OT") return 5;
+  return null;
+}
+
 function buildLiveDraft(
   plays: LocalPlay[],
   nextNum: number,
   teamCode: string,
   kickoffRole: KickoffRole,
+  phase: GamePhase,
 ): PlaylistData {
   const last = plays[plays.length - 1];
+  const phaseQuarter = quarterForRegulationPhase(phase);
   if (last) {
-    const lastQuarter = last.quarter;
+    const lastQuarter = phaseQuarter ?? last.quarter;
     return withQuarterFromLast(
       ensureOffensePadDraft(
         withKickoffRole(
-          liveDraftFromLastPlay(playToDraft(last), nextNum, teamCode),
+          nextDraftForGame(playToDraft(last), nextNum, teamCode, phase),
           kickoffRole,
         ),
       ),
@@ -177,7 +197,10 @@ function buildLiveDraft(
     );
   }
   return withKickoffRole(
-    defaultKickoffPlay(nextNum, teamCode, { result: Result.Return, quarter: 1 }),
+    defaultKickoffPlay(nextNum, teamCode, {
+      result: Result.Return,
+      quarter: phaseQuarter ?? 1,
+    }),
     kickoffRole,
   );
 }
@@ -283,6 +306,10 @@ export default function TaggingScreen() {
     useState<PlayerSlotKey | null>(null);
   const [editingPlayId, setEditingPlayId] = useState<string | null>(null);
   const [catchUpMode, setCatchUpMode] = useState(false);
+  const [catchUpHint, setCatchUpHint] = useState<"halftime" | "generic" | null>(
+    null,
+  );
+  const [showOtModal, setShowOtModal] = useState(false);
   const [kickoffSpots, setKickoffSpots] = useState<KickoffReturnSpots>(() =>
     initKickoffSpotsFromDraft(null),
   );
@@ -328,7 +355,13 @@ export default function TaggingScreen() {
     setKickoffRoleState(role);
 
     if (!offLiveRef.current) {
-      const liveDraft = buildLiveDraft(existing, nextNum, g.teamCode, role);
+      const liveDraft = buildLiveDraft(
+        existing,
+        nextNum,
+        g.teamCode,
+        role,
+        g.phase,
+      );
       const kickoff = initKickoffSpotsFromDraft(liveDraft);
       const punt = initPuntSpotsFromDraft(liveDraft);
       setKickoffSpots(kickoff);
@@ -378,11 +411,13 @@ export default function TaggingScreen() {
     if (!game) return;
     setEditingPlayId(null);
     setCatchUpMode(false);
+    setCatchUpHint(null);
     const liveDraft = buildLiveDraft(
       plays,
       nextPlayNumber,
       game.teamCode,
       kickoffRole,
+      game.phase,
     );
     const kickoff = initKickoffSpotsFromDraft(liveDraft);
     const punt = initPuntSpotsFromDraft(liveDraft);
@@ -445,8 +480,15 @@ export default function TaggingScreen() {
   function handleCatchUp() {
     if (!game) return;
     setCatchUpMode(true);
+    setCatchUpHint("generic");
     setEditingPlayId(null);
-    const d = buildLiveDraft(plays, nextPlayNumber, game.teamCode, kickoffRole);
+    const d = buildLiveDraft(
+      plays,
+      nextPlayNumber,
+      game.teamCode,
+      kickoffRole,
+      game.phase,
+    );
     const withNum = { ...d, playNumber: nextPlayNumber };
     const kickoff = initKickoffSpotsFromDraft(withNum);
     const punt = initPuntSpotsFromDraft(withNum);
@@ -473,6 +515,129 @@ export default function TaggingScreen() {
       ),
     );
     setActivePlayerSlot(firstPlayerSlot(withNum));
+  }
+
+  function startHalftimeCatchUp() {
+    if (!game || !id) return;
+    setCatchUpMode(true);
+    setCatchUpHint("halftime");
+    setEditingPlayId(null);
+    void setKickoffRole(id, "receive").then(() => setKickoffRoleState("receive"));
+    const d = withKickoffRole(
+      defaultKickoffPlay(nextPlayNumber, game.teamCode, {
+        quarter: 3,
+        yardLine: -40,
+        result: Result.Return,
+      }),
+      "receive",
+    );
+    const withNum = { ...d, playNumber: nextPlayNumber };
+    const kickoff = initKickoffSpotsFromDraft(withNum);
+    const punt = initPuntSpotsFromDraft(withNum);
+    setKickoffSpots(kickoff);
+    setPuntSpots(punt);
+    const end = initTackleEndFromDraft(withNum);
+    setTackleEnd(end);
+    const liveBall = initLiveBallSpotsFromDraft(withNum);
+    setIntSpots(liveBall.intSpots);
+    setFumbleSpots(liveBall.fumbleSpots);
+    setBlockedSpots(liveBall.blockedSpots);
+    setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
+    setDraft(
+      finalizeTaggingDraft(
+        withNum,
+        plays,
+        kickoff,
+        punt,
+        end,
+        liveBall.intSpots,
+        liveBall.fumbleSpots,
+        liveBall.blockedSpots,
+        liveBall.penaltyFoulSpot,
+      ),
+    );
+    setActivePlayerSlot(firstPlayerSlot(withNum));
+  }
+
+  async function applyPhaseChange(next: GamePhase) {
+    if (!id || !game) return;
+    if (next === "OT") {
+      setShowOtModal(true);
+      return;
+    }
+    if (next === "FINAL") {
+      await finalizeLocalGame(id);
+      setGame({ ...game, phase: "FINAL", status: "final" });
+      return;
+    }
+    if (next === "HALFTIME" && game.phase === "Q2") {
+      await updateLocalGamePhase(id, "HALFTIME");
+      setGame({ ...game, phase: "HALFTIME" });
+      return;
+    }
+    if (next === "Q3" && game.phase === "HALFTIME") {
+      await updateLocalGamePhase(id, "Q3");
+      setGame({ ...game, phase: "Q3" });
+      startHalftimeCatchUp();
+      return;
+    }
+    const q = quarterForRegulationPhase(next);
+    await updateLocalGamePhase(id, next);
+    const updated = { ...game, phase: next };
+    setGame(updated);
+    if (q !== null && draft) {
+      setDraft({ ...draft, quarter: q });
+    }
+    if (next === "Q1" && game.status === "pregame") {
+      await updateLocalGameStatus(id, "live");
+      setGame({ ...updated, status: "live" });
+    }
+  }
+
+  async function handleStartOt(otPossession: "us" | "them") {
+    if (!id || !game) return;
+    setShowOtModal(false);
+    await updateLocalGamePhase(id, "OT");
+    await updateLocalOtPossession(id, otPossession);
+    if (game.status !== "live" && game.status !== "final") {
+      await updateLocalGameStatus(id, "live");
+    }
+    const otDraft = defaultOtOpeningDraft(
+      nextPlayNumber,
+      game.teamCode,
+      otPossession,
+    );
+    const kickoff = initKickoffSpotsFromDraft(otDraft);
+    const punt = initPuntSpotsFromDraft(otDraft);
+    setKickoffSpots(kickoff);
+    setPuntSpots(punt);
+    const end = initTackleEndFromDraft(otDraft);
+    setTackleEnd(end);
+    const liveBall = initLiveBallSpotsFromDraft(otDraft);
+    setIntSpots(liveBall.intSpots);
+    setFumbleSpots(liveBall.fumbleSpots);
+    setBlockedSpots(liveBall.blockedSpots);
+    setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
+    setDraft(
+      finalizeTaggingDraft(
+        ensureOffensePadDraft(otDraft),
+        plays,
+        kickoff,
+        punt,
+        end,
+        liveBall.intSpots,
+        liveBall.fumbleSpots,
+        liveBall.blockedSpots,
+        liveBall.penaltyFoulSpot,
+      ),
+    );
+    setActivePlayerSlot(firstPlayerSlot(otDraft));
+    setGame({
+      ...game,
+      phase: "OT",
+      otPossession,
+      status: game.status === "pregame" ? "live" : game.status,
+    });
   }
 
   function handleKickoffRoleChange(role: KickoffRole) {
@@ -729,6 +894,7 @@ export default function TaggingScreen() {
           nextNum,
           game.teamCode,
           kickoffRole,
+          game.phase,
         );
         const kickoff = initKickoffSpotsFromDraft(liveDraft);
         const punt = initPuntSpotsFromDraft(liveDraft);
@@ -770,7 +936,7 @@ export default function TaggingScreen() {
         const next = withQuarterFromLast(
           withKickoffRole(
             ensureOffensePadDraft(
-              nextDraftAfterPlay(toSave, nextNum, game.teamCode),
+              nextDraftAfterPlayForGame(toSave, nextNum, game.teamCode, game.phase),
             ),
             kickoffRole,
           ),
@@ -836,6 +1002,14 @@ export default function TaggingScreen() {
         undoEnabled={false}
       />
 
+      <GamePhaseBar phase={game.phase} onPhasePress={(p) => void applyPhaseChange(p)} />
+
+      <StartOtModal
+        visible={showOtModal}
+        onClose={() => setShowOtModal(false)}
+        onChoose={(choice) => void handleStartOt(choice)}
+      />
+
       <View style={styles.main}>
         <View style={styles.taggingColumn}>
           <TaggingPad
@@ -870,6 +1044,7 @@ export default function TaggingScreen() {
           nextPlayNumber={nextPlayNumber}
           editingPlayId={editingPlayId}
           catchUpMode={catchUpMode}
+          catchUpHint={catchUpHint}
           saving={saving}
           saveDisabled={!canSaveDraft(draft)}
           onCatchUp={handleCatchUp}

@@ -11,6 +11,7 @@ type PlayLogSidebarProps = {
   nextPlayNumber: number;
   editingPlayId: string | null;
   catchUpMode: boolean;
+  catchUpHint?: "halftime" | "generic" | null;
   saving: boolean;
   saveDisabled: boolean;
   onCatchUp: () => void;
@@ -24,6 +25,7 @@ export function PlayLogSidebar({
   nextPlayNumber,
   editingPlayId,
   catchUpMode,
+  catchUpHint = null,
   saving,
   saveDisabled,
   onCatchUp,
@@ -53,7 +55,9 @@ export function PlayLogSidebar({
 
       {catchUpMode ? (
         <Text style={styles.modeBanner}>
-          Catch-up mode — insert missed snap; clip alignment fixed on export.
+          {catchUpHint === "halftime"
+            ? "Halftime catch-up — tag 2H kickoff sequence (Own 40, kickoff pad)."
+            : "Catch-up mode — insert missed snap; clip alignment fixed on export."}
         </Text>
       ) : null}
 

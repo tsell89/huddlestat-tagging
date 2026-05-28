@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
-import type { PlaylistData } from "@huddlestat/shared";
+import type { GamePhase, PlaylistData } from "@huddlestat/shared";
 import type { LocalGame } from "@/lib/db/types";
 import { formatSituationLine } from "@/lib/tagging/formatSituation";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
@@ -12,6 +12,17 @@ type TaggingHeaderProps = {
   onUndo?: () => void;
   undoEnabled?: boolean;
 };
+
+function phaseBadgeLabel(phase: GamePhase): string {
+  switch (phase) {
+    case "HALFTIME":
+      return "Halftime";
+    case "FINAL":
+      return "Final";
+    default:
+      return phase;
+  }
+}
 
 export function TaggingHeader({
   game,
@@ -35,6 +46,8 @@ export function TaggingHeader({
       <View style={styles.center}>
         <Text style={styles.playLine}>
           <Text style={styles.playNum}>PLAY #{draft.playNumber}</Text>
+          <Text style={styles.quarterBadge}> · Q{draft.quarter}</Text>
+          <Text style={styles.phaseBadge}> · {phaseBadgeLabel(game.phase)}</Text>
           {"  ·  "}
           {formatSituationLine(draft)}
         </Text>
@@ -50,7 +63,12 @@ export function TaggingHeader({
         <Text style={styles.score}>
           {game.homeScore}–{game.awayScore}
         </Text>
-        <Text style={styles.status}>{game.status}</Text>
+        <Text style={styles.status}>
+          {game.status}
+          {game.phase === "OT" && game.otPossession
+            ? ` · ${game.otPossession === "us" ? "our ball" : "their ball"}`
+            : ""}
+        </Text>
       </View>
 
       <Pressable
@@ -106,6 +124,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     letterSpacing: 0.5,
+  },
+  quarterBadge: {
+    color: "#fde68a",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  phaseBadge: {
+    color: "#a5f3fc",
+    fontSize: 14,
+    fontWeight: "600",
   },
   metaLine: {
     color: "#cbd5e1",

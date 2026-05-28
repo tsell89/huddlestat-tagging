@@ -30,14 +30,14 @@ These are fixed for this session — do not revisit without explicit product sig
 
 | ID | Status | Task |
 |----|--------|------|
-| `chain-punt-flip` | pending | `playChain`: 4th-down punt → odk D + Punt Rec; unit tests |
-| `chain-return-td` | pending | `playChain`: KO/punt return TD (`completion end:TD`) → `defaultScoringPlayAfterTd` |
-| `pbp-scenarios` | pending | Add punt-odk-flip, kickoff-return-td-scoring, defensive-special-td-catalog, onside-recovery scenarios; fix cfbd-normal-drives play 6 |
-| `schema-quarter-phase` | pending | Add quarter to PlaylistData/export/SQLite/sync; `games.phase` + `otPossession`; migration v2 |
-| `score-auto` | pending | `deriveScoreFromPlays` + OT win detection; wire `updateLocalScore` on save |
-| `ux-14-kickoff-flip` | pending | Flip `kickoff_role` to kick after our FG/XP/2pt Good |
-| `ux-phase-ot` | pending | GamePhaseBar, TaggingHeader quarter/phase, Start OT modal, OT `nextDraftForGame` wrapper |
-| `ux-halftime-catchup` | pending | Halftime catch-up mode variant in PlayLogSidebar |
+| `chain-punt-flip` | done | `playChain`: 4th-down punt → odk D + Punt Rec; unit tests |
+| `chain-return-td` | done | `playChain`: KO/punt return TD (`completion end:TD`) → `defaultScoringPlayAfterTd` |
+| `pbp-scenarios` | done | Add punt-odk-flip, kickoff-return-td-scoring, defensive-special-td-catalog, onside-recovery scenarios; fix cfbd-normal-drives play 6 |
+| `schema-quarter-phase` | done | Add quarter to PlaylistData/export/SQLite/sync; `games.phase` + `otPossession`; migration v2 |
+| `score-auto` | done | `deriveScoreFromPlays` + OT win detection; wire `updateLocalScore` on save |
+| `ux-14-kickoff-flip` | done | Flip `kickoff_role` to kick after our FG/XP/2pt Good |
+| `ux-phase-ot` | done | GamePhaseBar, TaggingHeader quarter/phase, Start OT modal, OT `nextDraftForGame` wrapper |
+| `ux-halftime-catchup` | done | Halftime catch-up mode variant in PlayLogSidebar |
 
 ---
 
