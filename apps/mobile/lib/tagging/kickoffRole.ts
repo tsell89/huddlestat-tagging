@@ -6,7 +6,6 @@ import {
 } from "@/lib/tagging/playConfig";
 import {
   isKickoffDraft,
-  oppositeKickoffRole,
   resolveKickoffRoleAfterSave,
   secondHalfKickoffRoleFromOpening,
   type KickoffRole,
@@ -18,7 +17,7 @@ export {
   oppositeKickoffRole,
   resolveKickoffRoleAfterSave,
   secondHalfKickoffRoleFromOpening,
-};
+} from "@/lib/tagging/kickoffRoleResolve";
 
 export function kickoffPlayTypeForRole(role: KickoffRole): typeof PlayType.Kickoff | typeof PlayType.KickoffReceive {
   return role === "kick" ? PlayType.Kickoff : PlayType.KickoffReceive;

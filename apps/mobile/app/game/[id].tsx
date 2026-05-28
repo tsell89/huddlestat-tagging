@@ -453,6 +453,7 @@ export default function TaggingScreen() {
   function handleSelectPlay(play: LocalPlay) {
     setEditingPlayId(play.id);
     setCatchUpMode(false);
+    setCatchUpHint(null);
     const d = playToDraft(play);
     const kickoff = initKickoffSpotsFromDraft(d);
     const punt = initPuntSpotsFromDraft(d);
@@ -909,6 +910,7 @@ export default function TaggingScreen() {
         setPlays(newPlays);
         setEditingPlayId(null);
         setCatchUpMode(false);
+        setCatchUpHint(null);
         const nextNum = await getNextPlayNumber(id);
         setNextPlayNumber(nextNum);
         const lastPlay = newPlays[newPlays.length - 1];
@@ -1017,6 +1019,7 @@ export default function TaggingScreen() {
         );
         setActivePlayerSlot(firstPlayerSlot(next));
         setCatchUpMode(false);
+        setCatchUpHint(null);
         const updatedGame = await applyScoreAfterSave(id, newPlays, game);
         setGame(updatedGame);
       }
