@@ -4,7 +4,7 @@
 
 ```bash
 cd huddlestat-tagging
-nvm use
+nvm use   # Node 22 — see docs/node-version.md
 npm install
 ```
 

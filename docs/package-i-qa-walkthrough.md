@@ -30,13 +30,13 @@ Copy and paste, then press **Return**:
 cd ~/huddlestat-tagging
 ```
 
-### Step 1.2 — Use Node 20 (required)
+### Step 1.2 — Use Node 22 (required)
 
 ```bash
 nvm use
 ```
 
-You should see: `Now using node v20...`
+You should see: `Now using node v22...`
 
 If `nvm: command not found`, install nvm first or run:
 
