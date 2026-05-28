@@ -13,11 +13,11 @@ import {
 } from "./defaults.js";
 import type { PlaylistData, YardLine } from "./index.js";
 import {
-  FIELD_OPP_GOAL,
   FIELD_OWN_GOAL,
   HS_TOUCHBACK_YARD_LINE,
   fieldPositionToHudl,
   flipHudlYardLinePerspective,
+  hudlForOpponentOffenseAtFieldSpot,
   hudlToFieldPosition,
   yardsAdvanced,
 } from "./fieldPosition100.js";
@@ -287,7 +287,7 @@ function puntReceiveSituation(play: PlayChainInput): SituationFields {
   return {
     down: 1,
     distance: 10,
-    yardLine: fieldPositionToHudl(FIELD_OPP_GOAL - fieldSpot),
+    yardLine: hudlForOpponentOffenseAtFieldSpot(fieldSpot),
   };
 }
 
