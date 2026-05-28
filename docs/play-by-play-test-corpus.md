@@ -32,11 +32,27 @@ When automation finds unsupported or ambiguous state, the tagger must keep going
 | 1 | `hudl-spec-2-4` | Hudl-shaped §2.4 canonical | Gold replay anchor |
 | 2 | `cfbd-chaos-penalties` | CFBD-derived (redacted) | Penalties, replay down |
 | 3 | `cfbd-overtime-ncaa` | CFBD-derived | NCAA OT period flip |
-| 4 | `cfbd-normal-drives` | CFBD-derived | KO TB, punt, FG drive |
+| 4 | `cfbd-normal-drives` | CFBD-derived | KO TB, punt ODK flip (`Punt Rec`, `odk: D` play 6), FG drive |
 | 5 | `scenarios/package-h-edge-plays` | Hand-authored | Package H live-ball |
 | 6 | `scenarios/overtime-hs-drive` | Hand-authored | **HS OT** — 1st & goal @ Opp 10, no kickoff between possessions |
 
+### Hand scenarios (`fixtures/pbp/scenarios/`)
+
+| File | Rules | Asserts / purpose |
+|------|-------|-------------------|
+| `halftime-kickoff.json` | HS | FG → 2H kickoff return (`halftimeAfterPlay` in meta — product only) |
+| `overtime-hs-drive.json` | HS | TD+XP → alternating OT possession @ ±10 |
+| `overtime-ncaa-drive.json` | NCAA | OT kickoff / touchback anchor |
+| `overtime-nfl-drive.json` | NFL | NFL-tagged kickoff model |
+| `package-h-edge-plays.json` | HS | Blocked punt recovery, FG miss touchback |
+| `punt-odk-flip.json` | HS | 4th-down punt downed → next `odk: D`, `Punt Rec`, spot |
+| `kickoff-return-td-scoring.json` | HS | KO Rec `end:TD` → next snap scoring pad (Extra Pt.) |
+| `defensive-special-td-catalog.json` | HS | INT / special-teams return TD → scoring pad (skip replay after XP rows) |
+| `onside-recovery.json` | HS | Short kick + recovery spot (Package H live-ball path) |
+
 **Overtime:** HS uses alternating possessions from the **opponent 10** (`+10` / `−10`), not college/NFL kickoff periods. See [overtime-rules.md](./overtime-rules.md).
+
+**Product meta excluded from replay:** kickoff role (UX-14), quarter-break catch-up UI — chain tests compare situation + pad class only.
 
 ---
 
@@ -106,6 +122,7 @@ Tests: `packages/shared/src/pbp/*.ts` — run via `npm run test:pbp`.
 | **PBP-3** | OT scenarios NCAA / NFL / **HS** (`overtime-hs-drive.json`) + chain `PlayChainOptions` |
 | **PBP-4** | [pbp-exception-ux.md](./pbp-exception-ux.md) |
 | **PBP-5** | CI runs `npm run test:pbp` |
+| **PBP-6** | WS2 chain scenarios: `punt-odk-flip`, `kickoff-return-td-scoring`, `defensive-special-td-catalog`, `onside-recovery` |
 
 ---
 

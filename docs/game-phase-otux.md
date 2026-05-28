@@ -22,7 +22,30 @@ These are fixed for this session — do not revisit without explicit product sig
 4. **Score auto from plays, no tagger confirm** — recompute on each save; header updates silently; no ScoringPad confirm step.
 5. **Safety = +2 to the team on DEFENSE on that play** — odk O → them, odk D → us.
 6. **OT win = when `phase === OT` and score creates decisive lead after equal OT possessions → `phase: FINAL`** — score logic only, not a new chain primitive.
-7. **Do NOT wire `{ overtime: true }` into `liveDraftFromLastPlay` from mobile** — OT via game meta wrapper later (`nextDraftForGame` reads `phase === "OT"`).
+7. **Do NOT wire `{ overtime: true }` into `liveDraftFromLastPlay` from mobile** — OT via game meta wrapper (`nextDraftForGame` reads `phase === "OT"`).
+
+### Kickoff / coin toss (2026-05-27)
+
+- **Opening:** user picks **We kick** or **We receive** once (persisted `opening_kickoff_role` + current `kickoff_role` meta).
+- **After regulation score:** scorer kicks — our defaults via `resolveKickoffRoleAfterSave` (our Good → kick; opponent Good → receive; blocked PAT after their TD → receive).
+- **Second half:** pre-fill **opposite** of opening coin toss (defer convention); user may override toggle.
+
+### Quarter-break catch-up
+
+Catch-up at every quarter transition — review/fill missing stats (tacklers, PBU, etc.); no break play rows.
+
+| Transition | Behavior |
+|------------|----------|
+| Q1 → Q2 | Quarter review banner; sidebar edit |
+| Q2 → HALFTIME | 1H review banner |
+| HALFTIME → Q3 | 2H kickoff catch-up @ Own 40 + opposite opening kickoff role |
+| Q3 → Q4 | Quarter review banner |
+| Q4 → FINAL | Q4 review banner before/at lock |
+
+### Quarter vs phase
+
+- **Aligned** for Q1–Q4 and OT (`play.quarter` 1–4 or 5).
+- **HALFTIME / FINAL** are phase-only until tagging resumes.
 
 ---
 
@@ -37,20 +60,21 @@ These are fixed for this session — do not revisit without explicit product sig
 | `score-auto` | done | `deriveScoreFromPlays` + OT win detection; wire `updateLocalScore` on save |
 | `ux-14-kickoff-flip` | done | Flip `kickoff_role` to kick after our FG/XP/2pt Good |
 | `ux-phase-ot` | done | GamePhaseBar, TaggingHeader quarter/phase, Start OT modal, OT `nextDraftForGame` wrapper |
-| `ux-halftime-catchup` | done | Halftime catch-up mode variant in PlayLogSidebar |
+| `ux-halftime-catchup` | done | Quarter-break banners (Q1–Q4 + halftime); 2H kickoff @ Own 40 with `opening_kickoff_role` opposite default |
 
 ---
 
 ## Current state
 
-| Area | Today | Gap |
-|------|-------|-----|
-| **PlaylistData** | 31 Hudl columns, no quarter | Locked: add `quarter` per play + export column |
-| **Game row** | `homeScore`/`awayScore`/`status` in SQLite; never auto-updated | Locked: derive score from plays, no tagger confirm |
-| **Phase / OT** | Fixture-only (`PbpGameMeta.overtime`); HS OT chain exists behind `PlayChainOptions` | Locked: app meta + UI; **do not** pass `{ overtime: true }` into `liveDraftFromLastPlay` yet |
-| **Punt after 4th** | Spot updates; ODK stays `O` | Locked: flip to `D` + `Punt Rec` |
-| **KO return TD** | UI encodes `end:TD`; chain → offense Run pad | Locked: route to ScoringPad (spec §6 gap) |
-| **Kickoff role UX-14** | Opening choice persists after our FG | P0 defect in [package-i-qa-report.md](package-i-qa-report.md) |
+| Area | Shipped (WS1–WS4) | Remaining |
+|------|-------------------|-----------|
+| **PlaylistData / export** | `quarter` on schema; **QTR** column after `PLAY #` (32-column export); SQLite v2; sync payload includes `quarter` | Document non-standard export vs raw Hudl in mapping docs |
+| **Game row** | `phase`, `otPossession`, `homeScore`/`awayScore` auto-updated via `deriveScoreFromPlays` on save; OT win → `FINAL` | — |
+| **Phase / OT UX** | `GamePhaseBar`, `TaggingHeader` phase/quarter/score, Start OT modal, `nextDraftForGame` OT wrapper (not raw `liveDraftFromLastPlay` from screen) | WS4d onside kick banner ([pbp-exception-ux.md](pbp-exception-ux.md)) |
+| **Punt after 4th** | Chain flips to `odk: D` + `Punt Rec`; `punt-odk-flip` scenario in CI | — |
+| **KO / special-teams return TD** | `isReturnTouchdown` → ScoringPad; scenario coverage in CI | — |
+| **Kickoff role (UX-14)** | `resolveKickoffRoleAfterSave` on save (our Good → kick; opponent Good → receive); `opening_kickoff_role` + 2H opposite default | Manual iPad re-test [Script A Play 7](package-i-qa-play-scripts.md) |
+| **Quarter-break catch-up** | Banners on Q1→Q2, Q2→HALFTIME, HALFTIME→Q3 (2H KO @ Own 40), Q3→Q4, Q4→FINAL; sidebar edit | Deep fill-missing-stats UX ([ipad-tagging-spec.md](ipad-tagging-spec.md) deferred) |
 
 **Key files:**
 

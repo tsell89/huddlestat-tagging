@@ -9,10 +9,30 @@ import {
 } from "@huddlestat/shared";
 import {
   isKickoffDraft,
+  oppositeKickoffRole,
   resolveKickoffRoleAfterSave,
+  secondHalfKickoffRoleFromOpening,
 } from "./kickoffRoleResolve.js";
 
 const TEAM = "WHS";
+
+describe("oppositeKickoffRole", () => {
+  test("kick ↔ receive", () => {
+    assert.equal(oppositeKickoffRole("kick"), "receive");
+    assert.equal(oppositeKickoffRole("receive"), "kick");
+  });
+});
+
+describe("secondHalfKickoffRoleFromOpening", () => {
+  test("opposite of opening coin toss", () => {
+    assert.equal(secondHalfKickoffRoleFromOpening("receive"), "kick");
+    assert.equal(secondHalfKickoffRoleFromOpening("kick"), "receive");
+  });
+
+  test("defaults to receive when opening unknown", () => {
+    assert.equal(secondHalfKickoffRoleFromOpening(null), "receive");
+  });
+});
 
 describe("resolveKickoffRoleAfterSave", () => {
   const kickoffDraft = defaultKickoffPlay(7, TEAM, { quarter: 1 });
