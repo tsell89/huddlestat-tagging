@@ -63,8 +63,18 @@ export function yardsToOpponentGoal(fromHudl: FieldYardLine): number {
   return FIELD_OPP_GOAL - hudlToFieldPosition(fromHudl);
 }
 
-/** Same physical spot, opposite team’s offensive perspective. */
+/**
+ * Hudl for the other team's offense at a physical field spot (0–100 from our goal).
+ * Same spot on the field: their position is `FIELD_OPP_GOAL − fieldSpot`.
+ */
+export function hudlForOpponentOffenseAtFieldSpot(fieldSpot: number): FieldYardLine {
+  return fieldPositionToHudl(FIELD_OPP_GOAL - fieldSpot);
+}
+
+/**
+ * Same physical spot, other team's offensive Hudl (convert via 0–100, not signed Hudl math).
+ */
 export function flipHudlYardLinePerspective(yardLine: FieldYardLine): FieldYardLine {
-  const pos = hudlToFieldPosition(yardLine);
-  return fieldPositionToHudl(FIELD_OPP_GOAL - pos);
+  const fieldSpot = hudlToFieldPosition(yardLine);
+  return hudlForOpponentOffenseAtFieldSpot(fieldSpot);
 }
