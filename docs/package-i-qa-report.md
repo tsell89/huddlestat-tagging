@@ -18,9 +18,9 @@
 | Chain logic (§2.4) | **PASS** — unit tests |
 | Manual §2.4 canonical drive (iPad) | **PASS** — Plays 1–6 saved; headers, gains, pads verified |
 | Manual spec §A–I (full checklist) | **NOT RUN** — session stopped after §2.4 |
-| Kickoff role after our FG (Play 6→7) | **FAIL** — see [UX-14](#ux-backlog-manual-session-2026-05-27) |
+| Kickoff role after our FG (Play 6→7) | **FAIL** — see [UX-14](#ux-backlog-manual-session-2026-05-27); **fix merged PR #9 — re-test Script A Play 7** |
 
-**Package I sign-off:** **§2.4 acceptance met on device.** Full Package I (all spec sections A–I on iPad) and UX polish items remain open. Do not treat as full Package I ✓ in `ipad-tagging-spec.md` §11 until A–I manual pass or explicit scope waiver.
+**Package I sign-off:** **§2.4 acceptance met on device.** UX-14 fix pending re-test. Full Package I (scripts A–I on iPad) tracked in [ipad-qa-checklist.md](./ipad-qa-checklist.md). Do not treat as full Package I ✓ in `ipad-tagging-spec.md` §11 until checklist MUST rows pass or explicit scope waiver.
 
 ---
 
@@ -138,7 +138,7 @@ Product follow-ups from iPad QA. **Not** §2.4 blockers unless marked **defect**
 | UX-11 | P0 | **4th in FG range** (e.g. 4th & 13 @ 28): default **FG**, not Run · Rush | After Play 5 |
 | UX-12 | P1 | Default **Run** on 4th only for **4th & 1** or **4th & 2** in FG territory | Spec routing gap |
 | UX-13 | P2 | Do not over-emphasize **Punt** on short 4th in FG range | — |
-| UX-14 | **P0** | **defect:** After **our** FG/XP/2pt Good → next kickoff **We kick** (flip); not persisted opening choice | Play 6→7; root: `kickoff_role` meta + `withKickoffRole` on save |
+| UX-14 | **P0** | **defect:** After **our** FG/XP/2pt Good → next kickoff **We kick** (flip); not persisted opening choice | Play 6→7; fix in PR #9 — **re-test** [Script A Play 7](./ipad-qa-play-scripts.md#script-a--canonical-drive--ux-14-regression) |
 | UX-16 | P1 | Sidebar: **larger** previous-play rows, **more fields** per play | End of session |
 | UX-17 | P1 | Show **3** previous plays (not 2) when space allows | End of session |
 | UX-18 | P2 | Revisit 72/28 split if needed for sidebar density | Related to UX-16–17 |
@@ -173,7 +173,9 @@ Product follow-ups from iPad QA. **Not** §2.4 blockers unless marked **defect**
 
 ## Manual acceptance script
 
-**Walkthrough:** [package-i-qa-walkthrough.md](./package-i-qa-walkthrough.md)
+**Walkthrough (Script A):** [package-i-qa-walkthrough.md](./package-i-qa-walkthrough.md)  
+**Full batched checklist:** [ipad-qa-checklist.md](./ipad-qa-checklist.md)  
+**Play scripts A–I:** [ipad-qa-play-scripts.md](./ipad-qa-play-scripts.md)
 
 ---
 
