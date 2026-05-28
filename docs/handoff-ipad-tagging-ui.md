@@ -136,7 +136,7 @@ From architecture plan:
 cd /Users/tsellhorn/HuddleStat
 nvm use
 npx convex dev          # terminal 1
-npm run dev:web         # terminal 2, Node 20+
+npm run dev:web         # terminal 2, Node 22+
 npm run dev:mobile:clear # terminal 3; iPad uses Expo Go SDK 54
 ```
 

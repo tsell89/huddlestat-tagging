@@ -24,7 +24,7 @@
   },
   "packageManager": "npm@10.9.2",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "overrides": {
     "@types/react": "^19.1.4",

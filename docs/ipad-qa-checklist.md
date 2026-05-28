@@ -19,7 +19,7 @@
 
 | # | Check | Result | Notes |
 |---|-------|--------|-------|
-| S1 | `cd ~/huddlestat-tagging && nvm use` | | Node 20 |
+| S1 | `cd ~/huddlestat-tagging && nvm use` | | Node 22 |
 | S2 | Metro on **8082** only (`apps/mobile`, `--lan`, no `--tunnel`) | | Not 8081 |
 | S3 | iPad landscape · same Wi‑Fi · Expo Go Local Network | | |
 | S4 | Fresh or continued game: team `SHS`, opponent `QA Test` | | Record game id / play count |

@@ -47,7 +47,7 @@ Play 7 was not required to save for §2.4 acceptance; kickoff-role defect record
 | Step | Status | Notes |
 |------|--------|-------|
 | `git pull origin main` | ✓ | At `7c80456` |
-| Node 20 (`nvm use`) | ✓ | Required before Metro |
+| Node 22 (`nvm use`) | ✓ | Required before Metro |
 | Expo LAN port **8082** | ✓ | Do not use 8081 (wrong repo) or `--tunnel` (ngrok body error) |
 | Expo Go Local Network | ✓ | User-enabled on iPad |
 | Convex / sync rebuild | — | Intentionally skipped per QA scope |

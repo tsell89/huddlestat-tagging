@@ -20,7 +20,7 @@ Live web dashboard, Convex storage, media guides, two-deep rosters, and hosted s
 ```bash
 git clone https://github.com/tsell89/huddlestat-tagging.git
 cd huddlestat-tagging
-nvm use
+nvm use   # Node 22 — see docs/node-version.md
 npm install
 cp apps/mobile/.env.example apps/mobile/.env   # optional: cloud sync URL
 npm run dev:mobile
@@ -32,6 +32,7 @@ Tagging works **fully offline** without `.env`. Set `EXPO_PUBLIC_CONVEX_URL` onl
 
 - [iPad tagging spec](./docs/ipad-tagging-spec.md)
 - [Field position model](./docs/field-position-model.md)
+- [Node.js version](./docs/node-version.md)
 
 ## Trademark
 
