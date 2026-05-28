@@ -1,4 +1,11 @@
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
+
+/** Idempotent upgrades from SCHEMA_VERSION 1 → 2. */
+export const MIGRATIONS_V2 = [
+  `ALTER TABLE plays ADD COLUMN quarter INTEGER NOT NULL DEFAULT 1`,
+  `ALTER TABLE games ADD COLUMN phase TEXT NOT NULL DEFAULT 'Q1'`,
+  `ALTER TABLE games ADD COLUMN ot_possession TEXT`,
+] as const;
 
 export const MIGRATIONS = [
   `CREATE TABLE IF NOT EXISTS games (

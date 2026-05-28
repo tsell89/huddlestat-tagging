@@ -1,0 +1,11 @@
+{
+  "gameId": "cfbd-overtime-ncaa",
+  "rules": "NCAA",
+  "source": "cfbd",
+  "teamOffense": "TEAM_A",
+  "teamDefense": "OPP",
+  "periods": 4,
+  "overtime": true,
+  "redacted": true,
+  "description": "Regulation FG then NCAA OT-style kickoff and TD scoring sequence"
+}

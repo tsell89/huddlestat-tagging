@@ -1,0 +1,160 @@
+{
+  "meta": {
+    "scenarioId": "overtime-nfl-drive",
+    "gameId": "scenario-overtime-nfl",
+    "rules": "NFL",
+    "source": "hand",
+    "teamOffense": "TEAM_A",
+    "teamDefense": "OPP",
+    "periods": 4,
+    "overtime": true,
+    "redacted": true,
+    "description": "NFL OT period — kickoff/TB model; not HS alternating possession from the 10"
+  },
+  "plays": [
+    {
+      "playNumber": 1,
+      "odk": "K",
+      "yardLine": -40,
+      "down": 0,
+      "distance": 0,
+      "hash": "M",
+      "gainLoss": 0,
+      "passer": {
+        "jersey": "",
+        "name": ""
+      },
+      "receiver": {
+        "jersey": "",
+        "name": ""
+      },
+      "rusher": {
+        "jersey": "",
+        "name": ""
+      },
+      "result": "Touchback",
+      "team": "TEAM_A",
+      "tackler1": {
+        "jersey": "",
+        "name": ""
+      },
+      "tackler2": {
+        "jersey": "",
+        "name": ""
+      },
+      "recoveredBy": {
+        "jersey": "",
+        "name": ""
+      },
+      "returner": {
+        "jersey": "",
+        "name": ""
+      },
+      "playType": "KO",
+      "kicker": {
+        "jersey": "",
+        "name": ""
+      },
+      "interceptedBy": {
+        "jersey": "",
+        "name": ""
+      }
+    },
+    {
+      "playNumber": 2,
+      "odk": "O",
+      "yardLine": -20,
+      "down": 1,
+      "distance": 10,
+      "hash": "M",
+      "gainLoss": 4,
+      "passer": {
+        "jersey": "",
+        "name": ""
+      },
+      "receiver": {
+        "jersey": "",
+        "name": ""
+      },
+      "rusher": {
+        "jersey": "",
+        "name": ""
+      },
+      "result": "Rush",
+      "team": "TEAM_A",
+      "tackler1": {
+        "jersey": "",
+        "name": ""
+      },
+      "tackler2": {
+        "jersey": "",
+        "name": ""
+      },
+      "recoveredBy": {
+        "jersey": "",
+        "name": ""
+      },
+      "returner": {
+        "jersey": "",
+        "name": ""
+      },
+      "playType": "Run",
+      "kicker": {
+        "jersey": "",
+        "name": ""
+      },
+      "interceptedBy": {
+        "jersey": "",
+        "name": ""
+      }
+    },
+    {
+      "playNumber": 3,
+      "odk": "O",
+      "yardLine": -24,
+      "down": 2,
+      "distance": 6,
+      "hash": "M",
+      "gainLoss": 0,
+      "passer": {
+        "jersey": "",
+        "name": ""
+      },
+      "receiver": {
+        "jersey": "",
+        "name": ""
+      },
+      "rusher": {
+        "jersey": "",
+        "name": ""
+      },
+      "result": "Incomplete",
+      "team": "TEAM_A",
+      "tackler1": {
+        "jersey": "",
+        "name": ""
+      },
+      "tackler2": {
+        "jersey": "",
+        "name": ""
+      },
+      "recoveredBy": {
+        "jersey": "",
+        "name": ""
+      },
+      "returner": {
+        "jersey": "",
+        "name": ""
+      },
+      "playType": "Pass",
+      "kicker": {
+        "jersey": "",
+        "name": ""
+      },
+      "interceptedBy": {
+        "jersey": "",
+        "name": ""
+      }
+    }
+  ]
+}

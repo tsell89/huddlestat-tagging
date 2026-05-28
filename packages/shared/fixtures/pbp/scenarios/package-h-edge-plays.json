@@ -1,0 +1,213 @@
+{
+  "meta": {
+    "scenarioId": "package-h-edge-plays",
+    "gameId": "scenario-package-h-edge-plays",
+    "rules": "HS",
+    "source": "hand",
+    "teamOffense": "TEAM_A",
+    "teamDefense": "OPP",
+    "periods": 4,
+    "redacted": true,
+    "description": "Blocked punt turnover; FG no-good touchback",
+    "skipReplayAfter": [
+      2
+    ]
+  },
+  "plays": [
+    {
+      "playNumber": 1,
+      "odk": "O",
+      "yardLine": 35,
+      "down": 4,
+      "distance": 8,
+      "hash": "M",
+      "gainLoss": -67,
+      "passer": {
+        "jersey": "",
+        "name": ""
+      },
+      "receiver": {
+        "jersey": "",
+        "name": ""
+      },
+      "rusher": {
+        "jersey": "",
+        "name": ""
+      },
+      "result": "Blocked",
+      "team": "TEAM_A",
+      "tackler1": {
+        "jersey": "",
+        "name": ""
+      },
+      "tackler2": {
+        "jersey": "",
+        "name": ""
+      },
+      "recoveredBy": {
+        "jersey": "",
+        "name": ""
+      },
+      "returnYards": 52,
+      "returner": {
+        "jersey": "",
+        "name": ""
+      },
+      "playType": "Punt",
+      "kicker": {
+        "jersey": "",
+        "name": ""
+      },
+      "interceptedBy": {
+        "jersey": "",
+        "name": ""
+      },
+      "completion": "recover:20|end:-32"
+    },
+    {
+      "playNumber": 2,
+      "odk": "D",
+      "yardLine": 32,
+      "down": 1,
+      "distance": 10,
+      "hash": "M",
+      "gainLoss": 0,
+      "passer": {
+        "jersey": "",
+        "name": ""
+      },
+      "receiver": {
+        "jersey": "",
+        "name": ""
+      },
+      "rusher": {
+        "jersey": "",
+        "name": ""
+      },
+      "result": "Rush",
+      "team": "TEAM_A",
+      "tackler1": {
+        "jersey": "",
+        "name": ""
+      },
+      "tackler2": {
+        "jersey": "",
+        "name": ""
+      },
+      "recoveredBy": {
+        "jersey": "",
+        "name": ""
+      },
+      "returner": {
+        "jersey": "",
+        "name": ""
+      },
+      "playType": "Run",
+      "kicker": {
+        "jersey": "",
+        "name": ""
+      },
+      "interceptedBy": {
+        "jersey": "",
+        "name": ""
+      }
+    },
+    {
+      "playNumber": 3,
+      "odk": "O",
+      "yardLine": 32,
+      "down": 2,
+      "distance": 10,
+      "hash": "M",
+      "gainLoss": 0,
+      "passer": {
+        "jersey": "",
+        "name": ""
+      },
+      "receiver": {
+        "jersey": "",
+        "name": ""
+      },
+      "rusher": {
+        "jersey": "",
+        "name": ""
+      },
+      "result": "No Good",
+      "team": "TEAM_A",
+      "tackler1": {
+        "jersey": "",
+        "name": ""
+      },
+      "tackler2": {
+        "jersey": "",
+        "name": ""
+      },
+      "recoveredBy": {
+        "jersey": "",
+        "name": ""
+      },
+      "returner": {
+        "jersey": "",
+        "name": ""
+      },
+      "playType": "FG",
+      "kicker": {
+        "jersey": "3",
+        "name": ""
+      },
+      "interceptedBy": {
+        "jersey": "",
+        "name": ""
+      },
+      "completion": "end:TB"
+    },
+    {
+      "playNumber": 4,
+      "odk": "D",
+      "yardLine": -20,
+      "down": 1,
+      "distance": 10,
+      "hash": "M",
+      "gainLoss": 0,
+      "passer": {
+        "jersey": "",
+        "name": ""
+      },
+      "receiver": {
+        "jersey": "",
+        "name": ""
+      },
+      "rusher": {
+        "jersey": "",
+        "name": ""
+      },
+      "result": "Rush",
+      "team": "TEAM_A",
+      "tackler1": {
+        "jersey": "",
+        "name": ""
+      },
+      "tackler2": {
+        "jersey": "",
+        "name": ""
+      },
+      "recoveredBy": {
+        "jersey": "",
+        "name": ""
+      },
+      "returner": {
+        "jersey": "",
+        "name": ""
+      },
+      "playType": "Run",
+      "kicker": {
+        "jersey": "",
+        "name": ""
+      },
+      "interceptedBy": {
+        "jersey": "",
+        "name": ""
+      }
+    }
+  ]
+}

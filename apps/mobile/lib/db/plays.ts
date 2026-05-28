@@ -47,16 +47,17 @@ export async function saveLocalPlay(
   await database.withTransactionAsync(async () => {
     await database.runAsync(
       `INSERT INTO plays (
-        id, local_game_id, play_number, odk, yard_line, down, distance, hash,
+        id, local_game_id, play_number, quarter, odk, yard_line, down, distance, hash,
         gain_loss, passer_json, receiver_json, rusher_json, result, team,
         tackler1_json, tackler2_json, recovered_by_json, return_yards, returner_json,
         play_type, kicker_json, kick_yards, intercepted_by_json, completion,
         synced, convex_play_id, tagged_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, ?)`,
       [
         row.id,
         row.local_game_id,
         row.play_number,
+        row.quarter,
         row.odk,
         row.yard_line,
         row.down,
@@ -155,7 +156,7 @@ export async function updateLocalPlay(
   await database.withTransactionAsync(async () => {
     await database.runAsync(
       `UPDATE plays SET
-        play_number = ?, odk = ?, yard_line = ?, down = ?, distance = ?, hash = ?,
+        play_number = ?, quarter = ?, odk = ?, yard_line = ?, down = ?, distance = ?, hash = ?,
         gain_loss = ?, passer_json = ?, receiver_json = ?, rusher_json = ?, result = ?,
         team = ?, tackler1_json = ?, tackler2_json = ?, recovered_by_json = ?,
         return_yards = ?, returner_json = ?, play_type = ?, kicker_json = ?,
@@ -164,6 +165,7 @@ export async function updateLocalPlay(
       WHERE id = ?`,
       [
         row.play_number,
+        row.quarter,
         row.odk,
         row.yard_line,
         row.down,

@@ -1,0 +1,11 @@
+{
+  "gameId": "cfbd-normal-drives",
+  "rules": "NCAA",
+  "source": "cfbd",
+  "teamOffense": "TEAM_A",
+  "teamDefense": "OPP",
+  "periods": 4,
+  "overtime": false,
+  "redacted": true,
+  "description": "Kickoff touchback, short drive, punt, receiving touchback"
+}

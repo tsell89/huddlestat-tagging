@@ -1,4 +1,9 @@
 import { Hash, ODK, PlayType, Result, emptyPlayerRef } from "./constants.js";
+import {
+  HS_OT_DEFENSE_YARD_LINE,
+  HS_OT_DISTANCE,
+  HS_OT_OFFENSE_YARD_LINE,
+} from "./fieldPosition100.js";
 import type { PlaylistData, YardLine } from "./index.js";
 
 /** Hudl yard line at opponent 3 (extra-point attempt). */
@@ -15,6 +20,7 @@ export function defaultKickoffPlay(
 ): PlaylistData {
   return {
     playNumber,
+    quarter: 1,
     odk: ODK.Kicking,
     yardLine: -40,
     down: 0,
@@ -70,6 +76,38 @@ export function defaultScoringPlayAfterTd(
   };
 }
 
+/** Next HS OT possession after XP/2pt ends a team's OT series (alternating O/D). */
+export function defaultHsOtPossessionSnap(
+  nextPlayNumber: number,
+  team: string,
+  odk: (typeof ODK)[keyof typeof ODK],
+): PlaylistData {
+  const yardLine =
+    odk === ODK.Offense ? HS_OT_OFFENSE_YARD_LINE : HS_OT_DEFENSE_YARD_LINE;
+  return {
+    ...defaultOffensivePlay(nextPlayNumber, team),
+    odk,
+    yardLine,
+    down: 1,
+    distance: HS_OT_DISTANCE,
+    playType: "",
+    result: "",
+    gainLoss: 0,
+    passer: emptyPlayerRef,
+    receiver: emptyPlayerRef,
+    rusher: emptyPlayerRef,
+    tackler1: emptyPlayerRef,
+    tackler2: emptyPlayerRef,
+    recoveredBy: emptyPlayerRef,
+    returner: emptyPlayerRef,
+    kicker: emptyPlayerRef,
+    interceptedBy: emptyPlayerRef,
+    completion: undefined,
+    returnYards: undefined,
+    kickYards: undefined,
+  };
+}
+
 /** Defaults for a new offensive snap (caller fills playNumber + team) */
 export function defaultOffensivePlay(
   playNumber: number,
@@ -78,6 +116,7 @@ export function defaultOffensivePlay(
 ): PlaylistData {
   return {
     playNumber,
+    quarter: 1,
     odk: ODK.Offense,
     yardLine: -25,
     down: 1,

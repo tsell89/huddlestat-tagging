@@ -36,3 +36,5 @@ npm run test
 ## Hudl export
 
 Playlist row shape and CSV column order: `packages/shared` (`toPlaylistDataRow`, `PLAYLIST_DATA_HEADERS`).
+
+Play-by-play chain regression: `npm run test:pbp` — see [play-by-play-test-corpus.md](./play-by-play-test-corpus.md).

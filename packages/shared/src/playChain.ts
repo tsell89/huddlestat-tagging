@@ -5,6 +5,7 @@ import {
   emptyPlayerRef,
 } from "./constants.js";
 import {
+  defaultHsOtPossessionSnap,
   defaultKickoffPlay,
   defaultOffensivePlay,
   defaultScoringPlayAfterTd,
@@ -242,6 +243,22 @@ function isScoringGood(play: Pick<PlaylistData, "playType" | "result">): boolean
   );
 }
 
+function isHsOtScoringSnap(play: Pick<PlaylistData, "playType">): boolean {
+  return (
+    play.playType === PlayType.ExtraPoint ||
+    play.playType === PlayType.TwoPoint ||
+    play.playType === PlayType.ExtraPointBlock ||
+    play.playType === PlayType.TwoPointBlock
+  );
+}
+
+export type PlayChainOptions = {
+  /** Game rules — HS OT uses alternating possessions from the 10, not kickoff. */
+  rules?: "HS" | "NCAA" | "NFL";
+  /** True when the game is in an overtime period. */
+  overtime?: boolean;
+};
+
 /** Completed scoring snap that advances to kickoff (Good XP/2pt/FG or blocked attempt). */
 function isScoringComplete(
   play: Pick<PlaylistData, "playType" | "result">,
@@ -468,10 +485,20 @@ export function nextDraftAfterPlay(
   savedPlay: PlaylistData,
   nextPlayNumber: number,
   team: string,
+  options?: PlayChainOptions,
 ): PlaylistData {
   const play = normalizePlayOnSave(savedPlay);
 
   if (isScoringComplete(play)) {
+    if (
+      options?.rules === "HS" &&
+      options.overtime &&
+      isHsOtScoringSnap(play)
+    ) {
+      const nextOdk =
+        play.odk === ODK.Offense ? ODK.Defense : ODK.Offense;
+      return defaultHsOtPossessionSnap(nextPlayNumber, team, nextOdk);
+    }
     return defaultKickoffPlay(nextPlayNumber, team);
   }
 
@@ -524,6 +551,7 @@ export function liveDraftFromLastPlay(
   lastPlay: PlaylistData,
   nextPlayNumber: number,
   team: string,
+  options?: PlayChainOptions,
 ): PlaylistData {
-  return nextDraftAfterPlay(lastPlay, nextPlayNumber, team);
+  return nextDraftAfterPlay(lastPlay, nextPlayNumber, team, options);
 }

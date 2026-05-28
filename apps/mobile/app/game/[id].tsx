@@ -7,14 +7,20 @@ import {
   defaultKickoffPlay,
   liveDraftFromLastPlay,
   nextDraftAfterPlay,
+  deriveScoreFromPlays,
   normalizePlayOnSave,
+  shouldFinalizeOtGame,
   type PlaylistData,
 } from "@huddlestat/shared";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
 import { PlayLogSidebar } from "@/components/tagging/PlayLogSidebar";
 import { TaggingHeader } from "@/components/tagging/TaggingHeader";
 import { TaggingPad } from "@/components/tagging/TaggingPad";
-import { getLocalGame } from "@/lib/db/games";
+import {
+  finalizeLocalGame,
+  getLocalGame,
+  updateLocalScore,
+} from "@/lib/db/games";
 import {
   countUnsyncedPlays,
   getNextPlayNumber,
@@ -81,6 +87,7 @@ import { useSync } from "@/context/sync-context";
 function playToDraft(play: LocalPlay): PlaylistData {
   return {
     playNumber: play.playNumber,
+    quarter: play.quarter,
     odk: play.odk,
     yardLine: play.yardLine,
     down: play.down,
@@ -116,6 +123,39 @@ function withKickoffRole(draft: PlaylistData, role: KickoffRole): PlaylistData {
   return isKickoffDraft(draft) ? applyKickoffRole(draft, role) : draft;
 }
 
+function withQuarterFromLast(
+  draft: PlaylistData,
+  lastQuarter: number,
+): PlaylistData {
+  return { ...draft, quarter: lastQuarter };
+}
+
+async function applyScoreAfterSave(
+  localGameId: string,
+  allPlays: LocalPlay[],
+  currentGame: LocalGame,
+): Promise<LocalGame> {
+  const score = deriveScoreFromPlays(allPlays.map(playToDraft));
+  await updateLocalScore(localGameId, score.us, score.them);
+
+  if (shouldFinalizeOtGame(allPlays.map(playToDraft), currentGame.phase, score)) {
+    await finalizeLocalGame(localGameId);
+    return {
+      ...currentGame,
+      homeScore: score.us,
+      awayScore: score.them,
+      phase: "FINAL",
+      status: "final",
+    };
+  }
+
+  return {
+    ...currentGame,
+    homeScore: score.us,
+    awayScore: score.them,
+  };
+}
+
 function buildLiveDraft(
   plays: LocalPlay[],
   nextNum: number,
@@ -124,15 +164,19 @@ function buildLiveDraft(
 ): PlaylistData {
   const last = plays[plays.length - 1];
   if (last) {
-    return ensureOffensePadDraft(
-      withKickoffRole(
-        liveDraftFromLastPlay(playToDraft(last), nextNum, teamCode),
-        kickoffRole,
+    const lastQuarter = last.quarter;
+    return withQuarterFromLast(
+      ensureOffensePadDraft(
+        withKickoffRole(
+          liveDraftFromLastPlay(playToDraft(last), nextNum, teamCode),
+          kickoffRole,
+        ),
       ),
+      lastQuarter,
     );
   }
   return withKickoffRole(
-    defaultKickoffPlay(nextNum, teamCode, { result: Result.Return }),
+    defaultKickoffPlay(nextNum, teamCode, { result: Result.Return, quarter: 1 }),
     kickoffRole,
   );
 }
@@ -699,16 +743,22 @@ export default function TaggingScreen() {
           ),
         );
         setActivePlayerSlot(firstPlayerSlot(liveDraft));
+        const updatedGame = await applyScoreAfterSave(id, newPlays, game);
+        setGame(updatedGame);
       } else {
         const saved = await saveLocalPlay(id, toSave);
-        setPlays((prev) => [...prev, saved]);
+        const newPlays = [...plays, saved];
+        setPlays(newPlays);
         const nextNum = draft.playNumber + 1;
         setNextPlayNumber(nextNum);
-        const next = withKickoffRole(
-          ensureOffensePadDraft(
-            nextDraftAfterPlay(toSave, nextNum, game.teamCode),
+        const next = withQuarterFromLast(
+          withKickoffRole(
+            ensureOffensePadDraft(
+              nextDraftAfterPlay(toSave, nextNum, game.teamCode),
+            ),
+            kickoffRole,
           ),
-          kickoffRole,
+          toSave.quarter,
         );
         const kickoff = initKickoffSpotsFromDraft(next);
         const punt = initPuntSpotsFromDraft(next);
@@ -724,7 +774,7 @@ export default function TaggingScreen() {
         setDraft(
           finalizeTaggingDraft(
             next,
-            [...plays, saved],
+            newPlays,
             kickoff,
             punt,
             end,
@@ -736,6 +786,8 @@ export default function TaggingScreen() {
         );
         setActivePlayerSlot(firstPlayerSlot(next));
         setCatchUpMode(false);
+        const updatedGame = await applyScoreAfterSave(id, newPlays, game);
+        setGame(updatedGame);
       }
       setUnsyncedCount(await countUnsyncedPlays(id));
       await refreshCounts();

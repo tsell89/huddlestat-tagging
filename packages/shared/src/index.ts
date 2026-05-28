@@ -9,6 +9,7 @@ export {
   type YardLine,
 } from "./constants.js";
 export {
+  defaultHsOtPossessionSnap,
   defaultKickoffPlay,
   defaultOffensivePlay,
   defaultScoringPlayAfterTd,
@@ -18,6 +19,9 @@ export {
 export {
   FIELD_OPP_GOAL,
   FIELD_OWN_GOAL,
+  HS_OT_DEFENSE_YARD_LINE,
+  HS_OT_DISTANCE,
+  HS_OT_OFFENSE_YARD_LINE,
   HS_TOUCHBACK_YARD_LINE,
   HUDL_END_ZONE,
   HUDL_MIDFIELD,
@@ -40,6 +44,7 @@ export {
   yardLineAfterPlay,
   type FumbleRecoverySide,
   type PlayChainInput,
+  type PlayChainOptions,
   type SituationFields,
 } from "./playChain.js";
 
@@ -134,12 +139,32 @@ export const playerRefSchema = z.object({
 
 export type PlayerRef = z.infer<typeof playerRefSchema>;
 
+/** Regulation quarters 1–4; 5 = overtime (game phase stored separately on game row). */
+export const quarterSchema = z.number().int().min(1).max(5);
+
+export const gamePhaseSchema = z.enum([
+  "Q1",
+  "Q2",
+  "Q3",
+  "Q4",
+  "HALFTIME",
+  "OT",
+  "FINAL",
+]);
+
+export type GamePhase = z.infer<typeof gamePhaseSchema>;
+
+export const otPossessionSchema = z.enum(["us", "them"]);
+
+export type OtPossession = z.infer<typeof otPossessionSchema>;
+
 /**
- * Hudl PlaylistData row shape — 31 columns.
+ * Hudl PlaylistData row shape — 32 columns (QTR after PLAY #).
  * PLAY # is the join key for video clip matching.
  */
 export const playlistDataSchema = z.object({
   playNumber: z.number().int().positive(),
+  quarter: quarterSchema.default(1),
   odk: odkSchema,
   yardLine: yardLineSchema,
   down: z.number().int().min(0).max(4),
@@ -168,6 +193,7 @@ export type PlaylistData = z.infer<typeof playlistDataSchema>;
 /** Column headers exactly as Hudl exports them */
 export const PLAYLIST_DATA_HEADERS = [
   "PLAY #",
+  "QTR",
   "ODK",
   "YARD LN",
   "DN",
@@ -204,6 +230,7 @@ export const PLAYLIST_DATA_HEADERS = [
 export function toPlaylistDataRow(row: PlaylistData): string[] {
   return [
     String(row.playNumber),
+    String(row.quarter),
     row.odk,
     formatYardLine(row.yardLine),
     String(row.down),
@@ -242,6 +269,12 @@ export type GameStatus = "pregame" | "live" | "final";
 export const gameStatusSchema = z.enum(["pregame", "live", "final"]);
 
 /** Slug for public /game/[slug] pages — stable per local game session */
+export {
+  deriveScoreFromPlays,
+  shouldFinalizeOtGame,
+  type ScoreFromPlays,
+} from "./scoreFromPlays.js";
+
 export function buildGameSlug(teamCode: string, opponent: string): string {
   const safe = (s: string) =>
     s

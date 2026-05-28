@@ -12,6 +12,15 @@ export const HUDL_END_ZONE = 0 as FieldYardLine;
 /** HS touchback spot — Own 20 */
 export const HS_TOUCHBACK_YARD_LINE = -20 as FieldYardLine;
 
+/** HS overtime: offense snaps at opponent 10 (1st & goal from the 10). */
+export const HS_OT_OFFENSE_YARD_LINE = 10 as FieldYardLine;
+
+/** HS overtime: defense tags opponent at our 10 (Hudl −10). */
+export const HS_OT_DEFENSE_YARD_LINE = -10 as FieldYardLine;
+
+/** HS overtime: first-down distance to goal (goal-to-go from the 10). */
+export const HS_OT_DISTANCE = 10;
+
 export type EndZoneSide = "own" | "opponent";
 
 export function hudlToFieldPosition(

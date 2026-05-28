@@ -182,6 +182,42 @@ describe("TD → scoring → kickoff chain", () => {
     assert.equal(ko.playNumber, 5);
   });
 
+  test("HS OT: XP Good → opponent possession @ Own 10 (defense)", () => {
+    const xp = basePlay({
+      playNumber: 2,
+      playType: PlayType.ExtraPoint,
+      result: Result.Good,
+      yardLine: 3,
+      down: 1,
+      distance: 1,
+      gainLoss: 0,
+      odk: ODK.Offense,
+    });
+
+    const next = nextDraftAfterPlay(xp, 3, TEAM, {
+      rules: "HS",
+      overtime: true,
+    });
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.yardLine, -10);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
+    assert.equal(next.playType, "");
+  });
+
+  test("HS OT: regulation XP (no overtime flag) → kickoff", () => {
+    const xp = basePlay({
+      playNumber: 4,
+      playType: PlayType.ExtraPoint,
+      result: Result.Good,
+      yardLine: 3,
+      odk: ODK.Offense,
+    });
+
+    const ko = nextDraftAfterPlay(xp, 5, TEAM, { rules: "HS", overtime: false });
+    assert.equal(ko.playType, PlayType.Kickoff);
+  });
+
   test("2 Pt. Good → kickoff", () => {
     const twoPt = basePlay({
       playNumber: 6,

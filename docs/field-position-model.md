@@ -84,6 +84,19 @@ yardsToOwnGoal(-5);                         // -5
 
 ---
 
+## High school overtime spots
+
+HS overtime is **not** kickoff-based. Each possession starts **1st & goal from the opponent 10**:
+
+| Role | Hudl `yardLine` | Meaning |
+|------|-----------------|--------|
+| Our offense | **+10** | Opp 10 |
+| Our defense | **−10** | Opponent at our 10 |
+
+See [overtime-rules.md](./overtime-rules.md).
+
+---
+
 ## Do NOT
 
 - Use **−50** for midfield (use **50**)

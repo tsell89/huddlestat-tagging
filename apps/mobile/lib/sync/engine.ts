@@ -97,6 +97,7 @@ async function processOutboxItem(
         client.mutation(api.plays.create, {
           gameId,
           playNumber: play.playNumber,
+          quarter: play.quarter,
           odk: play.odk,
           yardLine: play.yardLine,
           down: play.down,

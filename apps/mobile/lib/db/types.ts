@@ -1,4 +1,12 @@
-import type { GameStatus, Hash, ODK, PlayerRef, PlaylistData } from "@huddlestat/shared";
+import type {
+  GamePhase,
+  GameStatus,
+  Hash,
+  ODK,
+  OtPossession,
+  PlayerRef,
+  PlaylistData,
+} from "@huddlestat/shared";
 
 export type LocalGame = {
   id: string;
@@ -9,6 +17,8 @@ export type LocalGame = {
   homeScore: number;
   awayScore: number;
   status: GameStatus;
+  phase: GamePhase;
+  otPossession: OtPossession | null;
   createdAt: number;
   updatedAt: number;
 };
@@ -44,6 +54,7 @@ export type PlayRow = {
   id: string;
   local_game_id: string;
   play_number: number;
+  quarter: number;
   odk: ODK;
   yard_line: number;
   down: number;
@@ -79,6 +90,7 @@ export function rowToLocalPlay(row: PlayRow): LocalPlay {
     id: row.id,
     localGameId: row.local_game_id,
     playNumber: row.play_number,
+    quarter: row.quarter,
     odk: row.odk,
     yardLine: row.yard_line,
     down: row.down,
@@ -114,6 +126,7 @@ export function playToRow(play: LocalPlay): Omit<PlayRow, "synced" | "convex_pla
     id: play.id,
     local_game_id: play.localGameId,
     play_number: play.playNumber,
+    quarter: play.quarter,
     odk: play.odk,
     yard_line: play.yardLine,
     down: play.down,

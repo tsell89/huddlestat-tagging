@@ -1,0 +1,11 @@
+{
+  "gameId": "hudl-spec-2-4",
+  "rules": "HS",
+  "source": "hudl",
+  "teamOffense": "TEAM_A",
+  "teamDefense": "OPP",
+  "periods": 4,
+  "overtime": false,
+  "redacted": true,
+  "description": "Spec §2.4 canonical drive (package-i-qa-walkthrough Plays 1–7)"
+}
