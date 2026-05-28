@@ -14,6 +14,7 @@ import {
   nextDraftAfterPlay,
   normalizePlayOnSave,
   yardLineAfterPlay,
+  yardsAdvanced,
   type PlaylistData,
 } from "./index.js";
 
@@ -196,10 +197,13 @@ describe("TD → scoring → kickoff chain", () => {
       completion: "catch:-5|end:TD",
     });
 
+    assert.equal(yardsAdvanced(-5, 0, "opponent"), 95);
+
     const scoring = nextDraftAfterPlay(koRec, 2, TEAM);
     assert.equal(scoring.playType, PlayType.ExtraPoint);
     assert.equal(scoring.result, Result.Good);
     assert.equal(scoring.odk, ODK.Offense);
+    assert.equal(scoring.yardLine, 3);
   });
 
   test("punt return TD (odk D) → Extra Pt scoring pad (odk O)", () => {
@@ -217,6 +221,7 @@ describe("TD → scoring → kickoff chain", () => {
     const scoring = nextDraftAfterPlay(puntRec, 9, TEAM);
     assert.equal(scoring.playType, PlayType.ExtraPoint);
     assert.equal(scoring.odk, ODK.Offense);
+    assert.equal(scoring.yardLine, 3);
   });
 
   test("INT return TD (odk D) → Extra Pt scoring pad (odk O)", () => {
@@ -234,6 +239,61 @@ describe("TD → scoring → kickoff chain", () => {
     const scoring = nextDraftAfterPlay(pick, 4, TEAM);
     assert.equal(scoring.playType, PlayType.ExtraPoint);
     assert.equal(scoring.odk, ODK.Offense);
+    assert.equal(scoring.yardLine, 3);
+  });
+
+  test("4th-down punt return TD routes to scoring before punt-rec flip", () => {
+    const punt = basePlay({
+      playNumber: 5,
+      playType: PlayType.Punt,
+      result: Result.Return,
+      odk: ODK.Offense,
+      yardLine: 40,
+      down: 4,
+      distance: 8,
+      completion: "recv:20|end:TD",
+    });
+
+    const scoring = nextDraftAfterPlay(punt, 6, TEAM);
+    assert.equal(scoring.playType, PlayType.ExtraPoint);
+    assert.equal(scoring.yardLine, 3);
+  });
+
+  test("blocked punt recover|end:TD → Extra Pt scoring pad (odk O)", () => {
+    const blocked = basePlay({
+      playNumber: 6,
+      playType: PlayType.Punt,
+      result: Result.Blocked,
+      odk: ODK.Offense,
+      yardLine: 35,
+      down: 4,
+      distance: 8,
+      completion: "recover:20|end:TD",
+    });
+
+    const scoring = nextDraftAfterPlay(blocked, 7, TEAM);
+    assert.equal(scoring.playType, PlayType.ExtraPoint);
+    assert.equal(scoring.odk, ODK.Offense);
+    assert.equal(scoring.yardLine, 3);
+  });
+
+  test("return end:SA does not route to scoring pad", () => {
+    const koRec = basePlay({
+      playNumber: 1,
+      playType: PlayType.KickoffReceive,
+      result: Result.Return,
+      odk: ODK.Offense,
+      yardLine: -40,
+      down: 0,
+      distance: 0,
+      completion: "catch:-5|end:SA",
+    });
+
+    const next = nextDraftAfterPlay(koRec, 2, TEAM);
+    assert.notEqual(next.playType, PlayType.ExtraPoint);
+    assert.notEqual(next.playType, PlayType.ExtraPointBlock);
+    assert.equal(next.down, 1);
+    assert.equal(next.yardLine, 0);
   });
 
   test("HS OT: XP Good → opponent possession @ Own 10 (defense)", () => {
