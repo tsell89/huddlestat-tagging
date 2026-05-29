@@ -98,6 +98,10 @@ import {
   nextDraftForGame,
 } from "@/lib/tagging/nextDraftForGame";
 import { useSync } from "@/context/sync-context";
+import {
+  publishIfConfigured,
+  type SnapshotKind,
+} from "@/lib/sync/engine";
 
 function playToDraft(play: LocalPlay): PlaylistData {
   return {
@@ -293,7 +297,13 @@ async function persistKickoffRoleIfChanged(
 
 export default function TaggingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { refreshCounts, pushStats, playsToSync } = useSync();
+  const { refreshCounts, publishSnapshot, playsToSync } = useSync();
+
+  function triggerPublish(localGameId: string, snapshotKind: SnapshotKind) {
+    void publishIfConfigured(localGameId, snapshotKind)
+      .then(() => refreshCounts())
+      .catch(() => refreshCounts());
+  }
   const [game, setGame] = useState<LocalGame | null>(null);
   const [plays, setPlays] = useState<LocalPlay[]>([]);
   const [draft, setDraft] = useState<PlaylistData | null>(null);
@@ -584,18 +594,21 @@ export default function TaggingScreen() {
       }
       await finalizeLocalGame(id);
       setGame({ ...game, phase: "FINAL", status: "final" });
+      triggerPublish(id, "final");
       return;
     }
     if (next === "HALFTIME" && game.phase === "Q2") {
       await updateLocalGamePhase(id, "HALFTIME");
       setGame({ ...game, phase: "HALFTIME" });
       startQuarterReview("quarter-review-q2");
+      triggerPublish(id, "halftime");
       return;
     }
     if (next === "Q3" && game.phase === "HALFTIME") {
       await updateLocalGamePhase(id, "Q3");
       setGame({ ...game, phase: "Q3" });
       startHalftimeCatchUp();
+      triggerPublish(id, "live");
       return;
     }
     const q = quarterForRegulationPhase(next);
@@ -902,6 +915,8 @@ export default function TaggingScreen() {
     setSaving(true);
     try {
       const toSave = normalizePlayOnSave(draft);
+      const scoreBefore = { us: game.homeScore, them: game.awayScore };
+      let updatedGame = game;
       if (editingPlayId) {
         const updated = await updateLocalPlay(editingPlayId, toSave);
         const newPlays = plays.map((p) =>
@@ -960,7 +975,7 @@ export default function TaggingScreen() {
           ),
         );
         setActivePlayerSlot(firstPlayerSlot(liveDraft));
-        const updatedGame = await applyScoreAfterSave(id, newPlays, game);
+        updatedGame = await applyScoreAfterSave(id, newPlays, game);
         setGame(updatedGame);
       } else {
         if (isKickoffDraft(toSave)) {
@@ -1020,12 +1035,21 @@ export default function TaggingScreen() {
         setActivePlayerSlot(firstPlayerSlot(next));
         setCatchUpMode(false);
         setCatchUpHint(null);
-        const updatedGame = await applyScoreAfterSave(id, newPlays, game);
+        updatedGame = await applyScoreAfterSave(id, newPlays, game);
         setGame(updatedGame);
       }
       setUnsyncedCount(await countUnsyncedPlays(id));
       await refreshCounts();
-      void pushStats().catch(() => undefined);
+
+      const scoreChanged =
+        updatedGame.homeScore !== scoreBefore.us ||
+        updatedGame.awayScore !== scoreBefore.them;
+
+      if (updatedGame.phase === "FINAL" && game.phase !== "FINAL") {
+        triggerPublish(id, "final");
+      } else if (scoreChanged) {
+        triggerPublish(id, "live");
+      }
     } finally {
       setSaving(false);
     }
@@ -1041,7 +1065,7 @@ export default function TaggingScreen() {
 
   return (
     <View style={styles.container}>
-      <SyncStatusBar />
+      <SyncStatusBar localGameId={id} />
 
       <TaggingHeader
         game={game}

@@ -14,8 +14,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { createLocalGame } from "@/lib/db/games";
-import { registerGameForSync } from "@/lib/sync/engine";
-import { useSync } from "@/context/sync-context";
 
 export default function NewGameScreen() {
   const insets = useSafeAreaInsets();
@@ -26,7 +24,6 @@ export default function NewGameScreen() {
   const [teamCode, setTeamCode] = useState("SHS");
   const [opponent, setOpponent] = useState("");
   const [saving, setSaving] = useState(false);
-  const { refreshCounts, pushStats } = useSync();
 
   function scrollOpponentIntoView() {
     requestAnimationFrame(() => {
@@ -43,9 +40,6 @@ export default function NewGameScreen() {
     setSaving(true);
     try {
       const game = await createLocalGame(teamCode, opponent);
-      await registerGameForSync(game.id);
-      await refreshCounts();
-      void pushStats().catch(() => undefined);
       router.replace(`/game/${game.id}`);
     } finally {
       setSaving(false);
@@ -85,8 +79,8 @@ export default function NewGameScreen() {
         >
           <Text style={styles.title}>New game</Text>
           <Text style={styles.subtitle}>
-            Saved locally first. Push stats when online to update the live web
-            page.
+            Saved locally first. Stats publish to the web at halftime, after
+            scoring plays, and at the final whistle.
           </Text>
 
           <View style={styles.field}>
