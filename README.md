@@ -34,6 +34,12 @@ Tagging works **fully offline** without `.env`. Set `EXPO_PUBLIC_CONVEX_URL` onl
 - [Field position model](./docs/field-position-model.md)
 - [Node.js version](./docs/node-version.md)
 
+## CI and platform integration
+
+`@huddlestat/shared` tests run via [`.github/workflows/shared-ci.yml`](./.github/workflows/shared-ci.yml), a **reusable workflow** that the private [huddlestat](https://github.com/tsell89/huddlestat) platform repo calls on every PR. The platform pins which tagging ref to test in its `tagging-ref.json`.
+
+Shared-package fixtures live under `packages/shared/fixtures/` so CI never depends on checking out the platform repo.
+
 ## Trademark
 
 “HuddleStat” is a trademark of the project owner. This license does not grant rights to use the HuddleStat name for a competing hosted product. See [TRADEMARK.md](./TRADEMARK.md).
