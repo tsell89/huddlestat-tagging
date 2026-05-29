@@ -4,8 +4,6 @@ import { playToRow, rowToLocalPlay } from "./types";
 import { createId } from "../id";
 import type { PlaylistData } from "@huddlestat/shared";
 import { playlistDataSchema } from "@huddlestat/shared";
-import { enqueueOutbox } from "./outbox";
-
 export async function listPlaysForGame(localGameId: string): Promise<LocalPlay[]> {
   const database = getDb();
   const rows = await database.getAllAsync<PlayRow>(
@@ -81,16 +79,6 @@ export async function saveLocalPlay(
         row.completion,
         row.tagged_at,
       ],
-    );
-
-    await enqueueOutbox(
-      "plays.create",
-      {
-        localGameId,
-        localPlayId: id,
-        play: parsed,
-      },
-      localGameId,
     );
 
     await database.runAsync(
@@ -190,16 +178,6 @@ export async function updateLocalPlay(
         row.tagged_at,
         localPlayId,
       ],
-    );
-
-    await enqueueOutbox(
-      "plays.create",
-      {
-        localGameId: existing.local_game_id,
-        localPlayId,
-        play: parsed,
-      },
-      existing.local_game_id,
     );
 
     await database.runAsync(

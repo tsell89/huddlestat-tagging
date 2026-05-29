@@ -137,3 +137,72 @@ export async function finalizeLocalGame(localId: string): Promise<void> {
     [now, localId],
   );
 }
+
+export async function markGamePublished(localId: string): Promise<void> {
+  const database = getDb();
+  const now = Date.now();
+
+  await database.withTransactionAsync(async () => {
+    await database.runAsync(
+      `UPDATE plays SET synced = 1 WHERE local_game_id = ?`,
+      [localId],
+    );
+    await database.runAsync(
+      `INSERT INTO meta (key, value) VALUES (?, ?)
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+      [`last_published_at:${localId}`, String(now)],
+    );
+    await database.runAsync(
+      `DELETE FROM meta WHERE key = ?`,
+      [`last_publish_error:${localId}`],
+    );
+  });
+}
+
+export async function recordPublishError(
+  localId: string,
+  message: string,
+): Promise<void> {
+  const database = getDb();
+  await database.runAsync(
+    `INSERT INTO meta (key, value) VALUES (?, ?)
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+    [`last_publish_error:${localId}`, message],
+  );
+}
+
+export async function getLastPublishedAt(
+  localGameId?: string,
+): Promise<number | null> {
+  const database = getDb();
+  if (localGameId) {
+    const row = await database.getFirstAsync<{ value: string }>(
+      `SELECT value FROM meta WHERE key = ?`,
+      [`last_published_at:${localGameId}`],
+    );
+    return row ? Number(row.value) : null;
+  }
+
+  const row = await database.getFirstAsync<{ max_val: number | null }>(
+    `SELECT MAX(CAST(value AS INTEGER)) as max_val FROM meta WHERE key LIKE 'last_published_at:%'`,
+  );
+  return row?.max_val ?? null;
+}
+
+export async function getLastPublishError(
+  localGameId?: string,
+): Promise<string | null> {
+  const database = getDb();
+  if (localGameId) {
+    const row = await database.getFirstAsync<{ value: string }>(
+      `SELECT value FROM meta WHERE key = ?`,
+      [`last_publish_error:${localGameId}`],
+    );
+    return row?.value ?? null;
+  }
+
+  const row = await database.getFirstAsync<{ value: string }>(
+    `SELECT value FROM meta WHERE key LIKE 'last_publish_error:%' ORDER BY key DESC LIMIT 1`,
+  );
+  return row?.value ?? null;
+}

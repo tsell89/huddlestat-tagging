@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSync } from "@/context/sync-context";
-import { getConvexUrlLabel } from "@/lib/sync/config";
+import { getSyncApiUrlLabel } from "@/lib/sync/config";
 import { playsToSyncLabel } from "@/lib/sync/copy";
 
 function formatLastPushed(ts: number | null): string {
@@ -11,7 +11,11 @@ function formatLastPushed(ts: number | null): string {
   return new Date(ts).toLocaleTimeString();
 }
 
-export function SyncStatusBar() {
+type SyncStatusBarProps = {
+  localGameId?: string;
+};
+
+export function SyncStatusBar({ localGameId }: SyncStatusBarProps) {
   const {
     playsToSync,
     lastPushedAt,
@@ -20,7 +24,7 @@ export function SyncStatusBar() {
     canSync,
     configWarning,
     lastError,
-    pushStats,
+    syncNow,
   } = useSync();
 
   const statusColor = configWarning || !isOnline
@@ -29,7 +33,9 @@ export function SyncStatusBar() {
       ? "#1d4ed8"
       : "#15803d";
 
-  const statusLine = `${playsToSyncLabel(playsToSync)} · last sync ${formatLastPushed(lastPushedAt)}${!isOnline ? " · offline" : ""}`;
+  const statusLine = canSync
+    ? `${playsToSyncLabel(playsToSync)} · last publish ${formatLastPushed(lastPushedAt)}${!isOnline ? " · offline" : ""}`
+    : "Cloud sync off — set EXPO_PUBLIC_SYNC_API_URL to publish stats";
 
   return (
     <View style={styles.bar}>
@@ -44,19 +50,24 @@ export function SyncStatusBar() {
         {lastError ? (
           <Text style={styles.error} numberOfLines={3}>
             {lastError}
-            {getConvexUrlLabel() ? `\nServer: ${getConvexUrlLabel()}` : ""}
+            {getSyncApiUrlLabel() ? `\nServer: ${getSyncApiUrlLabel()}` : ""}
           </Text>
         ) : null}
       </View>
-      <Pressable
-        style={[styles.button, (isSyncing || !canSync || !!configWarning) && styles.buttonDisabled]}
-        onPress={() => void pushStats()}
-        disabled={isSyncing || !isOnline || !canSync || !!configWarning}
-      >
-        <Text style={styles.buttonText}>
-          {isSyncing ? "Syncing…" : playsToSync > 0 ? "Sync now" : "Sync"}
-        </Text>
-      </Pressable>
+      {localGameId && canSync ? (
+        <Pressable
+          style={[
+            styles.button,
+            (isSyncing || !isOnline || !!configWarning) && styles.buttonDisabled,
+          ]}
+          onPress={() => void syncNow(localGameId)}
+          disabled={isSyncing || !isOnline || !!configWarning}
+        >
+          <Text style={styles.buttonText}>
+            {isSyncing ? "Publishing…" : playsToSync > 0 ? "Publish now" : "Publish"}
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
