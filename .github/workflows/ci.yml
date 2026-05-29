@@ -7,7 +7,13 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  shared-package:
+    uses: ./.github/workflows/shared-ci.yml
+    with:
+      ref: ${{ github.sha }}
+
+  mobile:
+    needs: shared-package
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -15,6 +21,5 @@ jobs:
         with:
           node-version-file: .nvmrc
       - run: npm ci
-      - run: npm run test
-      - run: npm run test:pbp
+      - run: npm run test --workspace=@huddlestat/mobile
       - run: npm run typecheck

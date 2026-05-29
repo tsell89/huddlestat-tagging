@@ -1,0 +1,29 @@
+# Reusable @huddlestat/shared CI — callable from huddlestat-tagging and huddlestat platform.
+name: Shared package CI
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref of huddlestat-tagging to test (branch, tag, or SHA)
+        required: false
+        type: string
+        default: main
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          repository: tsell89/huddlestat-tagging
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci
+      - run: npm run test --workspace=@huddlestat/shared
+      - run: npm run typecheck --workspace=@huddlestat/shared
