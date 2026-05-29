@@ -277,6 +277,17 @@ export {
   type ScoreFromPlays,
 } from "./scoreFromPlays.js";
 
+export {
+  deriveMaxPrepsBoxScoreFromPlays,
+  MAXPREPS_FOOTBALL_COLUMNS,
+  maxPrepsRowEquals,
+  parseMaxPrepsTxt,
+  parsePartialPlaylistCsv,
+  serializeMaxPrepsTxt,
+  type MaxPrepsFootballColumn,
+  type MaxPrepsPlayerRow,
+} from "./maxPrepsBoxScore.js";
+
 export function buildGameSlug(teamCode: string, opponent: string): string {
   const safe = (s: string) =>
     s
