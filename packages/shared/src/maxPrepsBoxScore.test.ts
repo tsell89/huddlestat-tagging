@@ -13,7 +13,7 @@ import {
 } from "./maxPrepsBoxScore.js";
 
 const dir = dirname(fileURLToPath(import.meta.url));
-const fixtureDir = join(dir, "../../../../HuddleStat/packages/shared-fixtures/maxpreps");
+const fixtureDir = join(dir, "../fixtures/maxpreps");
 
 function load(name: string): string {
   return readFileSync(join(fixtureDir, name), "utf8");
