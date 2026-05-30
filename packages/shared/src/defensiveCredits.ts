@@ -6,7 +6,6 @@ export type DefensiveCreditAccumulator = {
   assistTackles: number;
   tacklesForLoss: number;
   sacks: number;
-  sackYardsLost: number;
 };
 
 function jerseyKey(ref: PlayerRef): string | null {
@@ -31,7 +30,6 @@ function ensureCredit(
       assistTackles: 0,
       tacklesForLoss: 0,
       sacks: 0,
-      sackYardsLost: 0,
     };
     map.set(jersey, row);
   }
@@ -73,19 +71,12 @@ export function applyDefensiveCreditsToMap(
   }
 
   if (isSack) {
-    const yards = Math.abs(play.gainLoss);
     if (t1 && t2) {
       ensureCredit(map, t1).sacks += 0.5;
       ensureCredit(map, t2).sacks += 0.5;
-      ensureCredit(map, t1).sackYardsLost += yards / 2;
-      ensureCredit(map, t2).sackYardsLost += yards / 2;
     } else {
       const credit = t1 ?? t2;
-      if (credit) {
-        const row = ensureCredit(map, credit);
-        row.sacks += 1;
-        row.sackYardsLost += yards;
-      }
+      if (credit) ensureCredit(map, credit).sacks += 1;
     }
   }
 }

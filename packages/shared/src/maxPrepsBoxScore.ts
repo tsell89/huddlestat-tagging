@@ -122,6 +122,26 @@ function isPassTouchdown(play: PlaylistData): boolean {
   return play.result === Result.CompleteTd;
 }
 
+/** Sacked QB (rusher slot per tagging spec; passer fallback for legacy rows). */
+function sackedPlayerRef(play: PlaylistData): PlayerRef | null {
+  if (jerseyKey(play.rusher)) return play.rusher;
+  if (jerseyKey(play.passer)) return play.passer;
+  return null;
+}
+
+function applySackRushingLoss(
+  map: Map<string, MaxPrepsPlayerRow>,
+  play: PlaylistData,
+): void {
+  if (play.result !== Result.Sack) return;
+  const sacked = sackedPlayerRef(play);
+  if (!sacked) return;
+  const row = ensureRow(map, sacked);
+  row.RushingNum = (row.RushingNum as number) + 1;
+  row.RushingYards = (row.RushingYards as number) + play.gainLoss;
+  row.RushingLong = maxLong(row.RushingLong as number, play.gainLoss);
+}
+
 function isPassAttempt(play: PlaylistData): boolean {
   if (play.playType === PlayType.Pass) return true;
   if (play.playType !== "") return false;
@@ -182,6 +202,10 @@ export function deriveMaxPrepsBoxScoreFromPlays(
   const map = new Map<string, MaxPrepsPlayerRow>();
 
   for (const play of plays) {
+    if (play.result === Result.Sack) {
+      applySackRushingLoss(map, play);
+    }
+
     if (play.odk === ODK.Offense && isRushAttempt(play)) {
       const row = ensureRow(map, play.rusher);
       const yards = play.gainLoss;
@@ -255,8 +279,6 @@ export function deriveMaxPrepsBoxScoreFromPlays(
         row.TacklesForLoss =
           (row.TacklesForLoss as number) + credits.tacklesForLoss;
         row.Sacks = (row.Sacks as number) + credits.sacks;
-        row.SacksYardsLost =
-          (row.SacksYardsLost as number) + credits.sackYardsLost;
       }
 
       const interceptor = jerseyKey(play.interceptedBy);

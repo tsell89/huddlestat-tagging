@@ -59,7 +59,6 @@ describe("applyDefensiveCreditsToMap — tackle credit A2/A3", () => {
       assistTackles: 0,
       tacklesForLoss: 0,
       sacks: 0,
-      sackYardsLost: 0,
     });
   });
 
@@ -76,7 +75,6 @@ describe("applyDefensiveCreditsToMap — tackle credit A2/A3", () => {
       assistTackles: 0,
       tacklesForLoss: 0,
       sacks: 0,
-      sackYardsLost: 0,
     });
   });
 
@@ -128,7 +126,7 @@ describe("applyDefensiveCreditsToMap — TFL A5", () => {
 });
 
 describe("applyDefensiveCreditsToMap — sacks A4", () => {
-  test("one tackler → full sack and yards", () => {
+  test("one tackler → full sack credit only (no defensive sack yards)", () => {
     const map = credits(
       defensePlay({
         result: Result.Sack,
@@ -140,10 +138,9 @@ describe("applyDefensiveCreditsToMap — sacks A4", () => {
     assert.equal(map.get("90")!.soloTackles, 1);
     assert.equal(map.get("90")!.tacklesForLoss, 1);
     assert.equal(map.get("90")!.sacks, 1);
-    assert.equal(map.get("90")!.sackYardsLost, 8);
   });
 
-  test("two tacklers → 0.5 sack and split yards each", () => {
+  test("two tacklers → 0.5 sack each (no defensive sack yards)", () => {
     const map = credits(
       defensePlay({
         result: Result.Sack,
@@ -159,7 +156,5 @@ describe("applyDefensiveCreditsToMap — sacks A4", () => {
     assert.equal(map.get("11")!.tacklesForLoss, 1);
     assert.equal(map.get("90")!.sacks, 0.5);
     assert.equal(map.get("11")!.sacks, 0.5);
-    assert.equal(map.get("90")!.sackYardsLost, 5);
-    assert.equal(map.get("11")!.sackYardsLost, 5);
   });
 });
