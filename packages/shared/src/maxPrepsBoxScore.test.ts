@@ -81,6 +81,17 @@ describe("deriveMaxPrepsBoxScoreFromPlays — Snider vs Warsaw fixture", () => {
     expectFields("7", ["ReceivingNum", "ReceivingYards", "ReceivingLong", "INTs"]);
   });
 
+  test("#11 solo and assist tackles follow locked A2/A3 rules", () => {
+    const actual = derivedByJersey("11");
+    assert.equal(actual.Tackles, 9, "solo tackles");
+    assert.equal(actual.Assists, 4, "assist tackles");
+    assert.equal(actual.TotalTackles, 13, "total tackles");
+    assert.equal(
+      (actual.Tackles as number) + (actual.Assists as number),
+      actual.TotalTackles,
+    );
+  });
+
   test("defensive players total tackles match", () => {
     const expectedText = load("snider-vs-warsaw-2025-08-22.hudl.txt");
     const expectedRows = parseMaxPrepsTxt(expectedText);
@@ -116,5 +127,17 @@ describe("serializeMaxPrepsTxt", () => {
         assert.equal(parsed[i]![col], rows[i]![col], `${col} row ${i}`);
       }
     }
+  });
+
+  test("preserves fractional sack values", () => {
+    const rows = parseMaxPrepsTxt(load("snider-vs-warsaw-2025-08-22.hudl.txt"));
+    const row = rows[0]!;
+    row.Sacks = 0.5;
+    row.SacksYardsLost = 4.5;
+    const reserialized = serializeMaxPrepsTxt([row]);
+    const parsed = parseMaxPrepsTxt(reserialized);
+    assert.equal(parsed[0]!.Sacks, 0.5);
+    assert.equal(parsed[0]!.SacksYardsLost, 4.5);
+    assert.match(reserialized, /\|0\.5\|/);
   });
 });

@@ -1,4 +1,8 @@
 import { ODK, PlayType, Result } from "./constants.js";
+import {
+  applyDefensiveCreditsToMap,
+  type DefensiveCreditAccumulator,
+} from "./defensiveCredits.js";
 import type { PlayerRef, PlaylistData } from "./index.js";
 import { parseCsvLine } from "./pbp/hudlCsv.js";
 
@@ -146,12 +150,6 @@ function isRushAttempt(play: PlaylistData): boolean {
   return play.result.includes("Fumble");
 }
 
-function isTackleForLoss(play: PlaylistData): boolean {
-  if (play.odk !== ODK.Defense) return false;
-  if (play.result === Result.Sack) return true;
-  return play.gainLoss < 0 && play.result === Result.Rush;
-}
-
 function maxLong(current: number, candidate: number): number {
   return candidate > current ? candidate : current;
 }
@@ -247,35 +245,20 @@ export function deriveMaxPrepsBoxScoreFromPlays(
     }
 
     if (play.odk === ODK.Defense) {
-      const t1 = jerseyKey(play.tackler1);
-      const t2 = jerseyKey(play.tackler2);
-      if (t1) {
-        const row = ensureRow(map, play.tackler1);
-        row.Tackles = (row.Tackles as number) + 1;
+      const creditMap = new Map<string, DefensiveCreditAccumulator>();
+      applyDefensiveCreditsToMap(play, creditMap);
+      for (const [jersey, credits] of creditMap) {
+        const row = map.get(jersey) ?? emptyRow(jersey);
+        map.set(jersey, row);
+        row.Tackles = (row.Tackles as number) + credits.soloTackles;
+        row.Assists = (row.Assists as number) + credits.assistTackles;
+        row.TacklesForLoss =
+          (row.TacklesForLoss as number) + credits.tacklesForLoss;
+        row.Sacks = (row.Sacks as number) + credits.sacks;
+        row.SacksYardsLost =
+          (row.SacksYardsLost as number) + credits.sackYardsLost;
       }
-      if (t2) {
-        const row = ensureRow(map, play.tackler2);
-        row.Assists = (row.Assists as number) + 1;
-      }
-      if (isTackleForLoss(play)) {
-        const credit = t1 ?? t2;
-        if (credit) {
-          const row = map.get(credit) ?? emptyRow(credit);
-          map.set(credit, row);
-          row.TacklesForLoss = (row.TacklesForLoss as number) + 1;
-        }
-      }
-      if (play.result === Result.Sack) {
-        const credit = t1 ?? t2;
-        if (credit) {
-          const row = map.get(credit) ?? emptyRow(credit);
-          map.set(credit, row);
-          row.Sacks = (row.Sacks as number) + 1;
-          row.SacksYardsLost = (row.SacksYardsLost as number) + Math.abs(
-            play.gainLoss,
-          );
-        }
-      }
+
       const interceptor = jerseyKey(play.interceptedBy);
       if (interceptor && play.result === Result.Interception) {
         const row = ensureRow(map, play.interceptedBy);
