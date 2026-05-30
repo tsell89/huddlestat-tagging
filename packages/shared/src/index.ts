@@ -278,6 +278,11 @@ export {
 } from "./scoreFromPlays.js";
 
 export {
+  applyDefensiveCreditsToMap,
+  isTackleForLossPlay,
+  type DefensiveCreditAccumulator,
+} from "./defensiveCredits.js";
+export {
   deriveMaxPrepsBoxScoreFromPlays,
   MAXPREPS_FOOTBALL_COLUMNS,
   maxPrepsRowEquals,
