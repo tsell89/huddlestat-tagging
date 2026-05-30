@@ -204,6 +204,9 @@ export function initKickoffSpotsFromDraft(
   return spotsFromSavedReturn(draft.returnYards, draft.spotEncoding);
 }
 
+/** HS kickoff touchback gross yards (kick spot → end zone). */
+const KICKOFF_TOUCHBACK_YARDS = 60;
+
 export function applyKickoffSpotsToDraft(
   draft: PlaylistData,
   spots: KickoffReturnSpots,
@@ -213,6 +216,7 @@ export function applyKickoffSpotsToDraft(
       ...draft,
       returnYards: 0,
       gainLoss: 0,
+      kickYards: KICKOFF_TOUCHBACK_YARDS,
       spotEncoding: undefined,
     };
   }
@@ -220,10 +224,12 @@ export function applyKickoffSpotsToDraft(
     return draft;
   }
   const returnYards = computeReturnYards(spots.caughtAt, spots.returnEnd);
+  const kickYards = yardsAdvanced(draft.yardLine, spots.caughtAt);
   return {
     ...draft,
     returnYards,
     gainLoss: returnYards,
+    kickYards,
     spotEncoding: encodeKickoffReturnSpotEncoding(spots),
   };
 }

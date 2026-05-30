@@ -298,6 +298,26 @@ export {
   type DefensiveCreditAccumulator,
 } from "./defensiveCredits.js";
 export {
+  applySpecialTeamsCreditsToMap,
+  deriveKickoffKickYards,
+  deriveKickoffNetYards,
+  derivePuntEndPosition,
+  derivePuntKickYards,
+  derivePuntNetYards,
+  isExcludedPunt,
+  isPuntInside20,
+  KICKOFF_TOUCHBACK_YARDS,
+  TOUCHBACK_NET_PLACEMENT_YARDS,
+  type SpecialTeamsCreditAccumulator,
+} from "./specialTeamsCredits.js";
+export {
+  reconcileMaxPrepsExport,
+  allMaxPrepsNumericFields,
+  type MaxPrepsFieldDelta,
+  type MaxPrepsReconciliationReport,
+  type MaxPrepsSuspectPlay,
+} from "./reconcileMaxPrepsExport.js";
+export {
   deriveMaxPrepsBoxScoreFromPlays,
   MAXPREPS_FOOTBALL_COLUMNS,
   maxPrepsRowEquals,

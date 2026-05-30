@@ -10,6 +10,7 @@ import {
   fieldPositionToHudl,
   hudlToFieldPosition,
   yardsAdvanced,
+  yardsToOpponentGoal,
 } from "@/lib/tagging/fieldPosition100";
 import {
   RETURNED_DEFAULT,
@@ -186,7 +187,7 @@ export function applyPuntSpotsToDraft(
       ...draft,
       returnYards: 0,
       gainLoss: 0,
-      kickYards: undefined,
+      kickYards: yardsToOpponentGoal(draft.yardLine),
       spotEncoding: undefined,
     };
   }
