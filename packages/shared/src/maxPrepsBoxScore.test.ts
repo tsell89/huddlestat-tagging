@@ -11,6 +11,7 @@ import {
   serializeMaxPrepsTxt,
   type MaxPrepsFootballColumn,
 } from "./maxPrepsBoxScore.js";
+import { ODK, PlayType, Result, emptyPlayerRef } from "./constants.js";
 
 const dir = dirname(fileURLToPath(import.meta.url));
 const fixtureDir = join(dir, "../fixtures/maxpreps");
@@ -133,11 +134,43 @@ describe("serializeMaxPrepsTxt", () => {
     const rows = parseMaxPrepsTxt(load("snider-vs-warsaw-2025-08-22.hudl.txt"));
     const row = rows[0]!;
     row.Sacks = 0.5;
-    row.SacksYardsLost = 4.5;
     const reserialized = serializeMaxPrepsTxt([row]);
     const parsed = parseMaxPrepsTxt(reserialized);
     assert.equal(parsed[0]!.Sacks, 0.5);
-    assert.equal(parsed[0]!.SacksYardsLost, 4.5);
     assert.match(reserialized, /\|0\.5\|/);
+  });
+
+  test("sack yards go to sacked rusher rushing stats, not tacklers", () => {
+    const rows = deriveMaxPrepsBoxScoreFromPlays([
+      {
+        playNumber: 1,
+        quarter: 1,
+        odk: ODK.Defense,
+        yardLine: 23,
+        down: 3,
+        distance: 8,
+        hash: "M",
+        gainLoss: -5,
+        passer: emptyPlayerRef,
+        receiver: emptyPlayerRef,
+        rusher: { jersey: "17", name: "Opp QB" },
+        result: Result.Sack,
+        team: "SHS",
+        tackler1: { jersey: "90", name: "Rusher" },
+        tackler2: emptyPlayerRef,
+        recoveredBy: emptyPlayerRef,
+        returner: emptyPlayerRef,
+        playType: PlayType.Pass,
+        kicker: emptyPlayerRef,
+        interceptedBy: emptyPlayerRef,
+      },
+    ]);
+    const tackler = rows.find((r) => String(r.Jersey) === "90");
+    const sacked = rows.find((r) => String(r.Jersey) === "17");
+    assert.ok(tackler && sacked);
+    assert.equal(tackler.Sacks, 1);
+    assert.equal(tackler.SacksYardsLost, 0);
+    assert.equal(sacked.RushingNum, 1);
+    assert.equal(sacked.RushingYards, -5);
   });
 });
