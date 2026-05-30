@@ -164,7 +164,7 @@ export type OtPossession = z.infer<typeof otPossessionSchema>;
  * Hudl PlaylistData row shape — 32 columns (QTR after PLAY #).
  * PLAY # is the join key for video clip matching.
  */
-export const playlistDataSchema = z.object({
+const playlistDataRowSchema = z.object({
   playNumber: z.number().int().positive(),
   quarter: quarterSchema.default(1),
   odk: odkSchema,
@@ -190,6 +190,19 @@ export const playlistDataSchema = z.object({
   /** Ball-spot chain string; CSV column COMPLETION (see ADR-0001). */
   spotEncoding: z.string().optional(),
 });
+
+/** Accept legacy JSON rows that still use `completion` until consumers migrate. */
+export const playlistDataSchema = z.preprocess((input) => {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    return input;
+  }
+  const row = input as Record<string, unknown>;
+  if (row.spotEncoding !== undefined || row.completion === undefined) {
+    return input;
+  }
+  const { completion, ...rest } = row;
+  return { ...rest, spotEncoding: completion };
+}, playlistDataRowSchema);
 
 export type PlaylistData = z.infer<typeof playlistDataSchema>;
 

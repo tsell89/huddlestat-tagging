@@ -69,7 +69,9 @@ async function migrateSchema(
     if (!(await tableHasColumn(database, "plays", "spot_encoding"))) {
       await database.execAsync(MIGRATIONS_V3[0]!);
     }
-    await database.execAsync(MIGRATIONS_V3[1]!);
+    if (await tableHasColumn(database, "plays", "completion")) {
+      await database.execAsync(MIGRATIONS_V3[1]!);
+    }
     version = 3;
   }
 

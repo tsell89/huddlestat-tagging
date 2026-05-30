@@ -25,7 +25,7 @@ describe("cfbdMapper", () => {
     assert.equal(row.result, Result.Return);
   });
 
-  test("maps penalty with foul completion when parseable", () => {
+  test("maps penalty with foul spotEncoding when parseable", () => {
     const row = mapCfbdPlay(
       {
         id: 2,

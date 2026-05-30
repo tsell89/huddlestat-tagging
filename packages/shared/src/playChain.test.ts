@@ -419,7 +419,7 @@ describe("touchback @ Own 20 (HS)", () => {
     });
   });
 
-  test("kickoff receive return uses completion end spot", () => {
+  test("kickoff receive return uses spotEncoding end spot", () => {
     const koRec = {
       ...defaultKickoffPlay(1, TEAM),
       playType: PlayType.KickoffReceive,
@@ -570,7 +570,7 @@ describe("punt receive chain", () => {
     assert.equal(next.distance, 10);
   });
 
-  test("punt receive return uses completion end spot", () => {
+  test("punt receive return uses spotEncoding end spot", () => {
     const puntRec = basePlay({
       playType: PlayType.PuntReceive,
       result: Result.Return,
