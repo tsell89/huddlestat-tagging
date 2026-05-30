@@ -1,4 +1,5 @@
-import { ODK, Result, type PlayerRef, type PlaylistData } from "./constants.js";
+import { ODK, Result, type PlayerRef } from "./constants.js";
+import type { PlaylistData } from "./index.js";
 
 export type DefensiveCreditAccumulator = {
   soloTackles: number;
