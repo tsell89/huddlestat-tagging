@@ -4,7 +4,7 @@ import {
   RETURNED_DEFAULT,
   clampToRange,
   computeReturnYards,
-  decodeKickoffReturnSpotEncoding,
+  decodeKickoffReturnFromSpotEncoding,
   defaultKickoffReturnSpots,
   encodeKickoffReturnSpotEncoding,
   returnEndHudlYardLine,
@@ -46,7 +46,7 @@ export function initInterceptionSpotsFromDraft(
   ) {
     return defaultInterceptionReturnSpots(ballSpot);
   }
-  const decoded = decodeKickoffReturnSpotEncoding(draft.spotEncoding);
+  const decoded = decodeKickoffReturnFromSpotEncoding(draft.spotEncoding);
   if (decoded) return decoded;
   if (draft.returnYards !== undefined) {
     const endPos = hudlToFieldPosition(CAUGHT_DEFAULT) + draft.returnYards;

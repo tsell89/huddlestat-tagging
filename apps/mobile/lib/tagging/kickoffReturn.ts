@@ -102,7 +102,7 @@ export function yardLineAfterPlay(
       return HS_TOUCHBACK_YARD_LINE;
     }
     if (play.result === Result.Return) {
-      const spots = decodeKickoffReturnSpotEncoding(play.spotEncoding);
+      const spots = decodeKickoffReturnFromSpotEncoding(play.spotEncoding);
       if (spots) {
         return returnEndHudlYardLine(spots.returnEnd);
       }
@@ -152,7 +152,7 @@ export function encodeKickoffReturnSpotEncoding(spots: KickoffReturnSpots): stri
   return `catch:${spots.caughtAt}|end:${end}`;
 }
 
-export function decodeKickoffReturnSpotEncoding(
+export function decodeKickoffReturnFromSpotEncoding(
   spotEncoding?: string,
 ): KickoffReturnSpots | null {
   if (!spotEncoding?.startsWith("catch:")) return null;
@@ -178,7 +178,7 @@ export function spotsFromSavedReturn(
   returnYards: number | undefined,
   spotEncoding?: string,
 ): KickoffReturnSpots {
-  const decoded = decodeKickoffReturnSpotEncoding(spotEncoding);
+  const decoded = decodeKickoffReturnFromSpotEncoding(spotEncoding);
   if (decoded) return decoded;
   const yards = returnYards ?? 0;
   if (yards === 0) return defaultKickoffReturnSpots();

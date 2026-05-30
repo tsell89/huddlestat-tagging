@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 /** Idempotent upgrades from SCHEMA_VERSION 1 → 2. */
 export const MIGRATIONS_V2 = [
@@ -11,6 +11,11 @@ export const MIGRATIONS_V2 = [
 export const MIGRATIONS_V3 = [
   `ALTER TABLE plays ADD COLUMN spot_encoding TEXT`,
   `UPDATE plays SET spot_encoding = completion WHERE spot_encoding IS NULL AND completion IS NOT NULL`,
+] as const;
+
+/** Idempotent upgrades from SCHEMA_VERSION 3 → 4 (drop legacy completion column). */
+export const MIGRATIONS_V4 = [
+  `ALTER TABLE plays DROP COLUMN completion`,
 ] as const;
 
 export const MIGRATIONS = [

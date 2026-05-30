@@ -1,4 +1,4 @@
-import type { LocalGame, LocalPlay } from "../db/types";
+import type { LocalPlay } from "../db/types";
 import { listPlaysForGame } from "../db/plays";
 import { getLocalGame, markGamePublished, recordPublishError } from "../db/games";
 import {
@@ -8,6 +8,7 @@ import {
 } from "./config";
 import { withTimeout } from "./timeout";
 import type { SnapshotKind } from "./triggers";
+import { playToPublishPayload } from "./publishPayload";
 
 export type PublishResult = {
   slug: string;
@@ -18,17 +19,7 @@ export type PublishResult = {
 
 const PUBLISH_TIMEOUT_MS = 30_000;
 
-function playToPayload(play: LocalPlay) {
-  const {
-    id: _id,
-    localGameId: _localGameId,
-    synced: _synced,
-    convexPlayId: _convexPlayId,
-    taggedAt: _taggedAt,
-    ...playlistData
-  } = play;
-  return playlistData;
-}
+export { playToPublishPayload } from "./publishPayload";
 
 export async function publishGameSnapshot(
   localGameId: string,
@@ -62,7 +53,7 @@ export async function publishGameSnapshot(
     status: game.status,
     phase: game.phase,
     snapshotKind,
-    plays: plays.map(playToPayload),
+    plays: plays.map(playToPublishPayload),
   };
 
   const response = await withTimeout(
