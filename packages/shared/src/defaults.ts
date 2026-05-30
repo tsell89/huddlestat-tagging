@@ -70,7 +70,7 @@ export function defaultScoringPlayAfterTd(
     returner: emptyPlayerRef,
     kicker: emptyPlayerRef,
     interceptedBy: emptyPlayerRef,
-    completion: undefined,
+    spotEncoding: undefined,
     returnYards: undefined,
     kickYards: undefined,
   };
@@ -102,7 +102,7 @@ export function defaultHsOtPossessionSnap(
     returner: emptyPlayerRef,
     kicker: emptyPlayerRef,
     interceptedBy: emptyPlayerRef,
-    completion: undefined,
+    spotEncoding: undefined,
     returnYards: undefined,
     kickYards: undefined,
   };

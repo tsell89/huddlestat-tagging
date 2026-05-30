@@ -35,7 +35,7 @@ export type PlayChainInput = Pick<
   | "gainLoss"
   | "playType"
   | "result"
-  | "completion"
+  | "spotEncoding"
   | "odk"
 >;
 
@@ -52,7 +52,7 @@ const emptyPlayers: Pick<
   | "interceptedBy"
   | "returnYards"
   | "kickYards"
-  | "completion"
+  | "spotEncoding"
 > = {
   passer: emptyPlayerRef,
   receiver: emptyPlayerRef,
@@ -65,41 +65,41 @@ const emptyPlayers: Pick<
   interceptedBy: emptyPlayerRef,
   returnYards: undefined,
   kickYards: undefined,
-  completion: undefined,
+  spotEncoding: undefined,
 };
 
-function decodeKickoffReturnEnd(completion?: string): YardLine | null {
-  if (!completion?.startsWith("catch:")) return null;
-  const match = /^catch:(-?\d+)\|end:(TD|SA|-?\d+)$/.exec(completion);
+function decodeKickoffReturnEnd(spotEncoding?: string): YardLine | null {
+  if (!spotEncoding?.startsWith("catch:")) return null;
+  const match = /^catch:(-?\d+)\|end:(TD|SA|-?\d+)$/.exec(spotEncoding);
   if (!match) return null;
   if (match[2] === "TD" || match[2] === "SA") return 0;
   return Number(match[2]) as YardLine;
 }
 
-function decodePuntReturnEnd(completion?: string): YardLine | null {
-  if (!completion?.startsWith("recv:")) return null;
-  const match = /^recv:(-?\d+)\|end:(TD|SA|-?\d+)$/.exec(completion);
+function decodePuntReturnEnd(spotEncoding?: string): YardLine | null {
+  if (!spotEncoding?.startsWith("recv:")) return null;
+  const match = /^recv:(-?\d+)\|end:(TD|SA|-?\d+)$/.exec(spotEncoding);
   if (!match) return null;
   if (match[2] === "TD" || match[2] === "SA") return 0;
   return Number(match[2]) as YardLine;
 }
 
-function decodePuntDownedEnd(completion?: string): YardLine | null {
-  if (!completion?.startsWith("end:")) return null;
-  const match = /^end:(TD|SA|-?\d+)$/.exec(completion);
+function decodePuntDownedEnd(spotEncoding?: string): YardLine | null {
+  if (!spotEncoding?.startsWith("end:")) return null;
+  const match = /^end:(TD|SA|-?\d+)$/.exec(spotEncoding);
   if (!match || match[1] === "TD" || match[1] === "SA") return null;
   return Number(match[1]) as YardLine;
 }
 
 /** INT / live-ball return — catch:+15|end:-32 */
-function decodeCatchReturnEnd(completion?: string): YardLine | null {
-  return decodeKickoffReturnEnd(completion);
+function decodeCatchReturnEnd(spotEncoding?: string): YardLine | null {
+  return decodeKickoffReturnEnd(spotEncoding);
 }
 
 /** Blocked punt/FG recovery — recover:+15|end:-32 */
-function decodeBlockedKickEnd(completion?: string): YardLine | null {
-  if (!completion?.startsWith("recover:")) return null;
-  const match = /^recover:(-?\d+)(?:\|end:(TD|SA|-?\d+))?$/.exec(completion);
+function decodeBlockedKickEnd(spotEncoding?: string): YardLine | null {
+  if (!spotEncoding?.startsWith("recover:")) return null;
+  const match = /^recover:(-?\d+)(?:\|end:(TD|SA|-?\d+))?$/.exec(spotEncoding);
   if (!match) return null;
   if (!match[2] || match[2] === "TD" || match[2] === "SA") return 0;
   return Number(match[2]) as YardLine;
@@ -109,7 +109,7 @@ export type FumbleRecoverySide = "offense" | "defense";
 
 export type FumbleEndKind = "yardline" | "touchdown" | "safety";
 
-export type FumbleCompletion = {
+export type DecodedFumbleSpot = {
   fumbleAt: YardLine;
   endYardLine: YardLine;
   endKind: FumbleEndKind;
@@ -118,13 +118,13 @@ export type FumbleCompletion = {
 };
 
 /** Fumble — fumble:-25|end:-22|by:O or fumble:-25|recover:10|end:-32|by:D */
-export function decodeFumbleCompletion(
-  completion?: string,
-): FumbleCompletion | null {
-  if (!completion?.startsWith("fumble:")) return null;
+export function decodeFumbleSpotEncoding(
+  spotEncoding?: string,
+): DecodedFumbleSpot | null {
+  if (!spotEncoding?.startsWith("fumble:")) return null;
   const match =
     /^fumble:(-?\d+)(?:\|recover:(-?\d+))?\|end:(TD|SA|-?\d+)\|by:(O|D)$/.exec(
-      completion,
+      spotEncoding,
     );
   if (!match) return null;
   const fumbleAt = Number(match[1]) as YardLine;
@@ -148,9 +148,9 @@ export function decodeFumbleCompletion(
 }
 
 /** Holding penalty — foul:-42 (MVP: 10 yards from spot of foul). */
-export function decodePenaltyFoulSpot(completion?: string): YardLine | null {
-  if (!completion?.startsWith("foul:")) return null;
-  const match = /^foul:(-?\d+)$/.exec(completion);
+export function decodePenaltyFoulSpot(spotEncoding?: string): YardLine | null {
+  if (!spotEncoding?.startsWith("foul:")) return null;
+  const match = /^foul:(-?\d+)$/.exec(spotEncoding);
   if (!match) return null;
   return Number(match[1]) as YardLine;
 }
@@ -161,29 +161,29 @@ function isFgPlay(playType: PlaylistData["playType"]): boolean {
   return playType === PlayType.FieldGoal;
 }
 
-function isFgNoGoodInField(completion?: string): boolean {
-  return completion === "end:field";
+function isFgNoGoodInField(spotEncoding?: string): boolean {
+  return spotEncoding === "end:field";
 }
 
-function isFgNoGoodTouchback(completion?: string): boolean {
-  return completion === "end:TB";
+function isFgNoGoodTouchback(spotEncoding?: string): boolean {
+  return spotEncoding === "end:TB";
 }
 
-function isDefenseFumbleRecovery(completion?: string): boolean {
-  const decoded = decodeFumbleCompletion(completion);
+function isDefenseFumbleRecovery(spotEncoding?: string): boolean {
+  const decoded = decodeFumbleSpotEncoding(spotEncoding);
   return decoded?.recoveredBy === "defense";
 }
 
 function isLiveBallTurnover(play: PlayChainInput): boolean {
   if (play.result === Result.Cop) return true;
   if (play.result === Result.Interception) return true;
-  if (play.result === Result.Fumble && isDefenseFumbleRecovery(play.completion)) {
+  if (play.result === Result.Fumble && isDefenseFumbleRecovery(play.spotEncoding)) {
     return true;
   }
   if (
     isFgPlay(play.playType) &&
     play.result === Result.NoGood &&
-    isFgNoGoodInField(play.completion)
+    isFgNoGoodInField(play.spotEncoding)
   ) {
     return true;
   }
@@ -197,7 +197,7 @@ function isLiveBallTurnover(play: PlayChainInput): boolean {
 }
 
 function penaltySituation(play: PlayChainInput): SituationFields {
-  const foulSpot = decodePenaltyFoulSpot(play.completion) ?? play.yardLine;
+  const foulSpot = decodePenaltyFoulSpot(play.spotEncoding) ?? play.yardLine;
   const foulPos = hudlToFieldPosition(foulSpot);
   const newPos = Math.max(
     FIELD_OWN_GOAL,
@@ -232,8 +232,8 @@ function isPuntPlay(playType: PlaylistData["playType"]): boolean {
   return playType === PlayType.Punt || playType === PlayType.PuntReceive;
 }
 
-function isReturnTouchdown(play: Pick<PlaylistData, "completion">): boolean {
-  const c = play.completion;
+function isReturnTouchdown(play: Pick<PlaylistData, "spotEncoding">): boolean {
+  const c = play.spotEncoding;
   if (!c) return false;
   return /end:TD/.test(c);
 }
@@ -336,7 +336,7 @@ function isScoringComplete(
 export function yardLineAfterPlay(
   play: Pick<
     PlaylistData,
-    "playType" | "result" | "yardLine" | "gainLoss" | "completion"
+    "playType" | "result" | "yardLine" | "gainLoss" | "spotEncoding"
   >,
 ): YardLine {
   if (isKickoffPlay(play.playType) && play.result === Result.Touchback) {
@@ -351,27 +351,27 @@ export function yardLineAfterPlay(
   }
 
   if (isKickoffPlay(play.playType) && play.result === Result.Return) {
-    const end = decodeKickoffReturnEnd(play.completion);
+    const end = decodeKickoffReturnEnd(play.spotEncoding);
     if (end !== null) return end;
   }
 
   if (isPuntPlay(play.playType) && play.result === Result.Return) {
-    const end = decodePuntReturnEnd(play.completion);
+    const end = decodePuntReturnEnd(play.spotEncoding);
     if (end !== null) return end;
   }
 
   if (isPuntPlay(play.playType) && play.result === Result.Downed) {
-    const end = decodePuntDownedEnd(play.completion);
+    const end = decodePuntDownedEnd(play.spotEncoding);
     if (end !== null) return end;
   }
 
   if (play.result === Result.Interception) {
-    const end = decodeCatchReturnEnd(play.completion);
+    const end = decodeCatchReturnEnd(play.spotEncoding);
     if (end !== null) return end;
   }
 
   if (play.result === Result.Fumble) {
-    const fumble = decodeFumbleCompletion(play.completion);
+    const fumble = decodeFumbleSpotEncoding(play.spotEncoding);
     if (fumble) return fumble.endYardLine;
   }
 
@@ -379,21 +379,21 @@ export function yardLineAfterPlay(
     play.result === Result.Blocked &&
     (isPuntPlay(play.playType) || isFgPlay(play.playType))
   ) {
-    const end = decodeBlockedKickEnd(play.completion);
+    const end = decodeBlockedKickEnd(play.spotEncoding);
     if (end !== null) return end;
   }
 
   if (isFgPlay(play.playType) && play.result === Result.NoGood) {
-    if (isFgNoGoodTouchback(play.completion)) {
+    if (isFgNoGoodTouchback(play.spotEncoding)) {
       return HS_TOUCHBACK_YARD_LINE;
     }
-    if (isFgNoGoodInField(play.completion)) {
+    if (isFgNoGoodInField(play.spotEncoding)) {
       return play.yardLine;
     }
   }
 
   if (play.result === Result.Penalty) {
-    const foulSpot = decodePenaltyFoulSpot(play.completion) ?? play.yardLine;
+    const foulSpot = decodePenaltyFoulSpot(play.spotEncoding) ?? play.yardLine;
     const foulPos = hudlToFieldPosition(foulSpot);
     const newPos = Math.max(
       FIELD_OWN_GOAL,
@@ -468,7 +468,7 @@ export function advanceSituation(play: PlayChainInput): SituationFields {
   }
 
   if (play.result === Result.Fumble) {
-    const fumble = decodeFumbleCompletion(play.completion);
+    const fumble = decodeFumbleSpotEncoding(play.spotEncoding);
     if (fumble?.recoveredBy === "defense") {
       return turnoverSituation(play, fumble.endYardLine);
     }
@@ -491,14 +491,14 @@ export function advanceSituation(play: PlayChainInput): SituationFields {
   }
 
   if (isFgPlay(play.playType) && play.result === Result.NoGood) {
-    if (isFgNoGoodTouchback(play.completion)) {
+    if (isFgNoGoodTouchback(play.spotEncoding)) {
       return {
         down: 1,
         distance: 10,
         yardLine: HS_TOUCHBACK_YARD_LINE,
       };
     }
-    if (isFgNoGoodInField(play.completion)) {
+    if (isFgNoGoodInField(play.spotEncoding)) {
       return turnoverSituation(play, play.yardLine);
     }
   }
@@ -592,7 +592,7 @@ export function nextDraftAfterPlay(
   const afterFgNoGoodTouchback =
     isFgPlay(play.playType) &&
     play.result === Result.NoGood &&
-    isFgNoGoodTouchback(play.completion);
+    isFgNoGoodTouchback(play.spotEncoding);
 
   if (afterKickoff) {
     return {

@@ -43,6 +43,6 @@ describe("cfbdMapper", () => {
     );
     assert.ok(row);
     assert.equal(row.result, Result.Penalty);
-    assert.equal(row.completion, "foul:-42");
+    assert.equal(row.spotEncoding, "foul:-42");
   });
 });

@@ -62,7 +62,7 @@
         "jersey": "",
         "name": ""
       },
-      "completion": "recover:20|end:-32"
+      "spotEncoding": "recover:20|end:-32"
     },
     {
       "playNumber": 2,
@@ -159,7 +159,7 @@
         "jersey": "",
         "name": ""
       },
-      "completion": "end:TB"
+      "spotEncoding": "end:TB"
     },
     {
       "playNumber": 4,

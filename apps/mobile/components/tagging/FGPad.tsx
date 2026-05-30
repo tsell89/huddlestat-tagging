@@ -14,8 +14,8 @@ import {
 import {
   FG_NO_GOOD_CHOICES,
   applyFieldGoalKickYards,
-  decodeFgNoGoodCompletion,
-  encodeFgNoGoodCompletion,
+  decodeFgNoGoodSpotEncoding,
+  encodeFgNoGoodSpotEncoding,
   fgAttemptYards,
   type FgNoGoodChoice,
 } from "@/lib/tagging/fieldGoal";
@@ -53,7 +53,7 @@ export function FGPad({
   const attemptYards = fgAttemptYards(draft.yardLine);
   const noGoodChoice =
     draft.result === Result.NoGood
-      ? decodeFgNoGoodCompletion(draft.completion)
+      ? decodeFgNoGoodSpotEncoding(draft.spotEncoding)
       : FG_NO_GOOD_CHOICES[0];
 
   return (
@@ -92,7 +92,7 @@ export function FGPad({
               onChange(
                 withKickYards({
                   ...draft,
-                  completion: encodeFgNoGoodCompletion(choice),
+                  spotEncoding: encodeFgNoGoodSpotEncoding(choice),
                 }),
               );
             }}

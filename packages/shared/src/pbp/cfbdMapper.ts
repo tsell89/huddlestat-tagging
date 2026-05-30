@@ -58,7 +58,7 @@ function yardsToGoalToHudl(
 
 function classifyCfbdPlay(
   play: CfbdPlay,
-): Pick<PlaylistData, "playType" | "result" | "completion"> {
+): Pick<PlaylistData, "playType" | "result" | "spotEncoding"> {
   const t = play.playType.toLowerCase();
   const text = (play.playText ?? "").toLowerCase();
 
@@ -67,13 +67,13 @@ function classifyCfbdPlay(
       return {
         playType: PlayType.KickoffReceive,
         result: Result.Touchback,
-        completion: undefined,
+        spotEncoding: undefined,
       };
     }
     return {
       playType: PlayType.Kickoff,
       result: Result.Return,
-      completion: "catch:-5|end:-25",
+      spotEncoding: "catch:-5|end:-25",
     };
   }
   if (t.includes("penalty")) {
@@ -91,7 +91,7 @@ function classifyCfbdPlay(
     return {
       playType: PlayType.Run,
       result: Result.Penalty,
-      completion: foulHudl !== undefined ? `foul:${foulHudl}` : undefined,
+      spotEncoding: foulHudl !== undefined ? `foul:${foulHudl}` : undefined,
     };
   }
   if (t.includes("sack")) {
@@ -114,14 +114,14 @@ function classifyCfbdPlay(
     return {
       playType: PlayType.FieldGoal,
       result: Result.NoGood,
-      completion: intoEz ? "end:TB" : "end:field",
+      spotEncoding: intoEz ? "end:TB" : "end:field",
     };
   }
   if (t.includes("punt")) {
     if (text.includes("touchback")) {
       return { playType: PlayType.PuntReceive, result: Result.Touchback };
     }
-    return { playType: PlayType.Punt, result: Result.Downed, completion: "end:-35" };
+    return { playType: PlayType.Punt, result: Result.Downed, spotEncoding: "end:-35" };
   }
 
   return { playType: "", result: "" };
@@ -153,7 +153,7 @@ export function mapCfbdPlay(
       distance: 0,
       result: classified.result,
       gainLoss,
-      completion: classified.completion,
+      spotEncoding: classified.spotEncoding,
       hash: Hash.Middle,
     };
   }

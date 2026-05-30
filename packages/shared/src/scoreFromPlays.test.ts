@@ -81,7 +81,7 @@ describe("deriveScoreFromPlays", () => {
         odk: ODK.Defense,
         playType: PlayType.Run,
         result: Result.Fumble,
-        completion: "fumble:-5|recover:0|end:SA|by:D",
+        spotEncoding: "fumble:-5|recover:0|end:SA|by:D",
       }),
     ]);
     assert.deepEqual(score, { us: 2, them: 0 });
@@ -106,7 +106,7 @@ describe("deriveScoreFromPlays", () => {
         odk: ODK.Offense,
         playType: PlayType.KickoffReceive,
         result: Result.Return,
-        completion: "catch:-5|end:TD",
+        spotEncoding: "catch:-5|end:TD",
       }),
     ]);
     assert.deepEqual(score, { us: 6, them: 0 });

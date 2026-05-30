@@ -19,7 +19,7 @@ export function defaultPenaltyFoulSpot(ballSpot: YardLine): YardLine {
   return ballSpot;
 }
 
-export function encodePenaltyInCompletion(foulSpot: YardLine): string {
+export function encodePenaltySpotEncoding(foulSpot: YardLine): string {
   return `foul:${foulSpot}`;
 }
 
@@ -30,7 +30,7 @@ export function initPenaltyFoulSpotFromDraft(
   if (!draft || draft.result !== Result.Penalty) {
     return defaultPenaltyFoulSpot(ballSpot);
   }
-  return decodePenaltyFoulSpot(draft.completion) ?? defaultPenaltyFoulSpot(ballSpot);
+  return decodePenaltyFoulSpot(draft.spotEncoding) ?? defaultPenaltyFoulSpot(ballSpot);
 }
 
 export function applyPenaltySpotToDraft(
@@ -41,7 +41,7 @@ export function applyPenaltySpotToDraft(
   return {
     ...draft,
     gainLoss: 0,
-    completion: encodePenaltyInCompletion(foulSpot),
+    spotEncoding: encodePenaltySpotEncoding(foulSpot),
   };
 }
 

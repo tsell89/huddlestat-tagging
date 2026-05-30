@@ -36,7 +36,7 @@ export {
 } from "./fieldPosition100.js";
 export {
   advanceSituation,
-  decodeFumbleCompletion,
+  decodeFumbleSpotEncoding,
   decodePenaltyFoulSpot,
   HOLDING_PENALTY_YARDS,
   isFailedFourthDown,
@@ -92,7 +92,7 @@ export const resultSchema = z.enum([
 
 /**
  * Hudl yard line: own −49…−1, midfield 50, opp +49…+1, end zone 0.
- * Hudl 0 = opponent TD or own safety — disambiguate in completion/result (see docs/field-position-model.md).
+ * Hudl 0 = opponent TD or own safety — disambiguate in spotEncoding/result (see docs/field-position-model.md).
  * Internal field math uses positions 0 (own EZ) and 100 (opp EZ); see fieldPosition100.ts.
  */
 
@@ -187,7 +187,8 @@ export const playlistDataSchema = z.object({
   kicker: playerRefSchema,
   kickYards: z.number().int().optional(),
   interceptedBy: playerRefSchema,
-  completion: z.string().optional(),
+  /** Ball-spot chain string; CSV column COMPLETION (see ADR-0001). */
+  spotEncoding: z.string().optional(),
 });
 
 export type PlaylistData = z.infer<typeof playlistDataSchema>;
@@ -225,6 +226,7 @@ export const PLAYLIST_DATA_HEADERS = [
   "KICK YARDS",
   "INTERCEPTED BY_Jersey",
   "INTERCEPTED BY_Name",
+  /** Maps to PlaylistData.spotEncoding (not pass complete/incomplete). */
   "COMPLETION",
 ] as const;
 
@@ -262,7 +264,7 @@ export function toPlaylistDataRow(row: PlaylistData): string[] {
     row.kickYards !== undefined ? String(row.kickYards) : "",
     row.interceptedBy.jersey,
     row.interceptedBy.name,
-    row.completion ?? "",
+    row.spotEncoding ?? "",
   ];
 }
 

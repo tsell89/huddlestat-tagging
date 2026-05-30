@@ -18,10 +18,10 @@ export type InvariantViolation = {
   detail: string;
 };
 
-function endHudlFromCompletion(
+function endHudlFromSpotEncoding(
   play: PlaylistData,
 ): number | null {
-  const c = play.completion;
+  const c = play.spotEncoding;
   if (!c) {
     if (
       play.result === Result.Rush ||
@@ -92,9 +92,9 @@ export function checkPlayInvariants(play: PlaylistData): InvariantViolation[] {
     });
   }
 
-  const endHudl = endHudlFromCompletion(play);
-  if (endHudl !== null && play.completion) {
-    const catchMatch = /catch:(-?\d+)/.exec(play.completion);
+  const endHudl = endHudlFromSpotEncoding(play);
+  if (endHudl !== null && play.spotEncoding) {
+    const catchMatch = /catch:(-?\d+)/.exec(play.spotEncoding);
     const startHudl = catchMatch ? Number(catchMatch[1]) : play.yardLine;
     const expectedGain = yardsAdvanced(startHudl, endHudl);
     if (

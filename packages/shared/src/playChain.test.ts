@@ -39,7 +39,7 @@ describe("canonical drive (spec §2.4)", () => {
       result: Result.Return,
       gainLoss: 20,
       returnYards: 20,
-      completion: "catch:-5|end:-25",
+      spotEncoding: "catch:-5|end:-25",
     };
 
     assert.equal(yardLineAfterPlay(ko), -25);
@@ -194,7 +194,7 @@ describe("TD → scoring → kickoff chain", () => {
       yardLine: -40,
       down: 0,
       distance: 0,
-      completion: "catch:-5|end:TD",
+      spotEncoding: "catch:-5|end:TD",
     });
 
     assert.equal(yardsAdvanced(-5, 0, "opponent"), 95);
@@ -215,7 +215,7 @@ describe("TD → scoring → kickoff chain", () => {
       yardLine: 35,
       down: 1,
       distance: 10,
-      completion: "recv:20|end:TD",
+      spotEncoding: "recv:20|end:TD",
     });
 
     const scoring = nextDraftAfterPlay(puntRec, 9, TEAM);
@@ -233,7 +233,7 @@ describe("TD → scoring → kickoff chain", () => {
       yardLine: -30,
       down: 2,
       distance: 8,
-      completion: "catch:20|end:TD",
+      spotEncoding: "catch:20|end:TD",
     });
 
     const scoring = nextDraftAfterPlay(pick, 4, TEAM);
@@ -251,7 +251,7 @@ describe("TD → scoring → kickoff chain", () => {
       yardLine: 40,
       down: 4,
       distance: 8,
-      completion: "recv:20|end:TD",
+      spotEncoding: "recv:20|end:TD",
     });
 
     const scoring = nextDraftAfterPlay(punt, 6, TEAM);
@@ -268,7 +268,7 @@ describe("TD → scoring → kickoff chain", () => {
       yardLine: 35,
       down: 4,
       distance: 8,
-      completion: "recover:20|end:TD",
+      spotEncoding: "recover:20|end:TD",
     });
 
     const scoring = nextDraftAfterPlay(blocked, 7, TEAM);
@@ -286,7 +286,7 @@ describe("TD → scoring → kickoff chain", () => {
       yardLine: -40,
       down: 0,
       distance: 0,
-      completion: "catch:-5|end:SA",
+      spotEncoding: "catch:-5|end:SA",
     });
 
     const next = nextDraftAfterPlay(koRec, 2, TEAM);
@@ -426,7 +426,7 @@ describe("touchback @ Own 20 (HS)", () => {
       result: Result.Return,
       gainLoss: 20,
       returnYards: 20,
-      completion: "catch:-5|end:-25",
+      spotEncoding: "catch:-5|end:-25",
     };
 
     assert.equal(yardLineAfterPlay(koRec), -25);
@@ -448,7 +448,7 @@ describe("punt receive chain", () => {
       down: 4,
       distance: 2,
       gainLoss: -35,
-      completion: "end:35",
+      spotEncoding: "end:35",
       odk: ODK.Offense,
     });
 
@@ -470,7 +470,7 @@ describe("punt receive chain", () => {
       distance: 8,
       gainLoss: -12,
       returnYards: 12,
-      completion: "recv:35|end:-32",
+      spotEncoding: "recv:35|end:-32",
       odk: ODK.Offense,
     });
 
@@ -511,7 +511,7 @@ describe("punt receive chain", () => {
       down: 4,
       distance: 5,
       gainLoss: 5,
-      completion: "end:-5",
+      spotEncoding: "end:-5",
       odk: ODK.Offense,
     });
 
@@ -536,7 +536,7 @@ describe("punt receive chain", () => {
       down: 4,
       distance: 2,
       gainLoss: -35,
-      completion: "end:35",
+      spotEncoding: "end:35",
       odk: ODK.Offense,
     });
 
@@ -558,7 +558,7 @@ describe("punt receive chain", () => {
       distance: 10,
       gainLoss: 10,
       returnYards: 10,
-      completion: "recv:-5|end:25",
+      spotEncoding: "recv:-5|end:25",
       odk: ODK.Offense,
     });
 
@@ -578,7 +578,7 @@ describe("punt receive chain", () => {
       down: 4,
       distance: 8,
       gainLoss: 12,
-      completion: "recv:15|end:-32",
+      spotEncoding: "recv:15|end:-32",
     });
 
     assert.equal(yardLineAfterPlay(puntRec), -32);
@@ -646,7 +646,7 @@ describe("Package H — live ball", () => {
       yardLine: -25,
       down: 2,
       distance: 7,
-      completion: "catch:15|end:-32",
+      spotEncoding: "catch:15|end:-32",
       returnYards: 47,
       gainLoss: -7,
       odk: ODK.Offense,
@@ -673,7 +673,7 @@ describe("Package H — live ball", () => {
       yardLine: -25,
       down: 2,
       distance: 7,
-      completion: "fumble:-22|recover:10|end:-32|by:D",
+      spotEncoding: "fumble:-22|recover:10|end:-32|by:D",
       gainLoss: -57,
       odk: ODK.Offense,
     });
@@ -692,7 +692,7 @@ describe("Package H — live ball", () => {
       yardLine: -25,
       down: 2,
       distance: 7,
-      completion: "fumble:-22|end:-22|by:O",
+      spotEncoding: "fumble:-22|end:-22|by:O",
       gainLoss: -3,
       odk: ODK.Offense,
     });
@@ -715,7 +715,7 @@ describe("Package H — live ball", () => {
       yardLine: 28,
       down: 4,
       distance: 13,
-      completion: "end:field",
+      spotEncoding: "end:field",
       gainLoss: 0,
       odk: ODK.Offense,
     });
@@ -735,7 +735,7 @@ describe("Package H — live ball", () => {
       yardLine: 5,
       down: 4,
       distance: 2,
-      completion: "end:TB",
+      spotEncoding: "end:TB",
       gainLoss: 0,
       odk: ODK.Offense,
     });
@@ -754,7 +754,7 @@ describe("Package H — live ball", () => {
       yardLine: 35,
       down: 4,
       distance: 8,
-      completion: "recover:20|end:-32",
+      spotEncoding: "recover:20|end:-32",
       returnYards: 52,
       gainLoss: -67,
       odk: ODK.Offense,
@@ -774,7 +774,7 @@ describe("Package H — live ball", () => {
       yardLine: 28,
       down: 4,
       distance: 13,
-      completion: "recover:15|end:-32",
+      spotEncoding: "recover:15|end:-32",
       returnYards: 47,
       gainLoss: -60,
       odk: ODK.Offense,
@@ -794,7 +794,7 @@ describe("Package H — live ball", () => {
       yardLine: -25,
       down: 2,
       distance: 7,
-      completion: "fumble:-22|recover:5|end:SA|by:D",
+      spotEncoding: "fumble:-22|recover:5|end:SA|by:D",
       gainLoss: -27,
       odk: ODK.Offense,
     });
@@ -812,7 +812,7 @@ describe("Package H — live ball", () => {
       yardLine: -40,
       down: 2,
       distance: 10,
-      completion: "foul:-42",
+      spotEncoding: "foul:-42",
       gainLoss: 0,
       odk: ODK.Offense,
     });

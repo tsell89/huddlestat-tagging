@@ -111,7 +111,7 @@ function isTouchdownResult(result: PlaylistData["result"]): boolean {
 }
 
 function isReturnTouchdown(play: PlaylistData): boolean {
-  return play.completion?.includes("end:TD") === true;
+  return play.spotEncoding?.includes("end:TD") === true;
 }
 
 function isRushTouchdown(play: PlaylistData): boolean {
@@ -396,7 +396,7 @@ export function deriveMaxPrepsBoxScoreFromPlays(
       }
     }
 
-    if (play.result === Result.Safety || play.completion?.includes("end:SA")) {
+    if (play.result === Result.Safety || play.spotEncoding?.includes("end:SA")) {
       const credit = jerseyKey(play.tackler1) ?? jerseyKey(play.tackler2);
       if (credit && play.odk === ODK.Defense) {
         const row = map.get(credit) ?? emptyRow(credit);

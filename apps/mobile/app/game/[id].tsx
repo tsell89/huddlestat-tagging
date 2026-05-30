@@ -127,7 +127,7 @@ function playToDraft(play: LocalPlay): PlaylistData {
     kicker: play.kicker,
     kickYards: play.kickYards,
     interceptedBy: play.interceptedBy,
-    completion: play.completion,
+    spotEncoding: play.spotEncoding,
   };
 }
 

@@ -9,11 +9,11 @@ import {
 } from "@huddlestat/shared";
 import {
   applyFieldGoalKickYards,
-  decodeFgNoGoodCompletion,
-  encodeFgNoGoodCompletion,
+  decodeFgNoGoodSpotEncoding,
+  encodeFgNoGoodSpotEncoding,
   fgAttemptYards,
   FG_NO_GOOD_IN_FIELD,
-  isFgNoGoodCompletion,
+  isFgNoGoodSpotEncoding,
 } from "@/lib/tagging/fieldGoal";
 import { hudlToFieldPosition } from "@/lib/tagging/fieldPosition100";
 import { touchbackDraftPatch } from "@/lib/tagging/kickoffReturn";
@@ -326,7 +326,7 @@ export function applyPlayTypeChange(
     playType,
     result,
     gainLoss: 0,
-    completion: undefined,
+    spotEncoding: undefined,
     returnYards: undefined,
     kickYards: undefined,
     passer: emptyIfHidden("passer", playType, result, draft.passer),
@@ -371,50 +371,50 @@ export function applyScoringPlayTypeChange(
     yardLine,
     distance,
     gainLoss: 0,
-    completion: undefined,
+    spotEncoding: undefined,
     kicker: emptyIfHidden("kicker", playType, result, draft.kicker),
     tackler1: emptyIfHidden("tackler1", playType, result, draft.tackler1),
     tackler2: emptyIfHidden("tackler2", playType, result, draft.tackler2),
   };
 }
 
-/** Whether saved completion string matches the active play type + result. */
-function completionMatchesResult(
+/** Whether saved spotEncoding matches the active play type + result. */
+function spotEncodingMatchesResult(
   playType: PlaylistData["playType"],
   result: PlaylistData["result"],
-  completion?: string,
+  spotEncoding?: string,
 ): boolean {
-  if (!completion) return false;
-  if (result === Result.Interception) return completion.startsWith("catch:");
-  if (result === Result.Fumble) return completion.startsWith("fumble:");
-  if (result === Result.Penalty) return completion.startsWith("foul:");
+  if (!spotEncoding) return false;
+  if (result === Result.Interception) return spotEncoding.startsWith("catch:");
+  if (result === Result.Fumble) return spotEncoding.startsWith("fumble:");
+  if (result === Result.Penalty) return spotEncoding.startsWith("foul:");
   if (
     result === Result.Blocked &&
     (playType === PlayType.Punt || playType === PlayType.FieldGoal)
   ) {
-    return completion.startsWith("recover:");
+    return spotEncoding.startsWith("recover:");
   }
   if (needsTackleSpot(playType, result)) {
-    return completion.startsWith("tackle:");
+    return spotEncoding.startsWith("tackle:");
   }
   if (playType === PlayType.Punt && result === Result.Return) {
-    return completion.startsWith("recv:");
+    return spotEncoding.startsWith("recv:");
   }
   if (playType === PlayType.Punt && result === Result.Downed) {
     return (
-      completion.startsWith("end:") &&
-      !completion.startsWith("recv:") &&
-      !isFgNoGoodCompletion(completion)
+      spotEncoding.startsWith("end:") &&
+      !spotEncoding.startsWith("recv:") &&
+      !isFgNoGoodSpotEncoding(spotEncoding)
     );
   }
   if (playType === PlayType.FieldGoal && result === Result.NoGood) {
-    return isFgNoGoodCompletion(completion);
+    return isFgNoGoodSpotEncoding(spotEncoding);
   }
   if (
     (playType === PlayType.Kickoff || playType === PlayType.KickoffReceive) &&
     result === Result.Return
   ) {
-    return completion.startsWith("catch:");
+    return spotEncoding.startsWith("catch:");
   }
   return false;
 }
@@ -426,15 +426,15 @@ export function applyResultChange(
   const { playType } = draft;
   const noGain =
     result === Result.Incomplete || result === Result.TippedPass;
-  const keepCompletion =
+  const keepSpotEncoding =
     !noGain &&
     draft.result === result &&
-    completionMatchesResult(playType, result, draft.completion);
+    spotEncodingMatchesResult(playType, result, draft.spotEncoding);
   const next: PlaylistData = {
     ...draft,
     result,
     gainLoss: noGain ? 0 : draft.gainLoss,
-    completion: keepCompletion ? draft.completion : undefined,
+    spotEncoding: keepSpotEncoding ? draft.spotEncoding : undefined,
     tackler1: emptyIfHidden("tackler1", playType, result, draft.tackler1),
     tackler2: emptyIfHidden("tackler2", playType, result, draft.tackler2),
     receiver: emptyIfHidden("receiver", playType, result, draft.receiver),
@@ -450,13 +450,13 @@ export function applyResultChange(
 
   if (playType === PlayType.FieldGoal) {
     if (result === Result.NoGood) {
-      next.completion = encodeFgNoGoodCompletion(
-        isFgNoGoodCompletion(draft.completion)
-          ? decodeFgNoGoodCompletion(draft.completion)
+      next.spotEncoding = encodeFgNoGoodSpotEncoding(
+        isFgNoGoodSpotEncoding(draft.spotEncoding)
+          ? decodeFgNoGoodSpotEncoding(draft.spotEncoding)
           : FG_NO_GOOD_IN_FIELD,
       );
-    } else if (isFgNoGoodCompletion(draft.completion)) {
-      next.completion = undefined;
+    } else if (isFgNoGoodSpotEncoding(draft.spotEncoding)) {
+      next.spotEncoding = undefined;
     }
     return applyFieldGoalKickYards(next);
   }

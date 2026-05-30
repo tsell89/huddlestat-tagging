@@ -75,7 +75,7 @@ export type PlayRow = {
   kicker_json: string;
   kick_yards: number | null;
   intercepted_by_json: string;
-  completion: string | null;
+  spot_encoding: string | null;
   synced: number;
   convex_play_id: string | null;
   tagged_at: number;
@@ -111,7 +111,7 @@ export function rowToLocalPlay(row: PlayRow): LocalPlay {
     kicker: parsePlayerRef(row.kicker_json),
     kickYards: row.kick_yards ?? undefined,
     interceptedBy: parsePlayerRef(row.intercepted_by_json),
-    completion: row.completion ?? undefined,
+    spotEncoding: row.spot_encoding ?? undefined,
     synced: row.synced === 1,
     convexPlayId: row.convex_play_id,
     taggedAt: row.tagged_at,
@@ -147,7 +147,7 @@ export function playToRow(play: LocalPlay): Omit<PlayRow, "synced" | "convex_pla
     kicker_json: JSON.stringify(play.kicker),
     kick_yards: play.kickYards ?? null,
     intercepted_by_json: JSON.stringify(play.interceptedBy),
-    completion: play.completion ?? null,
+    spot_encoding: play.spotEncoding ?? null,
     synced: play.synced ? 1 : 0,
     convex_play_id: play.convexPlayId,
     tagged_at: play.taggedAt,
