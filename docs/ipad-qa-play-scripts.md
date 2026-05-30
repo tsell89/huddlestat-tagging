@@ -31,7 +31,7 @@ Step-by-step tags for [ipad-qa-checklist.md](./ipad-qa-checklist.md). Report eac
 
 | Play | Tag | Expected after save |
 |------|-----|---------------------|
-| **1** | Run · Rush · Tackled **Opp 5** (or use slider to goal line) · set completion **TD** if needed OR tackle at Opp 1 and mark TD per pad | **ScoringPad** · Extra Pt · odk O |
+| **1** | Run · Rush · Tackled **Opp 5** (or use slider to goal line) · set tackle end **TD** if needed OR tackle at Opp 1 and mark TD per pad | **ScoringPad** · Extra Pt · odk O |
 | **2** | Extra Pt · **Good** · SAVE | **Kickoff pad** · toggle **We kick** |
 | **3** | Kickoff · Touchback (or return) · SAVE | Offense @ Own 20 or return end |
 | **4** | Verify header score increased +6 then +1 silently | |

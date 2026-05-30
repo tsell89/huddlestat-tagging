@@ -54,7 +54,7 @@ Catch-up at every quarter transition — review/fill missing stats (tacklers, PB
 | ID | Status | Task |
 |----|--------|------|
 | `chain-punt-flip` | done | `playChain`: 4th-down punt → odk D + Punt Rec; unit tests |
-| `chain-return-td` | done | `playChain`: KO/punt return TD (`completion end:TD`) → `defaultScoringPlayAfterTd` |
+| `chain-return-td` | done | `playChain`: KO/punt return TD (`spotEncoding` `end:TD`) → `defaultScoringPlayAfterTd` |
 | `pbp-scenarios` | done | Add punt-odk-flip, kickoff-return-td-scoring, defensive-special-td-catalog, onside-recovery scenarios; fix cfbd-normal-drives play 6 |
 | `schema-quarter-phase` | done | Add quarter to PlaylistData/export/SQLite/sync; `games.phase` + `otPossession`; migration v2 |
 | `score-auto` | done | `deriveScoreFromPlays` + OT win detection; wire `updateLocalScore` on save |
@@ -165,7 +165,7 @@ New shared module e.g. [`packages/shared/src/scoreFromPlays.ts`](../packages/sha
 
 | Play signal | Points (tagged-team perspective) |
 |-------------|-------------------------------------|
-| `Rush, TD` / `Complete, TD` / return TD via `completion` `end:TD` | +6 **us** when our offense/special teams score |
+| `Rush, TD` / `Complete, TD` / return TD via `spotEncoding` `end:TD` | +6 **us** when our offense/special teams score |
 | `Extra Pt.` / `2 Pt.` + `Good` | +1 / +2 **us** when `odk === O` on the attempt |
 | `FG` + `Good` | +3 **us** when `odk === O` |
 | `Safety` (`result: Safety` or live-ball `end:SA`) | **+2 to the team on defense on that play** — i.e. **them** when `odk === O`, **us** when `odk === D` |
@@ -205,7 +205,7 @@ Add `defaultPuntReceivePlay` in [`defaults.ts`](../packages/shared/src/defaults.
 
 ### 2b. Return TD → ScoringPad
 
-Add helper `isReturnTouchdown(play)` — true when kickoff/punt `completion` decodes to `end:TD` (reuse existing decoders in playChain).
+Add helper `isReturnTouchdown(play)` — true when kickoff/punt `spotEncoding` decodes to `end:TD` (reuse existing decoders in playChain).
 
 Before scrimmage-TD branch:
 

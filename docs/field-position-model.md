@@ -42,7 +42,7 @@ Never compute return yards with raw Hudl subtraction (`+25 − (−5)`). Always 
 
 Both end zones export as **0**. Disambiguate with:
 
-- **Kickoff `completion`**: `end:TD` (touchdown) vs `end:SA` (safety) vs `end:-25` (yard line)
+- **Kickoff `spotEncoding`**: `end:TD` (touchdown) vs `end:SA` (safety) vs `end:-25` (yard line)
 - **`ReturnEnd.kind`**: `"touchdown"` | `"safety"` | `"yardline"`
 - **`hudlToFieldPosition(0, "own")`** → 0 · **`hudlToFieldPosition(0, "opponent")`** → 100
 
@@ -57,7 +57,7 @@ Both end zones export as **0**. Disambiguate with:
 | Touchdown | Returned to (right) | Return end = opp EZ, Hudl 0, yards to goal |
 | Sliders | Both | Caught / returned yard lines |
 
-**Next play yard line** = where the return ended (`completion` / `ReturnEnd`), **not** kick line + `gainLoss`.
+**Next play yard line** = where the return ended (`spotEncoding` / `ReturnEnd`), **not** kick line + `gainLoss`.
 
 Defaults: caught **Own 5** (−5), returned **Own 25** (−25), return yards **+20**.
 
@@ -100,7 +100,7 @@ See [overtime-rules.md](./overtime-rules.md).
 ## Do NOT
 
 - Use **−50** for midfield (use **50**)
-- Use **+50** for goal line (use **0** with TD/SA in completion)
+- Use **+50** for goal line (use **0** with TD/SA in `spotEncoding`)
 - Set next play to `yardLine + gainLoss` after kickoff return
 - Show raw `-5` in UI when meaning Own 5 (use `formatFieldPosition`)
 
@@ -108,5 +108,6 @@ See [overtime-rules.md](./overtime-rules.md).
 
 ## Related docs
 
+- [`adr/0001-spot-encoding-field-name.md`](./adr/0001-spot-encoding-field-name.md) — `spotEncoding` vs pass `result`
 - [`handoff-kickoff-sliders.md`](handoff-kickoff-sliders.md) — slider UI spec
 - [`handoff-ipad-tagging-ui.md`](handoff-ipad-tagging-ui.md) — layout / sidebar

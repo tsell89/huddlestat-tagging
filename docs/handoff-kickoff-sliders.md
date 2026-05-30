@@ -131,7 +131,7 @@ Compute distance on a **single 1–100 axis** (own goal → opponent goal). Map 
 | 52 | Opp 48 | `+48` |
 | 75 | Opp 25 | `+25` |
 | 99 | Opp 1 | `+1` |
-| 100 | End zone (TD) | **`0`** (not +50; completion still `TD`) |
+| 100 | End zone (TD) | **`0`** (not +50; `spotEncoding` end token still `TD`) |
 
 Hudl range: **−49 … −1 → 50 → +49 … +1**, plus **0** for touchdown.
 
@@ -160,7 +160,7 @@ Examples:
 
 Touchback: `returnYards = 0`, no catch/return spots
 
-**Next play yard line** = Hudl encoding of **return end spot** (from `completion`), not kick line + return yards.
+**Next play yard line** = Hudl encoding of **return end spot** (from `spotEncoding`), not kick line + return yards.
 
 ---
 

@@ -13,11 +13,11 @@ alwaysApply: true
 
 2. **Hudl export:** own **−49…−1**, midfield **50** (never −50), opponent **+49…+1**, end zone **0** (never +50).
 
-3. **Hudl 0** means **own safety** (internal 0) or **opponent touchdown** (internal 100). Disambiguate with `ReturnEnd.kind` / kickoff `completion` (`end:SA` vs `end:TD`), and `EndZoneSide` when converting.
+3. **Hudl 0** means **own safety** (internal 0) or **opponent touchdown** (internal 100). Disambiguate with `ReturnEnd.kind` / kickoff `spotEncoding` (`end:SA` vs `end:TD`), and `EndZoneSide` when converting.
 
 4. **Return yards** = end position − start position on the 0–100 axis. Example: Own 5 → Own 25 = **20**.
 
-5. **Next play ball spot** = where the previous play **ended** (return end yard line from `completion`), not `yardLine + gainLoss` on kickoffs.
+5. **Next play ball spot** = where the previous play **ended** (return end yard line from `spotEncoding`), not `yardLine + gainLoss` on kickoffs.
 
 6. **UI labels:** Own 5 not -5; midfield **50**; Safety / Touchdown for end-zone results.
 
