@@ -3,6 +3,10 @@ import {
   applyDefensiveCreditsToMap,
   type DefensiveCreditAccumulator,
 } from "./defensiveCredits.js";
+import {
+  applySpecialTeamsCreditsToMap,
+  type SpecialTeamsCreditAccumulator,
+} from "./specialTeamsCredits.js";
 import type { PlayerRef, PlaylistData } from "./index.js";
 import { parseCsvLine } from "./pbp/hudlCsv.js";
 
@@ -301,74 +305,33 @@ export function deriveMaxPrepsBoxScoreFromPlays(
       }
     }
 
-    if (play.playType === PlayType.Punt && play.odk === ODK.Offense) {
-      const kickerJersey = jerseyKey(play.kicker);
-      if (!kickerJersey) continue;
-      const row = ensureRow(map, play.kicker);
-      row.PuntNum = (row.PuntNum as number) + 1;
-      const yards = play.kickYards ?? Math.abs(play.gainLoss);
-      row.PuntYards = (row.PuntYards as number) + yards;
-      row.PuntLong = maxLong(row.PuntLong as number, yards);
-    }
-
-    if (play.playType === PlayType.Kickoff && play.odk === ODK.Offense) {
-      const kickerJersey = jerseyKey(play.kicker);
-      if (!kickerJersey) continue;
-      const row = ensureRow(map, play.kicker);
-      row.KickoffNum = (row.KickoffNum as number) + 1;
-      const yards = play.kickYards ?? 0;
-      row.KickoffYards = (row.KickoffYards as number) + yards;
-      row.KickoffLong = maxLong(row.KickoffLong as number, yards);
-      if (play.result === Result.Touchback) {
-        row.KickoffTouchbacks = (row.KickoffTouchbacks as number) + 1;
-      }
-    }
-
-    if (play.playType === PlayType.FieldGoal && play.odk === ODK.Offense) {
-      const kickerJersey = jerseyKey(play.kicker);
-      if (!kickerJersey) continue;
-      const row = ensureRow(map, play.kicker);
-      row.FGAttempted = (row.FGAttempted as number) + 1;
-      const kickYards = play.kickYards ?? 0;
-      row.FGLong = maxLong(row.FGLong as number, kickYards);
-      if (play.result === Result.Good) {
-        row.FGMade = (row.FGMade as number) + 1;
-      }
-    }
-
-    if (play.playType === PlayType.ExtraPoint && play.odk === ODK.Offense) {
-      if (play.result === Result.Good) {
-        const kickerJersey = jerseyKey(play.kicker);
-        const rusherJersey = jerseyKey(play.rusher);
-        if (kickerJersey) {
-          const row = ensureRow(map, play.kicker);
-          row.PATKickingAtt = (row.PATKickingAtt as number) + 1;
-          row.PATKickingMade = (row.PATKickingMade as number) + 1;
-          row.PATKickingPoints = (row.PATKickingPoints as number) + 1;
-        } else if (rusherJersey) {
-          const row = ensureRow(map, play.rusher);
-          row.PATRushingNum = (row.PATRushingNum as number) + 1;
-          row.TotalConversionPoints = (row.TotalConversionPoints as number) + 1;
-        }
-      } else if (play.result === Result.NoGood && jerseyKey(play.kicker)) {
-        const row = ensureRow(map, play.kicker);
-        row.PATKickingAtt = (row.PATKickingAtt as number) + 1;
-      }
-    }
-
-    if (play.playType === PlayType.TwoPoint && play.odk === ODK.Offense) {
-      if (play.result === Result.Good) {
-        const rusher = jerseyKey(play.rusher);
-        const receiver = jerseyKey(play.receiver);
-        if (rusher) {
-          const row = ensureRow(map, play.rusher);
-          row.PATRushingNum = (row.PATRushingNum as number) + 1;
-          row.TotalConversionPoints = (row.TotalConversionPoints as number) + 2;
-        } else if (receiver) {
-          const row = ensureRow(map, play.receiver);
-          row.PATReceivingNum = (row.PATReceivingNum as number) + 1;
-          row.TotalConversionPoints = (row.TotalConversionPoints as number) + 2;
-        }
+    if (play.odk === ODK.Offense || play.odk === ODK.Kicking) {
+      const stMap = new Map<string, SpecialTeamsCreditAccumulator>();
+      applySpecialTeamsCreditsToMap(play, stMap);
+      for (const [jersey, credits] of stMap) {
+        const row = map.get(jersey) ?? emptyRow(jersey);
+        map.set(jersey, row);
+        row.PuntNum = (row.PuntNum as number) + credits.puntNum;
+        row.PuntYards = (row.PuntYards as number) + credits.puntYards;
+        row.PuntLong = maxLong(row.PuntLong as number, credits.puntLong);
+        row.PuntInside20 = (row.PuntInside20 as number) + credits.puntInside20;
+        row.KickoffNum = (row.KickoffNum as number) + credits.kickoffNum;
+        row.KickoffYards = (row.KickoffYards as number) + credits.kickoffYards;
+        row.KickoffLong = maxLong(row.KickoffLong as number, credits.kickoffLong);
+        row.KickoffTouchbacks =
+          (row.KickoffTouchbacks as number) + credits.kickoffTouchbacks;
+        row.FGMade = (row.FGMade as number) + credits.fgMade;
+        row.FGAttempted = (row.FGAttempted as number) + credits.fgAttempted;
+        row.FGLong = maxLong(row.FGLong as number, credits.fgLong);
+        row.PATKickingMade = (row.PATKickingMade as number) + credits.patKickingMade;
+        row.PATKickingAtt = (row.PATKickingAtt as number) + credits.patKickingAtt;
+        row.PATKickingPoints =
+          (row.PATKickingPoints as number) + credits.patKickingPoints;
+        row.PATRushingNum = (row.PATRushingNum as number) + credits.patRushingNum;
+        row.PATReceivingNum =
+          (row.PATReceivingNum as number) + credits.patReceivingNum;
+        row.TotalConversionPoints =
+          (row.TotalConversionPoints as number) + credits.totalConversionPoints;
       }
     }
 

@@ -3,6 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
+import { playlistDataSchema } from "./index.js";
 import {
   deriveMaxPrepsBoxScoreFromPlays,
   MAXPREPS_FOOTBALL_COLUMNS,
@@ -18,6 +19,14 @@ const fixtureDir = join(dir, "../fixtures/maxpreps");
 
 function load(name: string): string {
   return readFileSync(join(fixtureDir, name), "utf8");
+}
+
+function loadPlaylistJsonl(name: string) {
+  return load(name)
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((line) => playlistDataSchema.parse(JSON.parse(line)));
 }
 
 function rowByJersey(text: string, jersey: string) {
@@ -38,12 +47,37 @@ function derivedByJersey(jersey: string) {
   return row;
 }
 
+function derivedFromJsonl(jersey: string, jsonlFile: string) {
+  const plays = loadPlaylistJsonl(jsonlFile);
+  const rows = deriveMaxPrepsBoxScoreFromPlays(plays);
+  const row = rows.find((r) => String(r.Jersey) === jersey);
+  assert.ok(row, `missing derived jersey ${jersey} from ${jsonlFile}`);
+  return row;
+}
+
 function expectFields(
   jersey: string,
   fields: MaxPrepsFootballColumn[],
 ) {
   const expected = rowByJersey(load("snider-vs-warsaw-2025-08-22.hudl.txt"), jersey);
   const actual = derivedByJersey(jersey);
+  for (const field of fields) {
+    assert.equal(
+      actual[field],
+      expected[field],
+      `${jersey}.${field}: expected ${expected[field]}, got ${actual[field]}`,
+    );
+  }
+}
+
+function expectJsonlFields(
+  jersey: string,
+  jsonlFile: string,
+  goldenFile: string,
+  fields: MaxPrepsFootballColumn[],
+) {
+  const expected = rowByJersey(load(goldenFile), jersey);
+  const actual = derivedFromJsonl(jersey, jsonlFile);
   for (const field of fields) {
     assert.equal(
       actual[field],
@@ -113,6 +147,48 @@ describe("deriveMaxPrepsBoxScoreFromPlays — Snider vs Warsaw fixture", () => {
         `#${exp.Jersey} TotalTackles`,
       );
     }
+  });
+});
+
+describe("deriveMaxPrepsBoxScoreFromPlays — Warsaw JSONL #94 kickoff/FG/PAT", () => {
+  test("#94 kicking stats match Hudl golden (no punts)", () => {
+    expectJsonlFields(
+      "94",
+      "snider-vs-warsaw-2025-08-22.playlist.jsonl",
+      "snider-vs-warsaw-2025-08-22.hudl.txt",
+      [
+        "KickoffNum",
+        "KickoffYards",
+        "KickoffLong",
+        "KickoffTouchbacks",
+        "FGMade",
+        "FGAttempted",
+        "FGLong",
+        "PATKickingMade",
+        "PATKickingAtt",
+        "PATKickingPoints",
+      ],
+    );
+    const row = derivedFromJsonl(
+      "94",
+      "snider-vs-warsaw-2025-08-22.playlist.jsonl",
+    );
+    assert.equal(row.PuntNum, 0);
+    assert.equal(row.PATKickingPoints, row.PATKickingMade);
+  });
+});
+
+describe("deriveMaxPrepsBoxScoreFromPlays — East Noble JSONL #94 punts", () => {
+  test("#94 punt stats under HuddleStat rules (PuntInside20=1)", () => {
+    const actual = derivedFromJsonl(
+      "94",
+      "snider-vs-east-noble-2025.playlist.jsonl",
+    );
+    assert.equal(actual.PuntNum, 4);
+    assert.equal(actual.PuntYards, 138);
+    assert.equal(actual.PuntLong, 43);
+    assert.equal(actual.PuntInside20, 1);
+    assert.equal(actual.KickoffNum, 0);
   });
 });
 
