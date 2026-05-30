@@ -13,7 +13,7 @@ Mapper: `packages/shared/src/pbp/cfbdMapper.ts`. Offline ingest: `scripts/ingest
 | `yardsToGoal` | `yardLine` | via 0–100 → `fieldPositionToHudl` |
 | `yardsGained` | `gainLoss` | sign from offense perspective |
 | `playType` + `playText` | `playType`, `result` | lookup table |
-| — | `completion` | synthesized per [field-position-model.md](../../../../docs/field-position-model.md) |
+| — | `spotEncoding` | synthesized per [field-position-model.md](../../../../../docs/field-position-model.md) |
 
 ## Play type mapping (subset)
 
@@ -31,7 +31,7 @@ Mapper: `packages/shared/src/pbp/cfbdMapper.ts`. Offline ingest: `scripts/ingest
 
 ## Penalties
 
-- Holding / false start: `completion: foul:{hudlYardLine}` at spot of foul when parseable.
+- Holding / false start: `spotEncoding: foul:{hudlYardLine}` at spot of foul when parseable.
 - Offset/declined: mark `expectations.jsonl` `review: true`; may `skipReplay` on that line.
 
 ## Rules tag

@@ -64,7 +64,7 @@ Existing catch-up control remains primary path:
 |---------|---------|
 | Unknown offensive snap | `1st & 10 @ Own 25` only if no prior play; else last play end spot |
 | Unknown after score | Kickoff pad, **We kick** / **We receive** from last user choice (see UX-14) |
-| Unknown after penalty | Replay same down at foul spot when `completion` has `foul:` |
+| Unknown after penalty | Replay same down at foul spot when `spotEncoding` has `foul:` |
 
 ---
 

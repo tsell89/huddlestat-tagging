@@ -2,7 +2,7 @@
 
 > **Status:** Package I — §2.4 manual iPad pass 2026-05-27; full A–I manual + UX backlog open ([package-i-qa-report.md](./package-i-qa-report.md)). Package D2 complete — usage-weighted jersey grid + passer auto-default. Prior: Package H — live ball. Prior: Package G.
 >
-> **Related:** [field-position-model.md](./field-position-model.md) · [dev-quickstart.md](./dev-quickstart.md) · [next-session-tagging-ux.md](./next-session-tagging-ux.md)
+> **Related:** [field-position-model.md](./field-position-model.md) · [adr/0001-spot-encoding-field-name.md](./adr/0001-spot-encoding-field-name.md) · [dev-quickstart.md](./dev-quickstart.md) · [next-session-tagging-ux.md](./next-session-tagging-ux.md)
 >
 > **Do not rebuild** sync, Convex, or `PlaylistData` schema unless broken — those layers work.
 
@@ -46,7 +46,16 @@ Taggers record **where the ball ended**, not “+50 yards.” Every next snap in
 
 See [field-position-model.md](./field-position-model.md). Code: `apps/mobile/lib/tagging/fieldPosition100.ts`.
 
-**Kickoff return** uses `catch:X|end:Y` in `completion`. **Run/pass** uses `tackle:X|end:Y|TD|SA` in `completion` (auxiliary; `gainLoss` is still the Hudl column).
+Spot strings live in **`spotEncoding`** ([ADR-0001](./adr/0001-spot-encoding-field-name.md)). Patterns differ by play family — **catch/receive + end is not pass logic**:
+
+| Play family | `spotEncoding` | Tagger marks |
+|-------------|----------------|--------------|
+| **Kickoff / punt return** | `catch:X\|end:Y` or `recv:X\|end:Y` | Catch or receive spot **and** return end (return yards need both) |
+| **Run / pass (complete, sack, rush TD)** | `tackle:LOS\|end:Y` (or `end:TD` / `end:SA`) | Snap spot + **where the play ended** only |
+| **Pass incomplete / tipped** | *(empty)* | LOS unchanged; `gainLoss = 0` |
+| **Interception return** | `catch:X\|end:Y` | Live-ball return after INT — same return pattern as kickoff, **not** pass-completion geometry |
+
+We do **not** tag “caught at X, carried to Y” on complete passes today. Total pass/run gain is snap → end via `gainLoss`. **Future:** yards-after-catch (e.g. catch at Opp 15, tackled at Opp 17) may add a second spot later — not in current iPad UI.
 
 ### 2.2 Down chain
 
@@ -228,7 +237,7 @@ IF Blocked:  Recovered at + Returned to (pkg H)
 | Touchback | @ **Own 20** |
 | Blocked | Live ball — pkg H |
 
-`completion`: `recv:+15|end:-32`
+`spotEncoding`: `recv:+15|end:-32`
 
 ### 4.6 FGPad
 
