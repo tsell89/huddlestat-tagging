@@ -48,7 +48,7 @@ export async function saveLocalPlay(
         id, local_game_id, play_number, quarter, odk, yard_line, down, distance, hash,
         gain_loss, passer_json, receiver_json, rusher_json, result, team,
         tackler1_json, tackler2_json, recovered_by_json, return_yards, returner_json,
-        play_type, kicker_json, kick_yards, intercepted_by_json, completion,
+        play_type, kicker_json, kick_yards, intercepted_by_json, spot_encoding,
         synced, convex_play_id, tagged_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, ?)`,
       [
@@ -76,7 +76,7 @@ export async function saveLocalPlay(
         row.kicker_json,
         row.kick_yards,
         row.intercepted_by_json,
-        row.completion,
+        row.spot_encoding,
         row.tagged_at,
       ],
     );
@@ -148,7 +148,7 @@ export async function updateLocalPlay(
         gain_loss = ?, passer_json = ?, receiver_json = ?, rusher_json = ?, result = ?,
         team = ?, tackler1_json = ?, tackler2_json = ?, recovered_by_json = ?,
         return_yards = ?, returner_json = ?, play_type = ?, kicker_json = ?,
-        kick_yards = ?, intercepted_by_json = ?, completion = ?,
+        kick_yards = ?, intercepted_by_json = ?, spot_encoding = ?,
         synced = 0, convex_play_id = NULL, tagged_at = ?
       WHERE id = ?`,
       [
@@ -174,7 +174,7 @@ export async function updateLocalPlay(
         row.kicker_json,
         row.kick_yards,
         row.intercepted_by_json,
-        row.completion,
+        row.spot_encoding,
         row.tagged_at,
         localPlayId,
       ],

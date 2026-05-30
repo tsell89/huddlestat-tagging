@@ -36,7 +36,7 @@ export function defaultBlockedKickRecoverySpots(
   };
 }
 
-export function encodeBlockedKickInCompletion(
+export function encodeBlockedKickSpotEncoding(
   spots: BlockedKickRecoverySpots,
 ): string {
   const endPart =
@@ -48,11 +48,11 @@ export function encodeBlockedKickInCompletion(
   return `recover:${spots.recoveredAt}|end:${endPart}`;
 }
 
-export function decodeBlockedKickFromCompletion(
-  completion?: string,
+export function decodeBlockedKickFromSpotEncoding(
+  spotEncoding?: string,
 ): BlockedKickRecoverySpots | null {
-  if (!completion?.startsWith("recover:")) return null;
-  const match = /^recover:(-?\d+)\|end:(TD|SA|-?\d+)$/.exec(completion);
+  if (!spotEncoding?.startsWith("recover:")) return null;
+  const match = /^recover:(-?\d+)\|end:(TD|SA|-?\d+)$/.exec(spotEncoding);
   if (!match) return null;
   const recoveredAt = Number(match[1]) as YardLine;
   if (match[2] === "TD") {
@@ -81,7 +81,7 @@ export function initBlockedKickSpotsFromDraft(
   ) {
     return defaultBlockedKickRecoverySpots(ballSpot);
   }
-  const decoded = decodeBlockedKickFromCompletion(draft.completion);
+  const decoded = decodeBlockedKickFromSpotEncoding(draft.spotEncoding);
   if (decoded) return decoded;
   return defaultBlockedKickRecoverySpots(ballSpot);
 }
@@ -107,7 +107,7 @@ export function applyBlockedKickSpotsToDraft(
     ...draft,
     returnYards,
     gainLoss,
-    completion: encodeBlockedKickInCompletion(spots),
+    spotEncoding: encodeBlockedKickSpotEncoding(spots),
   };
 }
 

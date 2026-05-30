@@ -16,17 +16,19 @@ export function fgAttemptYards(ballSpot: YardLine): number {
   return yardsToOpponentGoal(ballSpot) + 10;
 }
 
-export function encodeFgNoGoodCompletion(choice: FgNoGoodChoice): string {
+export function encodeFgNoGoodSpotEncoding(choice: FgNoGoodChoice): string {
   return choice === FG_NO_GOOD_INTO_END_ZONE ? "end:TB" : "end:field";
 }
 
-export function decodeFgNoGoodCompletion(completion?: string): FgNoGoodChoice {
-  if (completion === "end:TB") return FG_NO_GOOD_INTO_END_ZONE;
+export function decodeFgNoGoodSpotEncoding(
+  spotEncoding?: string,
+): FgNoGoodChoice {
+  if (spotEncoding === "end:TB") return FG_NO_GOOD_INTO_END_ZONE;
   return FG_NO_GOOD_IN_FIELD;
 }
 
-export function isFgNoGoodCompletion(completion?: string): boolean {
-  return completion === "end:field" || completion === "end:TB";
+export function isFgNoGoodSpotEncoding(spotEncoding?: string): boolean {
+  return spotEncoding === "end:field" || spotEncoding === "end:TB";
 }
 
 export function applyFieldGoalKickYards(draft: PlaylistData): PlaylistData {

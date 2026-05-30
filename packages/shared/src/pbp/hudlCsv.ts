@@ -23,7 +23,7 @@ export function rowToPlaylistData(
 
   const returnYardsRaw = map["RET YARDS"]?.trim();
   const kickYardsRaw = map["KICK YARDS"]?.trim();
-  const completionRaw = map.COMPLETION?.trim();
+  const spotEncodingRaw = map.COMPLETION?.trim();
   const quarterRaw = map.QTR?.trim();
 
   return playlistDataSchema.parse({
@@ -61,7 +61,7 @@ export function rowToPlaylistData(
       map["INTERCEPTED BY_Jersey"],
       map["INTERCEPTED BY_Name"],
     ),
-    completion: completionRaw || undefined,
+    spotEncoding: spotEncodingRaw || undefined,
   });
 }
 

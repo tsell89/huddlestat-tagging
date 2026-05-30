@@ -12,7 +12,7 @@ function isTouchdownResult(result: PlaylistData["result"]): boolean {
 }
 
 function isReturnTouchdown(play: PlaylistData): boolean {
-  return play.completion?.includes("end:TD") === true;
+  return play.spotEncoding?.includes("end:TD") === true;
 }
 
 function isTouchdownPlay(play: PlaylistData): boolean {
@@ -21,7 +21,7 @@ function isTouchdownPlay(play: PlaylistData): boolean {
 
 function isSafetyPlay(play: PlaylistData): boolean {
   if (play.result === Result.Safety) return true;
-  return play.completion?.includes("end:SA") === true;
+  return play.spotEncoding?.includes("end:SA") === true;
 }
 
 function isScoringGood(play: Pick<PlaylistData, "playType" | "result">): boolean {

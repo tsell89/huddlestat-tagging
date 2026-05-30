@@ -1,5 +1,11 @@
 import * as SQLite from "expo-sqlite";
-import { MIGRATIONS, MIGRATIONS_V2, SCHEMA_VERSION } from "./schema";
+import {
+  MIGRATIONS,
+  MIGRATIONS_V2,
+  MIGRATIONS_V3,
+  MIGRATIONS_V4,
+  SCHEMA_VERSION,
+} from "./schema";
 
 let db: SQLite.SQLiteDatabase | null = null;
 let initPromise: Promise<SQLite.SQLiteDatabase> | null = null;
@@ -63,6 +69,23 @@ async function migrateSchema(
       await database.execAsync(MIGRATIONS_V2[2]!);
     }
     version = 2;
+  }
+
+  if (version < 3) {
+    if (!(await tableHasColumn(database, "plays", "spot_encoding"))) {
+      await database.execAsync(MIGRATIONS_V3[0]!);
+    }
+    if (await tableHasColumn(database, "plays", "completion")) {
+      await database.execAsync(MIGRATIONS_V3[1]!);
+    }
+    version = 3;
+  }
+
+  if (version < 4) {
+    if (await tableHasColumn(database, "plays", "completion")) {
+      await database.execAsync(MIGRATIONS_V4[0]!);
+    }
+    version = 4;
   }
 
   await database.runAsync(

@@ -25,7 +25,7 @@ describe("cfbdMapper", () => {
     assert.equal(row.result, Result.Return);
   });
 
-  test("maps penalty with foul completion when parseable", () => {
+  test("maps penalty with foul spotEncoding when parseable", () => {
     const row = mapCfbdPlay(
       {
         id: 2,
@@ -43,6 +43,6 @@ describe("cfbdMapper", () => {
     );
     assert.ok(row);
     assert.equal(row.result, Result.Penalty);
-    assert.equal(row.completion, "foul:-42");
+    assert.equal(row.spotEncoding, "foul:-42");
   });
 });

@@ -13,7 +13,7 @@
 | Concept | Where it lives | Examples |
 |---------|----------------|-------|
 | **Pass outcome** (caught vs not) | `result` | `Complete`, `Incomplete`, `Complete, TD`, `Sack` |
-| **Spot-encoding string** (ball spots / play end) | Today: `PlaylistData.completion` | `catch:-5\|end:-25`, `recv:15\|end:-32`, `tackle:-31\|end:-23`, `foul:-42` |
+| **Spot-encoding string** (ball spots / play end) | `PlaylistData.spotEncoding` | `catch:-5\|end:-25`, `recv:15\|end:-32`, `tackle:-31\|end:-23`, `foul:-42` |
 
 Hudl’s playlist export header is literally **`COMPLETION`**, which reads like pass completion to anyone who knows football. Internal docs that say “derive from completion” are routinely misread as pass logic.
 
@@ -78,7 +78,7 @@ On **Pass** play type, result buttons are **`Complete`**, **`Incomplete`**, **`C
    | Penalty | `foul:Y` | Spot of foul |
    | Fumble / blocked kick | `fumble:…`, `recover:…` | Recovery chain |
 
-5. **Implementation deferred:** this ADR accepts naming and doc rules; code/SQLite rename follows in a separate PR after doc sweep.
+5. **Implementation:** completed in [PR #18](https://github.com/tsell89/huddlestat-tagging/pull/18) — schema, SQLite, fixtures, helpers; CSV header `COMPLETION` unchanged.
 
 ---
 
@@ -90,12 +90,12 @@ On **Pass** play type, result buttons are **`Complete`**, **`Incomplete`**, **`C
 - Retire phrasing “derive from completion”; use “parse `spotEncoding`” or “play end spot from `yardLine` + `gainLoss`”.
 - Clarify §2.1: `catch:|end:` is **not** pass logic.
 
-### Code (follow-up PR)
+### Code (done — PR #18)
 
 | Surface | Change |
 |---------|--------|
-| `playlistDataSchema` | `spotEncoding`; deprecate then remove `completion` |
-| SQLite `plays` | `spot_encoding`; migrate from `completion` |
+| `playlistDataSchema` | `spotEncoding`; legacy JSON `completion` accepted via preprocess shim |
+| SQLite `plays` | `spot_encoding`; migrate from `completion` when column exists |
 | JSON/JSONL fixtures | `"spotEncoding": "…"` |
 | Encode/decode helpers | `*InCompletion` → `*SpotEncoding` |
 | `PLAYLIST_DATA_HEADERS` | Header stays `COMPLETION`; comment maps to `spotEncoding` |

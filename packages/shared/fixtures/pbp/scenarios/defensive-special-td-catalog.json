@@ -33,7 +33,7 @@
       "playType": "Pass",
       "kicker": { "jersey": "", "name": "" },
       "interceptedBy": { "jersey": "24", "name": "" },
-      "completion": "catch:20|end:TD"
+      "spotEncoding": "catch:20|end:TD"
     },
     {
       "playNumber": 2,
@@ -78,7 +78,7 @@
       "playType": "Run",
       "kicker": { "jersey": "", "name": "" },
       "interceptedBy": { "jersey": "", "name": "" },
-      "completion": "fumble:15|recover:20|end:TD|by:D"
+      "spotEncoding": "fumble:15|recover:20|end:TD|by:D"
     },
     {
       "playNumber": 4,

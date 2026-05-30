@@ -68,7 +68,7 @@ export function formatTackleEndDisplay(end: TackleEnd): string {
   return formatFieldPosition(end.yardLine);
 }
 
-export function encodeTackleInCompletion(
+export function encodeTackleSpotEncoding(
   ballSpot: YardLine,
   end: TackleEnd,
 ): string {
@@ -81,11 +81,11 @@ export function encodeTackleInCompletion(
   return `tackle:${ballSpot}|end:${endPart}`;
 }
 
-export function decodeTackleFromCompletion(
-  completion?: string,
+export function decodeTackleFromSpotEncoding(
+  spotEncoding?: string,
 ): { ballSpot: YardLine; end: TackleEnd } | null {
-  if (!completion?.startsWith("tackle:")) return null;
-  const match = /^tackle:(-?\d+)\|end:(TD|SA|-?\d+)$/.exec(completion);
+  if (!spotEncoding?.startsWith("tackle:")) return null;
+  const match = /^tackle:(-?\d+)\|end:(TD|SA|-?\d+)$/.exec(spotEncoding);
   if (!match) return null;
   const ballSpot = Number(match[1]) as YardLine;
   if (match[2] === "TD") {
@@ -101,7 +101,7 @@ export function decodeTackleFromCompletion(
 }
 
 export function initTackleEndFromDraft(draft: PlaylistData): TackleEnd {
-  const decoded = decodeTackleFromCompletion(draft.completion);
+  const decoded = decodeTackleFromSpotEncoding(draft.spotEncoding);
   if (decoded) return decoded.end;
 
   if (isTouchdownTackleResult(draft.result)) {
@@ -135,6 +135,6 @@ export function applyTackleSpotToDraft(
   return {
     ...draft,
     gainLoss,
-    completion: encodeTackleInCompletion(draft.yardLine, end),
+    spotEncoding: encodeTackleSpotEncoding(draft.yardLine, end),
   };
 }

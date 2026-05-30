@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Align play[i+1] down/distance/yardLine/odk to nextDraftAfterPlay(play[i]).
- * Keeps playType, result, gainLoss, completion unchanged.
+ * Keeps playType, result, gainLoss, spotEncoding unchanged.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";

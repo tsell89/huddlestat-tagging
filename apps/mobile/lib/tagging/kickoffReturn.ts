@@ -94,7 +94,7 @@ export function returnEndZoneSide(returnEnd: ReturnEnd): EndZoneSide | undefined
 export function yardLineAfterPlay(
   play: Pick<
     PlaylistData,
-    "playType" | "result" | "yardLine" | "gainLoss" | "completion"
+    "playType" | "result" | "yardLine" | "gainLoss" | "spotEncoding"
   >,
 ): YardLine {
   if (play.playType === PlayType.Kickoff) {
@@ -102,7 +102,7 @@ export function yardLineAfterPlay(
       return HS_TOUCHBACK_YARD_LINE;
     }
     if (play.result === Result.Return) {
-      const spots = decodeSpotsFromCompletion(play.completion);
+      const spots = decodeKickoffReturnFromSpotEncoding(play.spotEncoding);
       if (spots) {
         return returnEndHudlYardLine(spots.returnEnd);
       }
@@ -142,7 +142,7 @@ export function formatReturnEndDisplay(returnEnd: ReturnEnd): string {
   return formatFieldPosition(returnEnd.yardLine);
 }
 
-export function encodeSpotsInCompletion(spots: KickoffReturnSpots): string {
+export function encodeKickoffReturnSpotEncoding(spots: KickoffReturnSpots): string {
   const end =
     spots.returnEnd.kind === "yardline"
       ? String(spots.returnEnd.yardLine)
@@ -152,11 +152,11 @@ export function encodeSpotsInCompletion(spots: KickoffReturnSpots): string {
   return `catch:${spots.caughtAt}|end:${end}`;
 }
 
-export function decodeSpotsFromCompletion(
-  completion?: string,
+export function decodeKickoffReturnFromSpotEncoding(
+  spotEncoding?: string,
 ): KickoffReturnSpots | null {
-  if (!completion?.startsWith("catch:")) return null;
-  const match = /^catch:(-?\d+)\|end:(TD|SA|-?\d+)$/.exec(completion);
+  if (!spotEncoding?.startsWith("catch:")) return null;
+  const match = /^catch:(-?\d+)\|end:(TD|SA|-?\d+)$/.exec(spotEncoding);
   if (!match) return null;
   const caughtAt = Number(match[1]) as YardLine;
   if (match[2] === "TD") {
@@ -176,9 +176,9 @@ export function decodeSpotsFromCompletion(
 
 export function spotsFromSavedReturn(
   returnYards: number | undefined,
-  completion?: string,
+  spotEncoding?: string,
 ): KickoffReturnSpots {
-  const decoded = decodeSpotsFromCompletion(completion);
+  const decoded = decodeKickoffReturnFromSpotEncoding(spotEncoding);
   if (decoded) return decoded;
   const yards = returnYards ?? 0;
   if (yards === 0) return defaultKickoffReturnSpots();
@@ -201,7 +201,7 @@ export function initKickoffSpotsFromDraft(
   if (draft.result === Result.Touchback) {
     return defaultKickoffReturnSpots();
   }
-  return spotsFromSavedReturn(draft.returnYards, draft.completion);
+  return spotsFromSavedReturn(draft.returnYards, draft.spotEncoding);
 }
 
 export function applyKickoffSpotsToDraft(
@@ -213,7 +213,7 @@ export function applyKickoffSpotsToDraft(
       ...draft,
       returnYards: 0,
       gainLoss: 0,
-      completion: undefined,
+      spotEncoding: undefined,
     };
   }
   if (draft.result !== Result.Return) {
@@ -224,7 +224,7 @@ export function applyKickoffSpotsToDraft(
     ...draft,
     returnYards,
     gainLoss: returnYards,
-    completion: encodeSpotsInCompletion(spots),
+    spotEncoding: encodeKickoffReturnSpotEncoding(spots),
   };
 }
 
@@ -233,7 +233,7 @@ export function touchbackDraftPatch(draft: PlaylistData): PlaylistData {
     ...draft,
     returnYards: 0,
     gainLoss: 0,
-    completion: undefined,
+    spotEncoding: undefined,
     returner: { jersey: "", name: "" },
     tackler1: { jersey: "", name: "" },
     tackler2: { jersey: "", name: "" },

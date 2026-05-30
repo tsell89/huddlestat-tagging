@@ -1,10 +1,21 @@
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 4;
 
 /** Idempotent upgrades from SCHEMA_VERSION 1 → 2. */
 export const MIGRATIONS_V2 = [
   `ALTER TABLE plays ADD COLUMN quarter INTEGER NOT NULL DEFAULT 1`,
   `ALTER TABLE games ADD COLUMN phase TEXT NOT NULL DEFAULT 'Q1'`,
   `ALTER TABLE games ADD COLUMN ot_possession TEXT`,
+] as const;
+
+/** Idempotent upgrades from SCHEMA_VERSION 2 → 3 (completion → spot_encoding). */
+export const MIGRATIONS_V3 = [
+  `ALTER TABLE plays ADD COLUMN spot_encoding TEXT`,
+  `UPDATE plays SET spot_encoding = completion WHERE spot_encoding IS NULL AND completion IS NOT NULL`,
+] as const;
+
+/** Idempotent upgrades from SCHEMA_VERSION 3 → 4 (drop legacy completion column). */
+export const MIGRATIONS_V4 = [
+  `ALTER TABLE plays DROP COLUMN completion`,
 ] as const;
 
 export const MIGRATIONS = [
@@ -44,7 +55,7 @@ export const MIGRATIONS = [
     kicker_json TEXT NOT NULL,
     kick_yards INTEGER,
     intercepted_by_json TEXT NOT NULL,
-    completion TEXT,
+    spot_encoding TEXT,
     synced INTEGER NOT NULL DEFAULT 0,
     convex_play_id TEXT,
     tagged_at INTEGER NOT NULL,

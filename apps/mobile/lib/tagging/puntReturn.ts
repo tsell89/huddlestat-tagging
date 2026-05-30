@@ -83,7 +83,7 @@ export {
   RETURNED_DEFAULT,
 } from "@/lib/tagging/kickoffReturn";
 
-export function encodeReturnInCompletion(spots: PuntReturnSpots): string {
+export function encodePuntReturnSpotEncoding(spots: PuntReturnSpots): string {
   const end =
     spots.returnEnd.kind === "yardline"
       ? String(spots.returnEnd.yardLine)
@@ -93,15 +93,15 @@ export function encodeReturnInCompletion(spots: PuntReturnSpots): string {
   return `recv:${spots.receivedAt}|end:${end}`;
 }
 
-export function encodeDownedInCompletion(downedAt: YardLine): string {
+export function encodePuntDownedSpotEncoding(downedAt: YardLine): string {
   return `end:${downedAt}`;
 }
 
-export function decodeReturnFromCompletion(
-  completion?: string,
+export function decodePuntReturnFromSpotEncoding(
+  spotEncoding?: string,
 ): PuntReturnSpots | null {
-  if (!completion?.startsWith("recv:")) return null;
-  const match = /^recv:(-?\d+)\|end:(TD|SA|-?\d+)$/.exec(completion);
+  if (!spotEncoding?.startsWith("recv:")) return null;
+  const match = /^recv:(-?\d+)\|end:(TD|SA|-?\d+)$/.exec(spotEncoding);
   if (!match) return null;
   const receivedAt = Number(match[1]) as YardLine;
   if (match[2] === "TD") {
@@ -119,12 +119,12 @@ export function decodeReturnFromCompletion(
   };
 }
 
-export function decodeDownedFromCompletion(
-  completion?: string,
+export function decodePuntDownedFromSpotEncoding(
+  spotEncoding?: string,
 ): YardLine | null {
-  if (!completion?.startsWith("end:")) return null;
-  if (completion.startsWith("recv:")) return null;
-  const match = /^end:(TD|SA|-?\d+)$/.exec(completion);
+  if (!spotEncoding?.startsWith("end:")) return null;
+  if (spotEncoding.startsWith("recv:")) return null;
+  const match = /^end:(TD|SA|-?\d+)$/.exec(spotEncoding);
   if (!match || match[1] === "TD" || match[1] === "SA") return null;
   return Number(match[1]) as YardLine;
 }
@@ -138,7 +138,7 @@ export function initPuntSpotsFromDraft(
   }
 
   if (draft.result === Result.Return) {
-    const decoded = decodeReturnFromCompletion(draft.completion);
+    const decoded = decodePuntReturnFromSpotEncoding(draft.spotEncoding);
     if (decoded) {
       return {
         returnSpots: decoded,
@@ -165,7 +165,7 @@ export function initPuntSpotsFromDraft(
   }
 
   if (draft.result === Result.Downed) {
-    const decoded = decodeDownedFromCompletion(draft.completion);
+    const decoded = decodePuntDownedFromSpotEncoding(draft.spotEncoding);
     return {
       returnSpots: defaultPuntReturnSpots(),
       downedAt: decoded ?? defaultDownedAt(ballSpot),
@@ -187,7 +187,7 @@ export function applyPuntSpotsToDraft(
       returnYards: 0,
       gainLoss: 0,
       kickYards: undefined,
-      completion: undefined,
+      spotEncoding: undefined,
     };
   }
 
@@ -198,7 +198,7 @@ export function applyPuntSpotsToDraft(
       gainLoss,
       kickYards: gainLoss,
       returnYards: undefined,
-      completion: encodeDownedInCompletion(spots.downedAt),
+      spotEncoding: encodePuntDownedSpotEncoding(spots.downedAt),
     };
   }
 
@@ -220,7 +220,7 @@ export function applyPuntSpotsToDraft(
       returnYards,
       gainLoss,
       kickYards,
-      completion: encodeReturnInCompletion(returnSpots),
+      spotEncoding: encodePuntReturnSpotEncoding(returnSpots),
     };
   }
 

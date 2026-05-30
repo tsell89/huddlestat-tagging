@@ -1,6 +1,6 @@
 {
   "name": "@huddlestat/shared",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "description": "Hudl PlaylistData schema, field position model, and play chain logic",
   "type": "module",
@@ -12,7 +12,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test:pbp": "tsx --test src/pbpReplay.test.ts src/pbpInvariants.test.ts src/pbpScenarios.test.ts src/pbp/cfbdMapper.test.ts",
-    "test": "tsx --test src/playChain.test.ts src/scoreFromPlays.test.ts src/defensiveCredits.test.ts src/maxPrepsBoxScore.test.ts && npm run test:pbp",
+    "test": "tsx --test src/playChain.test.ts src/scoreFromPlays.test.ts src/defensiveCredits.test.ts src/maxPrepsBoxScore.test.ts src/pbp/hudlCsv.test.ts && npm run test:pbp",
     "lint": "echo 'no lint configured'"
   },
   "devDependencies": {

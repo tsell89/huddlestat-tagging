@@ -5,7 +5,7 @@ import {
   type YardLine,
 } from "@huddlestat/shared";
 import {
-  decodeFumbleCompletion,
+  decodeFumbleSpotEncoding,
   type FumbleRecoverySide,
 } from "@huddlestat/shared";
 import {
@@ -43,7 +43,7 @@ export function defaultFumbleRecoverySpots(
   };
 }
 
-export function encodeFumbleInCompletion(spots: FumbleRecoverySpots): string {
+export function encodeFumbleSpotEncoding(spots: FumbleRecoverySpots): string {
   const endPart =
     spots.returnEnd.kind === "yardline"
       ? String(returnEndHudlYardLine(spots.returnEnd))
@@ -60,10 +60,10 @@ export function encodeFumbleInCompletion(spots: FumbleRecoverySpots): string {
   return `fumble:${spots.fumbleAt}|end:${endPart}|by:${by}`;
 }
 
-export function decodeFumbleSpotsFromCompletion(
-  completion?: string,
+export function decodeFumbleSpotsFromSpotEncoding(
+  spotEncoding?: string,
 ): FumbleRecoverySpots | null {
-  const decoded = decodeFumbleCompletion(completion);
+  const decoded = decodeFumbleSpotEncoding(spotEncoding);
   if (!decoded) return null;
   const returnEnd: ReturnEnd =
     decoded.endKind === "touchdown"
@@ -90,7 +90,7 @@ export function initFumbleSpotsFromDraft(
   ) {
     return defaultFumbleRecoverySpots(ballSpot);
   }
-  const decoded = decodeFumbleSpotsFromCompletion(draft.completion);
+  const decoded = decodeFumbleSpotsFromSpotEncoding(draft.spotEncoding);
   if (decoded) return decoded;
   return defaultFumbleRecoverySpots(ballSpot);
 }
@@ -114,7 +114,7 @@ export function applyFumbleSpotsToDraft(
   return {
     ...draft,
     gainLoss,
-    completion: encodeFumbleInCompletion(spots),
+    spotEncoding: encodeFumbleSpotEncoding(spots),
   };
 }
 

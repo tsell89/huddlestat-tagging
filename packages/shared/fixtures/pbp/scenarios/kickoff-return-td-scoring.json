@@ -33,7 +33,7 @@
       "kicker": { "jersey": "", "name": "" },
       "returnYards": 95,
       "interceptedBy": { "jersey": "", "name": "" },
-      "completion": "catch:-5|end:TD"
+      "spotEncoding": "catch:-5|end:TD"
     },
     {
       "playNumber": 2,
