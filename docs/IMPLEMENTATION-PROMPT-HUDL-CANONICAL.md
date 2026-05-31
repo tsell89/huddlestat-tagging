@@ -12,7 +12,8 @@ You are working on **huddlestat-tagging** (MIT) — iPad live tagging + `@huddle
 - `../huddlestat/docs/hudl-canonical-violation-audit.md` — platform audit pattern
 - [docs/hudl-canonical-violation-audit.md](./hudl-canonical-violation-audit.md) — tagging audit
 - `docs/maxpreps-stat-decisions.md` — B1/B7/B11 revised for Hudl-canonical
-- `../huddlestat/docs/product-path.md` — free tagging vs hosted tiers
+- [docs/hudl-canonical-locked-decisions.md](./hudl-canonical-locked-decisions.md) — **D1–D4 locked product decisions**
+- `../huddlestat/docs/IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md` — **cross-repo implementation prompt**
 
 ## Hudl-canonical — tagging repo scope
 

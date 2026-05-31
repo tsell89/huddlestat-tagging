@@ -2,7 +2,7 @@
 
 **Status:** Locked (2026-05-30)  
 **Platform SSOT:** [../huddlestat/docs/hudl-canonical-architecture.md](../huddlestat/docs/hudl-canonical-architecture.md)  
-**Related:** [maxpreps-stat-decisions.md](./maxpreps-stat-decisions.md) · [cloud-sync.md](./cloud-sync.md) · [IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md](./IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md)
+**Related:** [maxpreps-stat-decisions.md](./maxpreps-stat-decisions.md) · [cloud-sync.md](./cloud-sync.md) · [hudl-canonical-locked-decisions.md](./hudl-canonical-locked-decisions.md) · [IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md](./IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md)
 
 This repo owns **free MIT tagging** (`apps/mobile`) and **`@huddlestat/shared`**. It does **not** own Postgres season commits — but parsers and derivations must align with platform Hudl-canonical invariants.
 
@@ -59,6 +59,7 @@ Friday (optional hosted)
 
 Saturday (platform — not this repo)
   Hudl 32-col export ──► parseHudlCsv ──► official_saturday commit
+                       ──► /game/[slug] + /season/[year] show Official (D2 — no diff UI)
 
 MaxPreps (coach)
   Hudl .txt download ──► MaxPreps Coach Admin (NOT HuddleStat-derived as primary)
@@ -94,8 +95,13 @@ MaxPreps (coach)
 1. Correct layer (free export vs unofficial derivation vs Hudl parse)?
 2. Free CSV export still works without env vars?
 3. Official = Hudl after film, not iPad re-tag?
-4. No Friday-vs-Hudl diff tooling?
+4. No Friday-vs-Hudl diff tooling (C9)?
 5. MaxPreps primary = Hudl `.txt`?
+6. Platform game pages upgrade to official snapshot when committed (D2 — platform implements)?
+
+## Locked decisions (D1–D4)
+
+See [hudl-canonical-locked-decisions.md](./hudl-canonical-locked-decisions.md). Cross-repo implementation: [platform IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md](../huddlestat/docs/IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md).
 
 ## Related
 
