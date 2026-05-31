@@ -2,6 +2,8 @@
 
 Open-source **iPad play tagging** for high school football. Tag live on the sideline, export **Hudl-compatible CSV**, and optionally sync to [HuddleStat Cloud](https://github.com/tsell89/huddlestat) (commercial hosted service).
 
+**Friday workflow:** tag on iPad → export Hudl 32-col CSV → coach uploads to Hudl. After film, coach corrects in Hudl; **official stats** live in Hudl and the hosted platform via Hudl ingest (`official_saturday`) — iPad tagging is **unofficial** only. See [docs/hudl-canonical-tagging.md](./docs/hudl-canonical-tagging.md).
+
 **License:** [MIT](./LICENSE)
 
 ## What's included
@@ -30,6 +32,7 @@ Tagging works **fully offline** without `.env`. Set `EXPO_PUBLIC_CONVEX_URL` onl
 
 ## Docs
 
+- [Hudl-canonical architecture (tagging)](./docs/hudl-canonical-tagging.md)
 - [iPad tagging spec](./docs/ipad-tagging-spec.md)
 - [Field position model](./docs/field-position-model.md)
 - [Node.js version](./docs/node-version.md)

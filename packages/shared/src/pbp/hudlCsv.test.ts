@@ -6,6 +6,7 @@ import { describe, test } from "node:test";
 import {
   PLAYLIST_DATA_HEADERS,
   emptyPlayerRef,
+  looksLikePartial23ColPlaylist,
   parsePartialPlaylistCsv,
   playlistDataSchema,
   toPlaylistDataRow,
@@ -55,14 +56,31 @@ describe("parseHudlCsv — 32-col HuddleStat export", () => {
     assert.equal(play.result, "Return");
   });
 
-  test("23-col raw Hudl export has no spotEncoding", () => {
+  test("round-trips hudl-32col-spot-encoding.csv through export columns", () => {
+    const text = readFileSync(
+      join(fixtureDir, "hudl-32col-spot-encoding.csv"),
+      "utf8",
+    );
+    const [parsed] = parseHudlCsv(text, "TEAM_A");
+    assert.ok(parsed);
+    const row = toPlaylistDataRow(parsed);
+    assert.equal(row.length, PLAYLIST_DATA_HEADERS.length);
+    assert.equal(row.at(-1), "catch:-5|end:-25");
+    assert.equal(row[0], "1");
+    assert.equal(row[1], "1");
+    assert.equal(row[25], "KO");
+  });
+
+  test("23-col raw Hudl export has no spotEncoding and matches partial shape guard", () => {
     const text = readFileSync(
       join(maxprepsDir, "snider-vs-warsaw-2025-08-22.playlist.csv"),
       "utf8",
     );
-    const [play] = parsePartialPlaylistCsv(text, "SHS");
+    const plays = parsePartialPlaylistCsv(text, "SHS");
+    const [play] = plays;
     assert.ok(play);
     assert.equal(play.spotEncoding, undefined);
+    assert.equal(looksLikePartial23ColPlaylist(plays), true);
   });
 });
 

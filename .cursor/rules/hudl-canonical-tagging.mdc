@@ -1,0 +1,30 @@
+---
+description: Hudl-canonical layer table and forbidden paths for tagging repo
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# Hudl-canonical (tagging repo)
+
+**Read first:** [docs/hudl-canonical-tagging.md](../../docs/hudl-canonical-tagging.md)
+
+## Agent checklist
+
+1. Correct layer (free export vs unofficial derivation vs Hudl parse)?
+2. Free CSV export still works without env vars?
+3. Official = Hudl after film, not iPad re-tag?
+4. No Friday-vs-Hudl diff tooling (C9)?
+5. MaxPreps primary = Hudl `.txt`?
+
+## Forbidden in this repo
+
+- `parsePartialPlaylistCsv` as official ingest path
+- iPad-vs-Hudl reconcile UI/API
+- Season commit / official publish in `apps/mobile`
+- Platform env vars required for offline CSV export
+- Docs implying HuddleStat replaces Hudl MaxPreps `.txt` as primary
+
+## Official ingest
+
+Export and use `parseHudlCsv`, `rowToPlaylistData`, `parseCsvLine` from `@huddlestat/shared`. Reject partial 23-col via `looksLikePartial23ColPlaylist`.

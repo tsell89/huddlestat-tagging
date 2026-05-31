@@ -317,6 +317,12 @@ export {
   type MaxPrepsReconciliationReport,
   type MaxPrepsSuspectPlay,
 } from "./reconcileMaxPrepsExport.js";
+export { looksLikePartial23ColPlaylist } from "./hudlCanonical.js";
+export {
+  parseCsvLine,
+  parseHudlCsv,
+  rowToPlaylistData,
+} from "./pbp/hudlCsv.js";
 export {
   deriveMaxPrepsBoxScoreFromPlays,
   MAXPREPS_FOOTBALL_COLUMNS,

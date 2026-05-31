@@ -440,7 +440,12 @@ export function serializeMaxPrepsTxt(rows: MaxPrepsPlayerRow[]): string {
   return [header, ...body].join("\n") + "\n";
 }
 
-/** Parse partial PlaylistData CSV (23-col Hudl export without QTR / PLAY TYPE). */
+/**
+ * Parse partial PlaylistData CSV (23-col Hudl export without QTR / PLAY TYPE).
+ *
+ * @deprecated official path — Section A / partial 23-col fixtures only.
+ * Platform `official_saturday` must use `parseHudlCsv` (32-col). See docs/hudl-canonical-tagging.md.
+ */
 export function parsePartialPlaylistCsv(
   text: string,
   team: string,

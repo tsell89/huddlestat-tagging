@@ -2,7 +2,7 @@
 
 The tagging app is **free and complete without the platform**: local SQLite, live tagging, Hudl CSV export.
 
-Optional env vars connect to the proprietary **HuddleStat hosted** sync API for a **live unofficial stats page** (paid upgrade path).
+Optional env vars connect to the proprietary **HuddleStat hosted** sync API for a **live unofficial stats page** (paid upgrade path). Live publish is **never official season stats** — see [hudl-canonical-tagging.md](./hudl-canonical-tagging.md).
 
 Full product context: see the platform repo [product-path.md](https://github.com/tsell89/huddlestat/blob/main/docs/product-path.md) (or sibling clone `../huddlestat/docs/product-path.md`).
 

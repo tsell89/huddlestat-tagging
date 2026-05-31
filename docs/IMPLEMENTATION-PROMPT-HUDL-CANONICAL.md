@@ -8,8 +8,10 @@ You are working on **huddlestat-tagging** (MIT) — iPad live tagging + `@huddle
 
 **Platform SSOT (merged 2026-05-30):** read sibling or GitHub docs before changing stats semantics:
 - `../huddlestat/docs/hudl-canonical-architecture.md` — layer/source table + forbidden paths
+- [docs/hudl-canonical-tagging.md](./hudl-canonical-tagging.md) — **this repo's SSOT** (links platform + tagging layer table)
 - `../huddlestat/docs/hudl-canonical-violation-audit.md` — platform audit pattern
-- `../huddlestat/docs/maxpreps-stat-decisions.md` — C1–C9, Hudl-canonical official (B1 revised)
+- [docs/hudl-canonical-violation-audit.md](./hudl-canonical-violation-audit.md) — tagging audit
+- `docs/maxpreps-stat-decisions.md` — B1/B7/B11 revised for Hudl-canonical
 - `../huddlestat/docs/product-path.md` — free tagging vs hosted tiers
 
 ## Hudl-canonical — tagging repo scope
