@@ -42,14 +42,15 @@ This repo owns **free MIT tagging** and **`@huddlestat/shared`**. It does NOT ow
 
 ### Known violations to audit (grep first)
 
-Run ripgrep across the repo for: `official_saturday`, `unofficial_friday`, `parsePartialPlaylistCsv`, `parseHudlCsv`, `offensiveCredits`, `reconcileMaxPrepsExport`, `iPad only`, `Friday → Saturday`, `Friday->Saturday`, `re-import`, `MaxPreps export`, `Upload to MaxPreps`, `Download MaxPreps`.
+Re-run when changing stats semantics or ingest paths:
 
-Pay special attention to:
-- `docs/maxpreps-stat-decisions.md` **B1** — still says “iPad only” for `official_saturday` (SUPERSEDED by Hudl-canonical)
-- **B7** — platform parity export only; Hudl `.txt` primary
-- **B11 + work streams** — “Friday → Saturday reconciliation” conflicts with C9
-- `packages/shared/src/index.ts` — `parseHudlCsv` not exported (platform blocker)
-- `reconcileMaxPrepsExport.ts` — ensure scope is fixture/CI only, not coach-facing diff UI spec
+`official_saturday`, `unofficial_friday`, `parsePartialPlaylistCsv`, `parseHudlCsv`, `offensiveCredits`, `reconcileMaxPrepsExport`, `Friday → Saturday`, `MaxPreps export`, `Upload to MaxPreps`
+
+**Resolved in [hudl-canonical-violation-audit.md](./hudl-canonical-violation-audit.md) (2026-05-30):** B1/B7/B11 doc drift, `parseHudlCsv` export, partial-shape guard, reconcile scope.
+
+**Still watch:**
+- `offensiveCredits.ts` (C8) — not in shared yet; unofficial paths only when added
+- Platform `hudlCanonical.ts` — may import `looksLikePartial23ColPlaylist` from `@huddlestat/shared` after `tagging-ref.json` bump
 
 ### Code map
 
@@ -57,6 +58,7 @@ Pay special attention to:
 |---------|----------|
 | 32-col Hudl parse | `packages/shared/src/pbp/hudlCsv.ts` → `parseHudlCsv`, `rowToPlaylistData` |
 | 23-col partial parse | `packages/shared/src/maxPrepsBoxScore.ts` → `parsePartialPlaylistCsv` |
+| Partial-shape guard | `packages/shared/src/hudlCanonical.ts` → `looksLikePartial23ColPlaylist` |
 | MaxPreps derivation | `packages/shared/src/maxPrepsBoxScore.ts` |
 | Defensive credits (unofficial) | `packages/shared/src/defensiveCredits.ts` |
 | Fixture reconciliation | `packages/shared/src/reconcileMaxPrepsExport.ts` |
@@ -68,34 +70,19 @@ Pay special attention to:
 | Partial fixture | `fixtures/maxpreps/snider-vs-warsaw-2025-08-22.playlist.csv` (23-col) |
 | Field position | `packages/shared/src/fieldPosition100.ts`, `.cursor/rules/field-position-model.mdc` |
 
-### Tasks
+### Tasks (completed 2026-05-30 — see PR #20)
 
-**A. Audit** — grep patterns above; markdown violation list (like platform `hudl-canonical-violation-audit.md`).
+**A. Audit** — [hudl-canonical-violation-audit.md](./hudl-canonical-violation-audit.md)
 
-**B. Architecture doc** — add `docs/hudl-canonical-architecture.md` (tagging-specific) OR a short `docs/hudl-canonical-tagging.md` that links platform SSOT + tagging layer table + forbidden paths. Single source for agents in this repo.
+**B. Architecture doc** — [hudl-canonical-tagging.md](./hudl-canonical-tagging.md)
 
-**C. Revise stale docs**
-- `docs/maxpreps-stat-decisions.md` — B1, B7, B11, work streams table
-- `docs/cloud-sync.md` — link Hudl-canonical; live = unofficial only
-- `README.md` — “export Hudl CSV Friday → coach corrects in Hudl → official stats live in Hudl + hosted platform ingest”
-- Optional: `AGENTS.md` + cross-link this file
+**C. Doc fixes** — maxpreps-stat-decisions B1/B7/B11, cloud-sync, README, AGENTS.md
 
-**D. Shared package fixes**
-- Export `parseHudlCsv`, `parseCsvLine`, `rowToPlaylistData` from `packages/shared/src/index.ts`
-- Add `isPartial23ColPlaylist(plays)` or share logic with platform `hudlCanonical.ts` (consider duplicating minimal guard in shared with test, or extract to shared and let platform import)
-- Mark `parsePartialPlaylistCsv` JSDoc: `@deprecated official path — partial 23-col fixtures only`
-- CI test: `parseHudlCsv` round-trips `hudl-32col-spot-encoding.csv`; partial csv must not be the only ingest test for kicking
+**D. Shared package** — exports + `looksLikePartial23ColPlaylist` + tests
 
-**E. CI guards (cheap)**
-- Test that `parsePartialPlaylistCsv` output matches partial-23-col shape (platform rejects this on official commit)
-- Do not add tests that treat partial csv as official ingest golden
+**E. CI guards** — partial-shape + 32-col round-trip tests
 
-**F. Agent checklist** — `.cursor/rules/` or AGENTS.md items:
-1. Correct layer (free export vs unofficial derivation vs Hudl parse)?
-2. Free CSV export still works without env vars?
-3. Official = Hudl after film, not iPad re-tag?
-4. No Friday-vs-Hudl diff tooling?
-5. MaxPreps primary = Hudl `.txt`?
+**F. Agent checklist** — `.cursor/rules/hudl-canonical-tagging.mdc`, AGENTS.md
 
 ### Do not
 
@@ -105,13 +92,13 @@ Pay special attention to:
 - Use `parsePartialPlaylistCsv` for official-season or MaxPreps-primary docs
 - Break 32-col `PLAYLIST_DATA_HEADERS` / `QTR` / `COMPLETION`↔`spotEncoding` export (ADR-0001)
 
-### Deliverables
+### Deliverables (PR #20)
 
-- Violation audit (markdown list in PR)
-- Tagging architecture doc with layer table
-- Doc fixes (maxpreps-stat-decisions B1/B7/B11 minimum)
-- Export `parseHudlCsv` from shared + tests
-- PR with test plan mapping each tagging-relevant row to a test or assertion
+- [x] Violation audit — `docs/hudl-canonical-violation-audit.md`
+- [x] Tagging architecture doc — `docs/hudl-canonical-tagging.md`
+- [x] Doc fixes (B1/B7/B11 minimum)
+- [x] Export `parseHudlCsv` from shared + tests
+- [x] Test plan in PR description
 
 ### After merge
 
