@@ -105,7 +105,10 @@ function suspectPlaysForPuntInside20(
 }
 
 /**
- * Compare derived MaxPreps rows to a golden reference — report only, never throw (B11).
+ * Compare derived MaxPreps rows to a golden Hudl `.txt` fixture — report only, never throw (B11).
+ *
+ * **Scope:** CI / fixture validation (`derived !== golden` suspects). Not a Friday
+ * `unofficial_friday` vs Saturday Hudl official diff product (C9 — Hudl wins).
  */
 export function reconcileMaxPrepsExport(
   derived: MaxPrepsPlayerRow[],

@@ -2,6 +2,8 @@
 
 Living decision log for HuddleStat → MaxPreps export semantics. **Product rules only** — implementation lives in separate chats.
 
+**Hudl-canonical (2026-05-30):** [hudl-canonical-tagging.md](./hudl-canonical-tagging.md) — official stats = Hudl after film; iPad = unofficial.
+
 **Related:** `packages/shared/src/maxPrepsBoxScore.ts` · `packages/shared/src/defensiveCredits.ts` · [field-position-model.md](./field-position-model.md) · [play-by-play-test-corpus.md](./play-by-play-test-corpus.md)
 
 ---
@@ -24,9 +26,9 @@ Merged in huddlestat-tagging + huddlestat:
 
 ## Section B — context (locked, do not re-decide)
 
-- **B1:** `official_saturday` `plays[]` = full 32-col HuddleStat iPad `PlaylistData` only. No Hudl `PlaylistData` re-import as commit input.
-- **B2:** `PLAY TYPE`, `KICKER`, `KICK YARDS`, etc. are expected on committed plays (iPad source).
-- MaxPreps `.txt` export = satellite utility (Hudl-parity upload opportunity), not a paid product pillar.
+- **B1 (revised 2026-05-30 — Hudl-canonical):** **Official stats canonical in Hudl.** After film, coach corrects in Hudl; platform ingests **full 32-col Hudl export** (`parseHudlCsv`) for `official_saturday`. **Friday iPad tag is unofficial only** — not the official commit source. See [hudl-canonical-tagging.md](./hudl-canonical-tagging.md) and platform [Hudl-canonical](../huddlestat/docs/hudl-canonical-architecture.md).
+- **B2:** `PLAY TYPE`, `KICKER`, `KICK YARDS`, `QTR`, etc. are expected on **32-col** committed plays (Hudl after film, or iPad export uploaded to Hudl).
+- MaxPreps `.txt` **primary path = Hudl download** — HuddleStat-derived `.txt` is parity/testing only (B7).
 - HuddleStat play log = foundation; don't let MaxPreps/Hudl stat semantics drive our model.
 
 ---
@@ -109,13 +111,16 @@ Fair catch = downed punt for punter stats; use fair-catch spot same as downed fo
 
 ### B7. MaxPreps export timing
 
-**Decision:** **`official_saturday` only** for platform-generated MaxPreps `.txt`.
+**Decision:** Coach **MaxPreps upload uses Hudl `.txt` download** as primary. Platform-generated HuddleStat `.txt` is **parity/testing only** — gated to `official_saturday` Hudl-ingested snapshots when implemented on platform.
 
 **Rules:**
 
-1. Export source = `official_saturday` committed `plays[]` (32-col `PlaylistData`).
-2. Do not generate MaxPreps box scores from `unofficial_friday` / in-progress sync in platform UI for v1.
-3. Unofficial Friday-night MaxPreps upload (Hudl-parity) = **deferred** / separate work stream (see B11, work streams below).
+1. **Primary coach path:** Hudl desktop `.txt` → MaxPreps Coach Admin — not HuddleStat-derived export.
+2. Platform optional parity export: from `official_saturday` Hudl-ingested `plays[]` only — labeled non-primary.
+3. Do not generate MaxPreps box scores from `unofficial_friday` / in-progress sync in platform UI for v1.
+4. Unofficial Friday-night MaxPreps upload from iPad/HuddleStat = **deferred** — not a v1 product path.
+
+**Tagging repo:** `deriveMaxPrepsBoxScoreFromPlays` + golden fixtures validate derivation math against Hudl `.txt` — not a replacement for Hudl export.
 
 ---
 
@@ -163,11 +168,11 @@ Season rollups stay HuddleStat-native; kicking columns are satellite until a sep
 
 ---
 
-### B11. Reconciliation & flagging (product)
+### B11. Reconciliation & flagging (fixture / CI)
 
-**Decision:** Any export vs reference mismatch is a **reconciliation signal**, not a hard failure. Surface **field deltas** and **play-level suspects** so taggers can fix Friday/Saturday mistakes and re-run.
+**Decision:** Derived vs golden MaxPreps mismatch is a **reconciliation signal in CI and fixture review**, not a hard failure. Surface **field deltas** and **play-level suspects** so engineers can fix derivation rules or fixture data.
 
-**Scope:** MaxPreps export first; pattern applies to **any** stat reconciliation (Friday unofficial vs Saturday official, export vs Hudl golden, rollup vs box score).
+**Scope:** `reconcileMaxPrepsExport(derived, golden, plays)` — **derived HuddleStat box score vs Hudl golden `.txt` fixture only**. **Not** a Friday `unofficial_friday` vs Saturday Hudl official diff product (**C9 — Hudl wins, no diff tooling**).
 
 **Rules:**
 
@@ -175,8 +180,8 @@ Season rollups stay HuddleStat-native; kicking columns are satellite until a sep
 2. **Field-level report:** per jersey, list columns where `derived !== golden` (e.g. `#94.PuntInside20: derived 1, golden 2`).
 3. **Play-level suspects:** for each mismatched stat, list plays that contribute under **our** rules and note borderline/excluded plays:
    - Example (East Noble `#94`): *Play 27 (Penalty, end position 80) — golden counts inside-20; we exclude (strict 81+). Play 26 counts for both.*
-4. **Workflow:** tagger reviews flagged plays → fix on iPad → re-commit → re-export → reconciliation clears or shrinks.
-5. **API shape (implementation):** e.g. `reconcileMaxPrepsExport(derived, golden, plays) → { deltas, suspectPlays[] }`.
+4. **Workflow:** engineers review CI suspects → adjust shared derivation or accept documented Hudl parity difference — **not** tagger iPad-vs-Hudl reconcile before official publish.
+5. **API shape (implementation):** `reconcileMaxPrepsExport(derived, golden, plays) → { deltas, suspectPlays[] }`.
 
 **Canonical reconciliation test case:** East Noble `#94` `PuntInside20` derived **1** vs Hudl golden **2** — must emit play-level suspects, not fail CI silently or force Hudl-parity logic.
 
@@ -188,10 +193,11 @@ These are separate features; B decisions above feed them but do not implement th
 
 | Work stream | Description |
 |-------------|-------------|
-| **Hudl XL → computer** | Full 32-col Hudl playlist export ingested on **desktop** (historical Hudl workflow), converted to HuddleStat `PlaylistData` for fixtures/reference — not iPad commit input (B1). Warsaw + East Noble xlsx files are examples. |
-| **Friday → Saturday reconciliation** | Compare `unofficial_friday` tagging to `official_saturday` commit; flag play-level diffs before official publish. |
-| **`official_saturday` feature** | Commit gate, review UI, and publish path for official stats (platform); MaxPreps export only from this commit (B7). |
+| **Hudl XL → computer** | Full 32-col Hudl playlist export ingested on **desktop** for fixtures/reference — Warsaw + East Noble xlsx files are examples. Platform uses `parseHudlCsv` for `official_saturday`. |
+| **`official_saturday` feature** | Commit gate and publish path for official stats (platform); Hudl 32-col ingest after film (B1 revised). |
 | **Play-end field rename** | **Accepted** — [ADR-0001](./adr/0001-spot-encoding-field-name.md): `completion` → `spotEncoding`; doc sweep before code rename |
+
+**Removed (C9):** ~~Friday → Saturday reconciliation~~ — no iPad-vs-Hudl play diff before official publish; Hudl wins.
 
 ---
 
@@ -205,7 +211,7 @@ These are separate features; B decisions above feed them but do not implement th
 | B-A4 | Blocked PAT | **Resolved** — B6 missed kick |
 | B-A5 | Inside-20 boundary | **Resolved** — B4 strict 81–100; Hudl mismatch OK |
 | B-A6 | Fractional sacks (from A) | Still open — serializer/import validation |
-| B-A7 | iPad local unofficial export | Deferred — B11 / Friday work stream |
+| B-A7 | iPad local unofficial export | Deferred — not v1 MaxPreps primary path (B7) |
 | B-A8 | 2pt vs PAT in Snider golden | **Resolved** — B6; Warsaw golden covers XP not 2pt for `#94` |
 | B-A9 | Onside kick `KickoffYards` | **Deferred** — separate play-type thread |
 
