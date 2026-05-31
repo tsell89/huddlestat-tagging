@@ -1,6 +1,6 @@
 # Agent guide — huddlestat-tagging
 
-**Read first:** [docs/hudl-canonical-tagging.md](./docs/hudl-canonical-tagging.md) · [docs/field-position-model.md](./docs/field-position-model.md)
+**Read first:** [docs/hudl-canonical-tagging.md](./docs/hudl-canonical-tagging.md) · [docs/hudl-canonical-locked-decisions.md](./docs/hudl-canonical-locked-decisions.md) · [docs/field-position-model.md](./docs/field-position-model.md)
 
 ## Repo scope
 
