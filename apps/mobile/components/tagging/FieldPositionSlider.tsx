@@ -33,11 +33,22 @@ type FieldPositionSliderProps = {
   rightAction?: SliderEndAction;
   hideTrack?: boolean;
   displayValue?: string;
+  /** Shown above the track once the spot moves (e.g. gain/loss). Does not move the slider. */
+  thumbOverlay?: { value: string } | null;
+  /** ±1 yard nudge on the yard line — same visibility rules as thumbOverlay. */
+  fineAdjust?: {
+    onStep: (delta: 1 | -1) => void;
+    canStepMinus: boolean;
+    canStepPlus: boolean;
+  } | null;
 };
 
 const END_BTN_WIDTH = 72;
 const THUMB_INSET = 8;
 const THUMB_TRAVEL_PAD = 16;
+const THUMB_SIZE = 32;
+const OVERLAY_VALUE_HALF = 40;
+const FINE_BTN_SIZE = 40;
 
 export function FieldPositionSlider({
   label,
@@ -52,6 +63,8 @@ export function FieldPositionSlider({
   rightAction,
   hideTrack = false,
   displayValue,
+  thumbOverlay,
+  fineAdjust,
 }: FieldPositionSliderProps) {
   const trackRef = useRef<View>(null);
   const trackWidthRef = useRef(0);
@@ -138,6 +151,28 @@ export function FieldPositionSlider({
       ? formatFieldPosition(valueForRatio(dragRatio))
       : formatFieldPosition(value));
 
+  const thumbCenter = thumbLeft + THUMB_SIZE / 2 - 2;
+  const showChrome = !!(thumbOverlay || fineAdjust);
+
+  function FineBtn({
+    delta,
+    disabled,
+  }: {
+    delta: 1 | -1;
+    disabled: boolean;
+  }) {
+    if (!fineAdjust) return null;
+    return (
+      <Pressable
+        style={[styles.fineBtn, disabled && styles.fineBtnDisabled]}
+        onPress={() => fineAdjust.onStep(delta)}
+        disabled={disabled}
+      >
+        <Text style={styles.fineBtnText}>{delta === -1 ? "−" : "+"}</Text>
+      </Pressable>
+    );
+  }
+
   return (
     <View style={styles.wrap}>
       <View style={styles.labelRow}>
@@ -150,23 +185,52 @@ export function FieldPositionSlider({
           <View style={styles.trackSpacer} />
         ) : (
           <View
-            ref={trackRef}
-            style={styles.trackColumn}
-            onLayout={(e: LayoutChangeEvent) => {
-              trackWidthRef.current = e.nativeEvent.layout.width;
-              setTrackWidth(e.nativeEvent.layout.width);
-              syncTrackMetrics();
-            }}
-            {...panResponder.panHandlers}
+            style={[styles.trackColumn, showChrome && styles.trackColumnExpanded]}
           >
-            <View style={styles.track}>
-              <View style={[styles.midMark, { left: "50%" }]} />
-              <View style={[styles.thumb, { left: thumbLeft }]} />
-            </View>
-            <View style={styles.tickRow}>
-              <Text style={styles.tick}>{leftTick}</Text>
-              <Text style={[styles.tick, styles.tickCenter]}>{centerTick}</Text>
-              <Text style={styles.tick}>{rightTick}</Text>
+            <View style={styles.trackLineRow}>
+              {showChrome && fineAdjust ? (
+                <FineBtn delta={-1} disabled={!fineAdjust.canStepMinus} />
+              ) : null}
+
+              <View
+                ref={trackRef}
+                style={[
+                  styles.trackHitArea,
+                  showChrome && styles.trackHitAreaExpanded,
+                ]}
+                onLayout={(e: LayoutChangeEvent) => {
+                  trackWidthRef.current = e.nativeEvent.layout.width;
+                  setTrackWidth(e.nativeEvent.layout.width);
+                  syncTrackMetrics();
+                }}
+                {...panResponder.panHandlers}
+              >
+                {showChrome && thumbOverlay && trackWidth > 0 ? (
+                  <View style={styles.overlayBand} pointerEvents="none">
+                    <Text
+                      style={[
+                        styles.overlayValue,
+                        { left: thumbCenter - OVERLAY_VALUE_HALF },
+                      ]}
+                    >
+                      {thumbOverlay.value}
+                    </Text>
+                  </View>
+                ) : null}
+                <View style={styles.track}>
+                  <View style={[styles.midMark, { left: "50%" }]} />
+                  <View style={[styles.thumb, { left: thumbLeft }]} />
+                </View>
+                <View style={styles.tickRow}>
+                  <Text style={styles.tick}>{leftTick}</Text>
+                  <Text style={[styles.tick, styles.tickCenter]}>{centerTick}</Text>
+                  <Text style={styles.tick}>{rightTick}</Text>
+                </View>
+              </View>
+
+              {showChrome && fineAdjust ? (
+                <FineBtn delta={1} disabled={!fineAdjust.canStepPlus} />
+              ) : null}
             </View>
           </View>
         )}
@@ -272,41 +336,96 @@ const styles = StyleSheet.create({
     minHeight: LAYOUT.compactTapTarget,
     justifyContent: "center",
   },
+  trackColumnExpanded: {
+    paddingVertical: 0,
+    minHeight: LAYOUT.minTapTarget + 36,
+    gap: 2,
+  },
+  overlayBand: {
+    height: 40,
+    position: "relative",
+    marginBottom: 2,
+  },
+  overlayValue: {
+    position: "absolute",
+    top: 0,
+    width: OVERLAY_VALUE_HALF * 2,
+    textAlign: "center",
+    fontSize: 32,
+    fontWeight: "900",
+    color: LAYOUT.colors.navy,
+    fontVariant: ["tabular-nums"],
+    lineHeight: 36,
+  },
+  trackLineRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  fineBtn: {
+    width: FINE_BTN_SIZE,
+    height: FINE_BTN_SIZE,
+    borderRadius: FINE_BTN_SIZE / 2,
+    borderWidth: 2,
+    borderColor: LAYOUT.colors.navy,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  fineBtnDisabled: {
+    opacity: 0.35,
+  },
+  fineBtnText: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: LAYOUT.colors.navy,
+    lineHeight: 24,
+  },
+  trackHitArea: {
+    flex: 1,
+    paddingVertical: 6,
+    justifyContent: "center",
+  },
+  trackHitAreaExpanded: {
+    paddingVertical: 14,
+    minHeight: LAYOUT.minTapTarget,
+  },
   trackSpacer: {
     flex: 1,
     minHeight: LAYOUT.compactTapTarget,
   },
   track: {
-    height: 8,
+    height: 12,
     backgroundColor: LAYOUT.colors.placeholderBg,
-    borderRadius: 4,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: LAYOUT.colors.sectionBorder,
   },
   midMark: {
     position: "absolute",
-    top: -2,
+    top: -3,
     width: 2,
-    height: 12,
+    height: 18,
     marginLeft: -1,
     backgroundColor: LAYOUT.colors.textMuted,
     opacity: 0.5,
   },
   thumb: {
     position: "absolute",
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: THUMB_SIZE,
+    height: THUMB_SIZE,
+    borderRadius: THUMB_SIZE / 2,
     backgroundColor: LAYOUT.colors.navy,
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: "#fff",
-    top: -7,
+    top: -(THUMB_SIZE / 2 - 6),
     marginLeft: -2,
   },
   tickRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 2,
+    marginTop: 6,
   },
   tick: {
     fontSize: 10,

@@ -12,7 +12,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test lib/tagging/catchUpHint.test.ts lib/tagging/jerseyGridRank.test.ts lib/tagging/kickoffRole.test.ts lib/sync/publish.test.ts lib/qa/padLabel.test.ts",
+    "test": "tsx --test lib/tagging/catchUpHint.test.ts lib/tagging/fieldPosition100.test.ts lib/tagging/jerseyGridRank.test.ts lib/tagging/kickoffRole.test.ts lib/tagging/phaseAdvance.test.ts lib/tagging/tackleSpot.test.ts lib/sync/publish.test.ts lib/qa/padLabel.test.ts",
     "qa:replay": "npm --prefix ../.. run qa:replay",
     "lint": "echo 'no lint configured'"
   },

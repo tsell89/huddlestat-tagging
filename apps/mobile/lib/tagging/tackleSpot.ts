@@ -68,6 +68,30 @@ export function formatTackleEndDisplay(end: TackleEnd): string {
   return formatFieldPosition(end.yardLine);
 }
 
+/** Left end of tackle slider = Own 1 (−1). */
+export const TACKLE_SLIDER_OWN_ONE = -1 as YardLine;
+
+/** Right end of tackle slider = Opp 1 (+1). */
+export const TACKLE_SLIDER_OPP_ONE = 1 as YardLine;
+
+export function isTackleLeftExtreme(yardLine: YardLine): boolean {
+  return hudlToFieldPosition(yardLine) <= FIELD_MIN;
+}
+
+export function isTackleRightExtreme(yardLine: YardLine): boolean {
+  return hudlToFieldPosition(yardLine) >= FIELD_OPP_GOAL - 1;
+}
+
+export function sliderYardLineForTackleEnd(
+  end: TackleEnd,
+  ballSpot: YardLine,
+): YardLine {
+  if (end.kind === "yardline") return end.yardLine;
+  if (end.kind === "touchdown") return TACKLE_SLIDER_OPP_ONE;
+  if (end.kind === "safety") return TACKLE_SLIDER_OWN_ONE;
+  return ballSpot;
+}
+
 export function encodeTackleSpotEncoding(
   ballSpot: YardLine,
   end: TackleEnd,

@@ -212,6 +212,11 @@ Copy failures into [package-i-qa-report.md](./package-i-qa-report.md) on session
 | UX-16 | P1 | Larger sidebar play rows | — | |
 | UX-17 | P1 | Show 3 previous plays | — | |
 | UX-18 | P2 | 72/28 split revisit | — | |
+| UX-19 | P2 | New game: side-by-side team/opponent + Start tagging visible with keyboard | — | Fixed 2026-06-01 |
+| UX-20 | P2 | Onboarding: default team code from Hudl export (prompt user) | — | Future |
+| UX-21 | P2 | Onboarding: help user set up Hudl 32-col column view | — | Future |
+| UX-22 | P1 | Header phase advance button; remove GamePhaseBar row | F | Fixed 2026-06-01 |
+| UX-23 | P1 | Tackle orbit slider: G/L above, spot below, ± on line, extreme confirm | A | Fixed 2026-06-01 |
 
 ---
 

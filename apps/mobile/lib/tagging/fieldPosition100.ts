@@ -87,6 +87,39 @@ export function yardsToTouchdown(fromHudl: YardLine): number {
   return yardsToOpponentGoal(fromHudl);
 }
 
+/** Step one yard on the internal 0–100 axis (not into end zones). */
+export function stepHudlYardLine(hudl: YardLine, deltaInternal: number): YardLine {
+  if (Math.round(hudl) === HUDL_END_ZONE) return hudl;
+  const pos = hudlToFieldPosition(hudl);
+  const next = Math.min(
+    FIELD_OPP_GOAL - 1,
+    Math.max(FIELD_MIN, pos + deltaInternal),
+  );
+  return fieldPositionToHudl(next);
+}
+
+export function canStepHudlYardLine(
+  hudl: YardLine,
+  deltaInternal: number,
+): boolean {
+  if (Math.round(hudl) === HUDL_END_ZONE) return false;
+  const pos = hudlToFieldPosition(hudl);
+  const next = pos + deltaInternal;
+  return next >= FIELD_MIN && next <= FIELD_OPP_GOAL - 1;
+}
+
+/** Slider ratio 0–1 for field ruler ticks (G at 0/100, 10-yard marks). */
+export function fieldPositionToSliderRatio(pos: number): number {
+  const p = Math.round(pos);
+  if (p <= FIELD_OWN_GOAL) return 0;
+  if (p >= FIELD_OPP_GOAL) return 1;
+  if (p <= FIELD_MIDLINE) {
+    return ((p - FIELD_MIN) / (FIELD_MIDLINE - FIELD_MIN)) * 0.5;
+  }
+  const oppEnd = FIELD_OPP_GOAL - 1;
+  return 0.5 + ((p - FIELD_MIDLINE) / (oppEnd - FIELD_MIDLINE)) * 0.5;
+}
+
 /** Slider ratio 0–1 from Hudl spot (left −1 → mid 50 → right +1). */
 export function hudlToSliderRatio(hudl: YardLine): number {
   if (Math.round(hudl) === HUDL_END_ZONE) return 1;

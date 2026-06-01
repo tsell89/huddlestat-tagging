@@ -1,6 +1,6 @@
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import {
   PlayType,
   Result,
@@ -13,7 +13,6 @@ import {
 } from "@huddlestat/shared";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
 import { PlayLogSidebar } from "@/components/tagging/PlayLogSidebar";
-import { GamePhaseBar } from "@/components/tagging/GamePhaseBar";
 import { StartOtModal } from "@/components/tagging/StartOtModal";
 import { TaggingHeader } from "@/components/tagging/TaggingHeader";
 import { TaggingPad } from "@/components/tagging/TaggingPad";
@@ -110,6 +109,7 @@ import {
 } from "@/lib/qa/logger";
 import { QaLogExportButton } from "@/components/QaLogExportButton";
 import { catchUpHintMessage } from "@/lib/tagging/catchUpHint";
+import { phaseAdvanceAction } from "@/lib/tagging/phaseAdvance";
 
 function playToDraft(play: LocalPlay): PlaylistData {
   return {
@@ -688,6 +688,28 @@ export default function TaggingScreen() {
     }
   }
 
+  function handlePhaseAdvancePress() {
+    if (!game) return;
+    const action = phaseAdvanceAction(
+      game.phase,
+      game.homeScore,
+      game.awayScore,
+    );
+    if (!action) return;
+    if (action.nextPhase === "FINAL") {
+      Alert.alert(
+        "End game?",
+        "Mark this game FINAL? You can still review plays in the log.",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "End game", onPress: () => void applyPhaseChange("FINAL") },
+        ],
+      );
+      return;
+    }
+    void applyPhaseChange(action.nextPhase);
+  }
+
   async function handleStartOt(otPossession: "us" | "them") {
     if (!id || !game) return;
     setShowOtModal(false);
@@ -1165,6 +1187,12 @@ export default function TaggingScreen() {
     );
   }
 
+  const phaseAdvance = phaseAdvanceAction(
+    game.phase,
+    game.homeScore,
+    game.awayScore,
+  );
+
   return (
     <View style={styles.container}>
       <SyncStatusBar localGameId={id} />
@@ -1174,9 +1202,12 @@ export default function TaggingScreen() {
         draft={draft}
         unsyncedCount={unsyncedCount}
         undoEnabled={false}
+        phaseAdvance={
+          phaseAdvance
+            ? { label: phaseAdvance.label, onPress: handlePhaseAdvancePress }
+            : null
+        }
       />
-
-      <GamePhaseBar phase={game.phase} onPhasePress={(p) => void applyPhaseChange(p)} />
 
       <View style={styles.qaExportRow}>
         <QaLogExportButton localGameId={id!} slug={game.slug} compact />
