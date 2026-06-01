@@ -21,7 +21,7 @@ Scan the QR code with Expo Go on a **landscape iPad**.
 
 | Mode | Setup |
 |------|--------|
-| **Offline only** | No `.env` needed. Plays stay in local SQLite (schema auto-migrates; v6 renamed legacy `convex_*` columns to `cloud_*`). |
+| **Offline only** | No `.env` needed. Plays stay in local SQLite (schema auto-migrates; latest version drops legacy outbox). |
 | **HuddleStat Platform (live sync)** | Set `EXPO_PUBLIC_SYNC_API_URL`, `EXPO_PUBLIC_SYNC_API_KEY`, and `EXPO_PUBLIC_WEB_BASE_URL` in `apps/mobile/.env` — see [cloud-sync.md](./cloud-sync.md) and [huddlestat-platform dev-quickstart](../huddlestat-platform/docs/dev-quickstart.md). |
 
 Physical iPad cannot use `127.0.0.1` for the sync API — use your Mac’s LAN IP (see `apps/mobile/.env.example`).

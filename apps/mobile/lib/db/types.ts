@@ -33,23 +33,6 @@ export type LocalPlay = PlaylistData & {
   taggedAt: number;
 };
 
-export type OutboxStatus = "pending" | "syncing" | "synced" | "failed";
-
-/** Legacy FIFO outbox (unused); kept for schema compatibility. */
-export type OutboxMutationType = "publish.snapshot";
-
-export type OutboxItem = {
-  id: string;
-  localGameId: string | null;
-  mutationType: OutboxMutationType;
-  payload: Record<string, unknown>;
-  createdAt: number;
-  status: OutboxStatus;
-  attempts: number;
-  lastError: string | null;
-  syncedAt: number | null;
-};
-
 export type PlayRow = {
   id: string;
   local_game_id: string;

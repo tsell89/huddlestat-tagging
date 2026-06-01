@@ -54,7 +54,7 @@ The current Phase 2 MVP UI is functionally complete but **UX is unacceptable** f
    - **Contextual player pads**: show kicker/returner/tacklers/rusher/passer blocks based on play type in same viewport.
    - **Kickoff-first flow**: play #1 opens in KO mode with kicker + return + return yards one tap away.
    - **Save play**: single large sticky footer button; haptic feedback if easy.
-   - **Undo last play** (local SQLite delete + outbox reconcile) — highly desired.
+   - **Undo last play** (local SQLite delete; re-publish snapshot if cloud sync on) — highly desired.
 3. Keep saving through existing `saveLocalPlay()` and `playlistDataSchema` validation.
 4. Landscape-only; test on iPad simulator or device.
 5. Deliver a short `docs/ipad-tagging-spec.md` with tap-count targets before or alongside implementation.

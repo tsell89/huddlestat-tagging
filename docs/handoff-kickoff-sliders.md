@@ -264,7 +264,7 @@ See [`apps/mobile/lib/tagging/formatSituation.ts`](apps/mobile/lib/tagging/forma
 - [ ] Touchback left: no sliders, kicker only, save works
 - [ ] Touchdown right: return yards computed, no manual yards
 - [ ] Kicker → Returner → Tackler flow intact
-- [ ] Save → SQLite + outbox unchanged
+- [ ] Save → SQLite unchanged; cloud publish only on milestones
 
 ---
 
