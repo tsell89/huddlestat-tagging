@@ -13,6 +13,7 @@ import { listLocalGames } from "@/lib/db/games";
 import { listPlaysForGame } from "@/lib/db/plays";
 import type { LocalGame } from "@/lib/db/types";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
+import { QaLogExportButton } from "@/components/QaLogExportButton";
 import { useSync } from "@/context/sync-context";
 import { playsToSyncHint } from "@/lib/sync/copy";
 import { getLiveGameUrl } from "@/lib/sync/config";
@@ -139,6 +140,13 @@ export default function HomeScreen() {
                 <Text style={styles.gameScore}>
                   {game.homeScore}–{game.awayScore}
                 </Text>
+                {game.playCount > 0 ? (
+                  <QaLogExportButton
+                    localGameId={game.id}
+                    slug={game.slug}
+                    compact
+                  />
+                ) : null}
               </View>
             </Pressable>
           ))}
