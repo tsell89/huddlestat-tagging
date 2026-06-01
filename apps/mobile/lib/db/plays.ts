@@ -36,7 +36,7 @@ export async function saveLocalPlay(
     id,
     localGameId,
     synced: false,
-    convexPlayId: null,
+    cloudPlayId: null,
     taggedAt,
   };
 
@@ -49,7 +49,7 @@ export async function saveLocalPlay(
         gain_loss, passer_json, receiver_json, rusher_json, result, team,
         tackler1_json, tackler2_json, recovered_by_json, return_yards, returner_json,
         play_type, kicker_json, kick_yards, intercepted_by_json, spot_encoding,
-        synced, convex_play_id, tagged_at
+        synced, cloud_play_id, tagged_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, ?)`,
       [
         row.id,
@@ -90,17 +90,6 @@ export async function saveLocalPlay(
   return localPlay;
 }
 
-export async function markPlaySynced(
-  localPlayId: string,
-  convexPlayId: string,
-): Promise<void> {
-  const database = getDb();
-  await database.runAsync(
-    `UPDATE plays SET synced = 1, convex_play_id = ? WHERE id = ?`,
-    [convexPlayId, localPlayId],
-  );
-}
-
 export async function countUnsyncedPlays(localGameId?: string): Promise<number> {
   const database = getDb();
   if (localGameId) {
@@ -135,7 +124,7 @@ export async function updateLocalPlay(
     id: localPlayId,
     localGameId: existing.local_game_id,
     synced: false,
-    convexPlayId: null,
+    cloudPlayId: null,
     taggedAt,
   };
 
@@ -149,7 +138,7 @@ export async function updateLocalPlay(
         team = ?, tackler1_json = ?, tackler2_json = ?, recovered_by_json = ?,
         return_yards = ?, returner_json = ?, play_type = ?, kicker_json = ?,
         kick_yards = ?, intercepted_by_json = ?, spot_encoding = ?,
-        synced = 0, convex_play_id = NULL, tagged_at = ?
+        synced = 0, cloud_play_id = NULL, tagged_at = ?
       WHERE id = ?`,
       [
         row.play_number,

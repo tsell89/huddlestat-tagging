@@ -2,7 +2,7 @@
 
 > **Package A complete:** Full UX spec is now in **[ipad-tagging-spec.md](./ipad-tagging-spec.md)** (2026-05-28). Start **Package B** (chain logic) for code.
 
-**Prerequisite:** [dev-quickstart.md](./dev-quickstart.md) — sync and live web are working; do not rebuild outbox/Convex unless broken.
+**Prerequisite:** [dev-quickstart.md](./dev-quickstart.md) — sync and live web are working; do not rebuild sync API unless broken.
 
 **Also read:** [field-position-model.md](./field-position-model.md), [handoff-ipad-tagging-ui.md](./handoff-ipad-tagging-ui.md), `apps/mobile/lib/tagging/kickoffReturn.ts` (spot-based yards pattern).
 
@@ -53,7 +53,7 @@ Rough sizing for **one focused agent session** each; can parallelize after spec 
 | D | **Play-type screen shells** | Route or mode switch: RunPad, PassPad, KOPad, PuntPad, FGPad, ScoringPad | **L** | Extract from `TaggingPad.tsx` |
 | E | **Defense scoring pads** | `Extra Pt. Block`, `2 Pt. Block` player + result UI | **S** | Depends on B |
 | F | **Remove / hide gain slider** | Delete `gainLoss` stepper where tackle spot exists | **S** | After C |
-| G | **QA pass** | iPad device, sync one full drive, verify Hudl-shaped row in Convex | **S** | Use [dev-quickstart.md](./dev-quickstart.md) URLs |
+| G | **QA pass** | iPad device, sync one full drive, verify Hudl-shaped row on platform live page | **S** | Use [dev-quickstart.md](./dev-quickstart.md) URLs |
 
 **Suggested order:** A → B → C → D → E → F → G
 
@@ -79,7 +79,7 @@ Continue HuddleStat tagging UX. Read first:
 3. docs/field-position-model.md
 4. apps/mobile/app/game/[id].tsx, components/tagging/*, packages/shared advanceSituation
 
-Do NOT rebuild sync/Convex unless broken.
+Do NOT rebuild sync API unless broken.
 
 This session: [pick package A/B/C from plan — user will say which to start]
 
@@ -90,7 +90,7 @@ Priority: play-type screens + TD → XP/2pt (or block) transitions + tackle spot
 
 ## Out of scope (later)
 
-- Roster grid from Convex `players` table
+- Roster grid from platform Postgres `players` table (future)
 - Undo last play + outbox reconcile
 - Session B: Huddle screenshot comparison
 - Web dashboard polish beyond live play log

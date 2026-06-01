@@ -1,7 +1,7 @@
 # Hudl-canonical architecture — tagging repo
 
 **Status:** Locked (2026-05-30)  
-**Platform SSOT:** [../huddlestat/docs/hudl-canonical-architecture.md](../huddlestat/docs/hudl-canonical-architecture.md)  
+**Platform SSOT:** [../huddlestat-platform/docs/hudl-canonical-architecture.md](../huddlestat-platform/docs/hudl-canonical-architecture.md)  
 **Related:** [maxpreps-stat-decisions.md](./maxpreps-stat-decisions.md) · [cloud-sync.md](./cloud-sync.md) · [hudl-canonical-locked-decisions.md](./hudl-canonical-locked-decisions.md) · [IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md](./IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md)
 
 This repo owns **free MIT tagging** (`apps/mobile`) and **`@huddlestat/shared`**. It does **not** own Postgres season commits — but parsers and derivations must align with platform Hudl-canonical invariants.
@@ -101,9 +101,9 @@ MaxPreps (coach)
 
 ## Locked decisions (D1–D4)
 
-See [hudl-canonical-locked-decisions.md](./hudl-canonical-locked-decisions.md). Cross-repo implementation: [platform IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md](../huddlestat/docs/IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md).
+See [hudl-canonical-locked-decisions.md](./hudl-canonical-locked-decisions.md). Cross-repo implementation: [platform IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md](../huddlestat-platform/docs/IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md).
 
 ## Related
 
 - [Violation audit (2026-05-30)](./hudl-canonical-violation-audit.md)
-- Platform: [hudl-canonical-violation-audit.md](../huddlestat/docs/hudl-canonical-violation-audit.md)
+- Platform: [hudl-canonical-violation-audit.md](../huddlestat-platform/docs/hudl-canonical-violation-audit.md)

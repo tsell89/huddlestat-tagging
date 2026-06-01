@@ -9,7 +9,7 @@ export function playToPublishPayload(play: LocalPlay) {
     id: _id,
     localGameId: _localGameId,
     synced: _synced,
-    convexPlayId: _convexPlayId,
+    cloudPlayId: _cloudPlayId,
     taggedAt: _taggedAt,
     ...playlistData
   } = play;

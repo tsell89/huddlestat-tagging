@@ -29,7 +29,7 @@ function samplePlay(overrides: Partial<LocalPlay> = {}): LocalPlay {
     kicker: emptyPlayerRef,
     interceptedBy: emptyPlayerRef,
     synced: false,
-    convexPlayId: null,
+    cloudPlayId: null,
     taggedAt: 1,
     ...overrides,
   };

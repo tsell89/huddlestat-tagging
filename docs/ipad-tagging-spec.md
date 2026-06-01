@@ -4,7 +4,7 @@
 >
 > **Related:** [field-position-model.md](./field-position-model.md) · [adr/0001-spot-encoding-field-name.md](./adr/0001-spot-encoding-field-name.md) · [dev-quickstart.md](./dev-quickstart.md) · [next-session-tagging-ux.md](./next-session-tagging-ux.md)
 >
-> **Do not rebuild** sync, Convex, or `PlaylistData` schema unless broken — those layers work.
+> **Do not rebuild** sync API, platform Postgres, or `PlaylistData` schema unless broken — those layers work.
 
 ---
 
@@ -375,6 +375,7 @@ API: `buildJerseyGridRankings()` in `lib/tagging/jerseyGridRank.ts`.
 
 ## 10. Open questions
 
+- **Game state on accidental quit (potential concern, not prioritized):** Saved plays and game metadata (score, phase, status, opening kickoff role) persist in local SQLite (`huddlestat.db`) and survive app restart — home screen resumes the game. **In-progress draft** (pad taps before SAVE) and transient UI (catch-up mode, edit-in-progress, spot sliders) live only in React state on `app/game/[id].tsx`; force-quit or OS kill mid-play loses that unsaved work. No draft checkpoint today. Revisit only if taggers report real data loss in the field.
 - XP attempt yard line: Hudl −3 vs +3 at opponent goal
 - After opponent TD + our XP block: who kicks off? (toggle defaults to last choice)
 - 2pt player slot matrix
@@ -412,7 +413,7 @@ Read: docs/ipad-tagging-spec.md, docs/field-position-model.md
 Implement: nextDraftAfterPlay in packages/shared, fix advanceSituation,
 HS touchback @ Own 20, auto COP on failed 4th, incomplete gainLoss=0.
 Unit tests for canonical drive in spec §2.4.
-Do NOT rebuild sync/Convex.
+Do NOT rebuild sync API / PlaylistData.
 ```
 
 ### Stats revisit (future)

@@ -10,7 +10,7 @@
 | `@huddlestat/shared` parsers/derivations | Official publish / MaxPreps coach upload UX |
 | Hudl 32-col CSV export | Platform live web app |
 
-Platform SSOT (sibling or GitHub): `../huddlestat/docs/hudl-canonical-architecture.md`
+Platform SSOT (sibling or GitHub): `../huddlestat-platform/docs/hudl-canonical-architecture.md`
 
 ## Hudl-canonical checklist
 
@@ -39,4 +39,4 @@ Violation audit pattern: [docs/hudl-canonical-violation-audit.md](./docs/hudl-ca
 
 ## After shared export changes
 
-Bump `tagging-ref.json` in platform repo `huddlestat` so CI picks up `@huddlestat/shared` changes.
+Bump `tagging-ref.json` in platform repo `huddlestat-platform` so CI picks up `@huddlestat/shared` changes.

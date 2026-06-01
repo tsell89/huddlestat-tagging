@@ -142,7 +142,7 @@ flowchart TD
 - Extend `PLAYLIST_DATA_HEADERS` with **`QTR`** immediately after `PLAY #` (32-column export; document non-standard vs raw Hudl in [`hudl-csv.md`](../packages/shared/fixtures/pbp/mapping/hudl-csv.md)).
 - Update `toPlaylistDataRow`, [`hudlCsv.ts`](../packages/shared/src/pbp/hudlCsv.ts), ingest script, CFBD mapper (`period` → `quarter`, cap at 5).
 - SQLite **schema v2** ([`schema.ts`](../apps/mobile/lib/db/schema.ts)): `plays.quarter INTEGER NOT NULL DEFAULT 1`; migration for existing rows.
-- Sync payload in [`engine.ts`](../apps/mobile/lib/sync/engine.ts): include `quarter` on play create (Convex mutation may need matching field—check and extend if plays table exists server-side).
+- Sync payload in [`publish.ts`](../apps/mobile/lib/sync/publish.ts): include `quarter` in publish body if platform `plays` JSON needs it—check `@huddlestat/db` schema.
 
 ### 1b. Game phase meta
 
@@ -305,7 +305,7 @@ Per [pbp-exception-ux.md](pbp-exception-ux.md): banner on Kickoff pad when user 
 - Passing `{ overtime: true }` into `liveDraftFromLastPlay` from mobile (explicitly deferred)
 - NCAA/NFL OT UX (corpus only; HS is product default)
 - Full stats revisit UX at breaks ([ipad-tagging-spec.md](ipad-tagging-spec.md) § deferred)
-- Convex schema changes beyond minimal play `quarter` field if server lacks it (flag during step 1a)
+- Platform Postgres schema changes beyond minimal play `quarter` field if server lacks it (flag during step 1a)
 
 ---
 

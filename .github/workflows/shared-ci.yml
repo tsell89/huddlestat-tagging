@@ -1,4 +1,4 @@
-# Reusable @huddlestat/shared CI — callable from huddlestat-tagging and huddlestat platform.
+# Reusable @huddlestat/shared CI — callable from huddlestat-tagging and huddlestat-platform.
 name: Shared package CI
 
 on:

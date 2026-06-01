@@ -13,7 +13,8 @@ export type LocalGame = {
   slug: string;
   teamCode: string;
   opponent: string;
-  convexGameId: string | null;
+  /** Platform Postgres game id after link (optional). */
+  cloudGameId: string | null;
   homeScore: number;
   awayScore: number;
   status: GameStatus;
@@ -27,16 +28,15 @@ export type LocalPlay = PlaylistData & {
   id: string;
   localGameId: string;
   synced: boolean;
-  convexPlayId: string | null;
+  /** Reserved for future per-play platform id; publish uses full snapshots. */
+  cloudPlayId: string | null;
   taggedAt: number;
 };
 
 export type OutboxStatus = "pending" | "syncing" | "synced" | "failed";
 
-export type OutboxMutationType =
-  | "games.getOrCreate"
-  | "plays.create"
-  | "games.updateStatus";
+/** Legacy FIFO outbox (unused); kept for schema compatibility. */
+export type OutboxMutationType = "publish.snapshot";
 
 export type OutboxItem = {
   id: string;
@@ -77,7 +77,7 @@ export type PlayRow = {
   intercepted_by_json: string;
   spot_encoding: string | null;
   synced: number;
-  convex_play_id: string | null;
+  cloud_play_id: string | null;
   tagged_at: number;
 };
 
@@ -113,14 +113,14 @@ export function rowToLocalPlay(row: PlayRow): LocalPlay {
     interceptedBy: parsePlayerRef(row.intercepted_by_json),
     spotEncoding: row.spot_encoding ?? undefined,
     synced: row.synced === 1,
-    convexPlayId: row.convex_play_id,
+    cloudPlayId: row.cloud_play_id,
     taggedAt: row.tagged_at,
   };
 }
 
-export function playToRow(play: LocalPlay): Omit<PlayRow, "synced" | "convex_play_id"> & {
+export function playToRow(play: LocalPlay): Omit<PlayRow, "synced" | "cloud_play_id"> & {
   synced: number;
-  convex_play_id: string | null;
+  cloud_play_id: string | null;
 } {
   return {
     id: play.id,
@@ -149,7 +149,7 @@ export function playToRow(play: LocalPlay): Omit<PlayRow, "synced" | "convex_pla
     intercepted_by_json: JSON.stringify(play.interceptedBy),
     spot_encoding: play.spotEncoding ?? null,
     synced: play.synced ? 1 : 0,
-    convex_play_id: play.convexPlayId,
+    cloud_play_id: play.cloudPlayId,
     tagged_at: play.taggedAt,
   };
 }

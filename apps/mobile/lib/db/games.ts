@@ -9,7 +9,7 @@ type GameRow = {
   slug: string;
   team_code: string;
   opponent: string;
-  convex_game_id: string | null;
+  cloud_game_id: string | null;
   home_score: number;
   away_score: number;
   status: GameStatus;
@@ -25,7 +25,7 @@ function rowToGame(row: GameRow): LocalGame {
     slug: row.slug,
     teamCode: row.team_code,
     opponent: row.opponent,
-    convexGameId: row.convex_game_id,
+    cloudGameId: row.cloud_game_id,
     homeScore: row.home_score,
     awayScore: row.away_score,
     status: row.status,
@@ -63,7 +63,7 @@ export async function createLocalGame(
   const slug = buildGameSlug(teamCode, opponent);
 
   await database.runAsync(
-    `INSERT INTO games (id, slug, team_code, opponent, convex_game_id, home_score, away_score, status, phase, ot_possession, created_at, updated_at)
+    `INSERT INTO games (id, slug, team_code, opponent, cloud_game_id, home_score, away_score, status, phase, ot_possession, created_at, updated_at)
      VALUES (?, ?, ?, ?, NULL, 0, 0, 'pregame', 'Q1', NULL, ?, ?)`,
     [id, slug, teamCode.trim(), opponent.trim(), now, now],
   );
@@ -71,17 +71,6 @@ export async function createLocalGame(
   const game = await getLocalGame(id);
   if (!game) throw new Error("Failed to create local game");
   return game;
-}
-
-export async function setConvexGameId(
-  localId: string,
-  convexGameId: string,
-): Promise<void> {
-  const database = getDb();
-  await database.runAsync(
-    `UPDATE games SET convex_game_id = ?, updated_at = ? WHERE id = ?`,
-    [convexGameId, Date.now(), localId],
-  );
 }
 
 export async function updateLocalGameStatus(

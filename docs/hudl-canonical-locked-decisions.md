@@ -1,6 +1,6 @@
 # Hudl-canonical locked decisions (2026-05-30)
 
-Platform SSOT: [../huddlestat/docs/hudl-canonical-locked-decisions.md](../huddlestat/docs/hudl-canonical-locked-decisions.md)
+Platform SSOT: [../huddlestat-platform/docs/hudl-canonical-locked-decisions.md](../huddlestat-platform/docs/hudl-canonical-locked-decisions.md)
 
 Summary for tagging-repo agents:
 
@@ -11,6 +11,6 @@ Summary for tagging-repo agents:
 | **D3** | Wire Hudl ingest first (thin slice), then live box scores, then game-page official display |
 | **D4** | Require `ingestSource: hudl_csv \| hudl_xlsx` on new `official_saturday` when CSV parse ships |
 
-Tagging repo implements parsers/credits only — game page behavior is platform (`huddlestat`).
+Tagging repo implements parsers/credits only — game page behavior is platform (`huddlestat-platform`).
 
-Cross-repo prompt: [../huddlestat/docs/IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md](../huddlestat/docs/IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md)
+Cross-repo prompt: [../huddlestat-platform/docs/IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md](../huddlestat-platform/docs/IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md)

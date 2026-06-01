@@ -142,7 +142,7 @@ If you see a different UI, you connected to **8081** (wrong repo). Quit Expo Go 
 | Cannot connect | Same Wi‑Fi; manual `exp://IP:8082`; check Local Network permission |
 | Wrong app | Port 8081 — use 8082 from `huddlestat-tagging` |
 | SAVE disabled | Select play type + result (defaults usually OK) |
-| Convex warning on home | Expected offline — QA does not require `.env` |
+| Cloud sync off on home | Expected offline — QA does not require `.env`; no warning banner |
 
 ---
 

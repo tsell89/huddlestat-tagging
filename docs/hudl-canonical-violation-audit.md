@@ -2,7 +2,7 @@
 
 Audit scope: `@huddlestat/shared`, tagging docs, free-tier export path, unofficial derivation helpers.
 
-Reference table: [hudl-canonical-tagging.md](./hudl-canonical-tagging.md) · platform SSOT: [../huddlestat/docs/hudl-canonical-architecture.md](../huddlestat/docs/hudl-canonical-architecture.md)
+Reference table: [hudl-canonical-tagging.md](./hudl-canonical-tagging.md) · platform SSOT: [../huddlestat-platform/docs/hudl-canonical-architecture.md](../huddlestat-platform/docs/hudl-canonical-architecture.md)
 
 ## Violations found
 
