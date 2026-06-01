@@ -102,6 +102,14 @@ import {
   publishIfConfigured,
   type SnapshotKind,
 } from "@/lib/sync/engine";
+import {
+  logQaCursorEvent,
+  logQaPhaseEvent,
+  logQaSaveEvent,
+  type QaSaveMode,
+} from "@/lib/qa/logger";
+import { QaLogExportButton } from "@/components/QaLogExportButton";
+import { catchUpHintMessage } from "@/lib/tagging/catchUpHint";
 
 function playToDraft(play: LocalPlay): PlaylistData {
   return {
@@ -426,6 +434,11 @@ export default function TaggingScreen() {
     setEditingPlayId(null);
     setCatchUpMode(false);
     setCatchUpHint(null);
+    void logQaCursorEvent({
+      game,
+      action: "resume-live",
+      nextPlayNumber: nextPlayNumber,
+    });
     const liveDraft = buildLiveDraft(
       plays,
       nextPlayNumber,
@@ -461,6 +474,13 @@ export default function TaggingScreen() {
   }
 
   function handleSelectPlay(play: LocalPlay) {
+    if (!game) return;
+    void logQaCursorEvent({
+      game,
+      action: "edit-play",
+      mode: "edit",
+      playNumber: play.playNumber,
+    });
     setEditingPlayId(play.id);
     setCatchUpMode(false);
     setCatchUpHint(null);
@@ -497,6 +517,13 @@ export default function TaggingScreen() {
     setCatchUpMode(true);
     setCatchUpHint("generic");
     setEditingPlayId(null);
+    void logQaCursorEvent({
+      game,
+      action: "catch-up-start",
+      mode: "catch-up",
+      catchUpHint: "generic",
+      nextPlayNumber: nextPlayNumber,
+    });
     const d = buildLiveDraft(
       plays,
       nextPlayNumber,
@@ -533,6 +560,14 @@ export default function TaggingScreen() {
   }
 
   function startQuarterReview(hint: CatchUpHint) {
+    if (game) {
+      void logQaCursorEvent({
+        game,
+        action: "quarter-review",
+        mode: "catch-up",
+        catchUpHint: hint,
+      });
+    }
     setCatchUpMode(true);
     setCatchUpHint(hint);
     setEditingPlayId(null);
@@ -584,6 +619,20 @@ export default function TaggingScreen() {
 
   async function applyPhaseChange(next: GamePhase) {
     if (!id || !game) return;
+    const phaseBefore = game.phase;
+    async function recordPhase(
+      phaseAfter: GamePhase,
+      extra?: { banner?: string | null; otPossession?: "us" | "them" },
+    ) {
+      await logQaPhaseEvent({
+        game: { ...game!, phase: phaseAfter },
+        action: `${phaseBefore}→${phaseAfter}`,
+        phaseBefore,
+        phaseAfter,
+        banner: extra?.banner,
+        otPossession: extra?.otPossession,
+      });
+    }
     if (next === "OT") {
       setShowOtModal(true);
       return;
@@ -594,6 +643,9 @@ export default function TaggingScreen() {
       }
       await finalizeLocalGame(id);
       setGame({ ...game, phase: "FINAL", status: "final" });
+      await recordPhase("FINAL", {
+        banner: catchUpHintMessage("quarter-review-q4"),
+      });
       triggerPublish(id, "final");
       return;
     }
@@ -601,6 +653,9 @@ export default function TaggingScreen() {
       await updateLocalGamePhase(id, "HALFTIME");
       setGame({ ...game, phase: "HALFTIME" });
       startQuarterReview("quarter-review-q2");
+      await recordPhase("HALFTIME", {
+        banner: catchUpHintMessage("quarter-review-q2"),
+      });
       triggerPublish(id, "halftime");
       return;
     }
@@ -608,6 +663,9 @@ export default function TaggingScreen() {
       await updateLocalGamePhase(id, "Q3");
       setGame({ ...game, phase: "Q3" });
       startHalftimeCatchUp();
+      await recordPhase("Q3", {
+        banner: catchUpHintMessage("halftime-kickoff"),
+      });
       triggerPublish(id, "live");
       return;
     }
@@ -620,6 +678,7 @@ export default function TaggingScreen() {
     } else if (game.phase === "Q3" && next === "Q4") {
       startQuarterReview("quarter-review-q3");
     }
+    await recordPhase(next);
     if (q !== null && draft) {
       setDraft({ ...draft, quarter: q });
     }
@@ -672,6 +731,18 @@ export default function TaggingScreen() {
       phase: "OT",
       otPossession,
       status: game.status === "pregame" ? "live" : game.status,
+    });
+    await logQaPhaseEvent({
+      game: {
+        ...game,
+        phase: "OT",
+        otPossession,
+        status: game.status === "pregame" ? "live" : game.status,
+      },
+      action: `${game.phase}→OT`,
+      phaseBefore: game.phase,
+      phaseAfter: "OT",
+      otPossession,
     });
   }
 
@@ -912,11 +983,21 @@ export default function TaggingScreen() {
 
   async function handleSavePlay() {
     if (!id || !draft || !game || !canSaveDraft(draft)) return;
+    const phaseBefore = game.phase;
+    const saveMode: QaSaveMode = editingPlayId
+      ? "edit"
+      : catchUpMode
+        ? "catch-up"
+        : "live";
+    const saveKind = editingPlayId ? "update" : "insert";
     setSaving(true);
     try {
       const toSave = normalizePlayOnSave(draft);
       const scoreBefore = { us: game.homeScore, them: game.awayScore };
       let updatedGame = game;
+      let savedPlayForLog: PlaylistData = toSave;
+      let nextDraftForLog: PlaylistData | null = null;
+      let nextKickoffRoleForLog = kickoffRole;
       if (editingPlayId) {
         const updated = await updateLocalPlay(editingPlayId, toSave);
         const newPlays = plays.map((p) =>
@@ -950,6 +1031,9 @@ export default function TaggingScreen() {
           setKickoffRoleState,
         );
         const liveDraft = withKickoffRole(nextChainDraft, nextKickoffRole);
+        nextDraftForLog = liveDraft;
+        nextKickoffRoleForLog = nextKickoffRole;
+        savedPlayForLog = toSave;
         const kickoff = initKickoffSpotsFromDraft(liveDraft);
         const punt = initPuntSpotsFromDraft(liveDraft);
         setKickoffSpots(kickoff);
@@ -1008,6 +1092,9 @@ export default function TaggingScreen() {
           setKickoffRoleState,
         );
         const next = withKickoffRole(nextChainDraft, nextKickoffRole);
+        nextDraftForLog = next;
+        nextKickoffRoleForLog = nextKickoffRole;
+        savedPlayForLog = toSave;
         const kickoff = initKickoffSpotsFromDraft(next);
         const punt = initPuntSpotsFromDraft(next);
         setKickoffSpots(kickoff);
@@ -1040,6 +1127,21 @@ export default function TaggingScreen() {
       }
       setUnsyncedCount(await countUnsyncedPlays(id));
       await refreshCounts();
+
+      if (nextDraftForLog) {
+        void logQaSaveEvent({
+          game: updatedGame,
+          savedPlay: savedPlayForLog,
+          nextDraft: nextDraftForLog,
+          mode: saveMode,
+          catchUpHint,
+          kickoffRole: nextKickoffRoleForLog,
+          phaseBefore,
+          phaseAfter: updatedGame.phase,
+          scoreAfter: `${updatedGame.homeScore}–${updatedGame.awayScore}`,
+          saveKind,
+        });
+      }
 
       const scoreChanged =
         updatedGame.homeScore !== scoreBefore.us ||
@@ -1075,6 +1177,10 @@ export default function TaggingScreen() {
       />
 
       <GamePhaseBar phase={game.phase} onPhasePress={(p) => void applyPhaseChange(p)} />
+
+      <View style={styles.qaExportRow}>
+        <QaLogExportButton localGameId={id!} slug={game.slug} compact />
+      </View>
 
       <StartOtModal
         visible={showOtModal}
@@ -1142,6 +1248,11 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 18,
     color: LAYOUT.colors.textMuted,
+  },
+  qaExportRow: {
+    paddingHorizontal: LAYOUT.padding.screen,
+    paddingVertical: 4,
+    backgroundColor: "#0f172a",
   },
   main: {
     flex: 1,

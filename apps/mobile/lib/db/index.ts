@@ -4,6 +4,7 @@ import {
   MIGRATIONS_V2,
   MIGRATIONS_V3,
   MIGRATIONS_V4,
+  MIGRATIONS_V5,
   SCHEMA_VERSION,
 } from "./schema";
 
@@ -86,6 +87,13 @@ async function migrateSchema(
       await database.execAsync(MIGRATIONS_V4[0]!);
     }
     version = 4;
+  }
+
+  if (version < 5) {
+    for (const sql of MIGRATIONS_V5) {
+      await database.execAsync(sql);
+    }
+    version = 5;
   }
 
   await database.runAsync(

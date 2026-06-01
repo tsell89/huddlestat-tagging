@@ -8,4 +8,8 @@ dist
 .env.local
 .env*.local
 .DS_Store
+# Live iPad QA stream (Mac sidecar) — on disk for agents; do not commit session noise
+docs/qa-sessions/live/session.jsonl
+docs/qa-sessions/live/last-replay.txt
+docs/qa-sessions/live/archives/
 npm-debug.log*

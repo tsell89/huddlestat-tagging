@@ -12,7 +12,9 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test:pbp": "tsx --test src/pbpReplay.test.ts src/pbpInvariants.test.ts src/pbpScenarios.test.ts src/pbp/cfbdMapper.test.ts",
-    "test": "tsx --test src/playChain.test.ts src/scoreFromPlays.test.ts src/defensiveCredits.test.ts src/specialTeamsCredits.test.ts src/reconcileMaxPrepsExport.test.ts src/maxPrepsBoxScore.test.ts src/hudlCanonical.test.ts src/pbp/hudlCsv.test.ts && npm run test:pbp",
+    "test:qa": "tsx --test src/qa/replayQaLog.test.ts",
+    "qa:replay": "tsx scripts/replay-qa-log.mjs",
+    "test": "tsx --test src/playChain.test.ts src/scoreFromPlays.test.ts src/defensiveCredits.test.ts src/specialTeamsCredits.test.ts src/reconcileMaxPrepsExport.test.ts src/maxPrepsBoxScore.test.ts src/hudlCanonical.test.ts src/pbp/hudlCsv.test.ts src/qa/replayQaLog.test.ts && npm run test:pbp",
     "lint": "echo 'no lint configured'"
   },
   "devDependencies": {

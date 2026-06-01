@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 /** Idempotent upgrades from SCHEMA_VERSION 1 → 2. */
 export const MIGRATIONS_V2 = [
@@ -16,6 +16,20 @@ export const MIGRATIONS_V3 = [
 /** Idempotent upgrades from SCHEMA_VERSION 3 → 4 (drop legacy completion column). */
 export const MIGRATIONS_V4 = [
   `ALTER TABLE plays DROP COLUMN completion`,
+] as const;
+
+/** Idempotent upgrades from SCHEMA_VERSION 4 → 5 (automatic QA session log). */
+export const MIGRATIONS_V5 = [
+  `CREATE TABLE IF NOT EXISTS qa_log (
+    id TEXT PRIMARY KEY NOT NULL,
+    local_game_id TEXT NOT NULL,
+    seq INTEGER NOT NULL,
+    entry_type TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    FOREIGN KEY (local_game_id) REFERENCES games(id)
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_qa_log_game ON qa_log(local_game_id, seq);`,
 ] as const;
 
 export const MIGRATIONS = [
