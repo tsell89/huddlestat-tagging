@@ -6,6 +6,7 @@ import {
   MIGRATIONS_V4,
   MIGRATIONS_V5,
   MIGRATIONS_V6,
+  MIGRATIONS_V7,
   SCHEMA_VERSION,
 } from "./schema";
 
@@ -50,6 +51,17 @@ async function tableHasColumn(
     `PRAGMA table_info(${table})`,
   );
   return cols.some((c) => c.name === column);
+}
+
+async function tableExists(
+  database: SQLite.SQLiteDatabase,
+  table: string,
+): Promise<boolean> {
+  const row = await database.getFirstAsync<{ name: string }>(
+    `SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?`,
+    [table],
+  );
+  return Boolean(row);
 }
 
 async function migrateSchema(
@@ -105,6 +117,15 @@ async function migrateSchema(
       await database.execAsync(MIGRATIONS_V6[1]!);
     }
     version = 6;
+  }
+
+  if (version < 7) {
+    if (await tableExists(database, "outbox")) {
+      for (const sql of MIGRATIONS_V7) {
+        await database.execAsync(sql);
+      }
+    }
+    version = 7;
   }
 
   await database.runAsync(

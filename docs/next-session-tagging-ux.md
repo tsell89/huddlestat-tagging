@@ -91,6 +91,6 @@ Priority: play-type screens + TD → XP/2pt (or block) transitions + tackle spot
 ## Out of scope (later)
 
 - Roster grid from platform Postgres `players` table (future)
-- Undo last play + outbox reconcile
+- Undo last play + optional snapshot re-publish
 - Session B: Huddle screenshot comparison
 - Web dashboard polish beyond live play log
