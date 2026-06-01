@@ -17,11 +17,6 @@ config.resolver.nodeModulesPaths = [
   path.resolve(monorepoRoot, "node_modules"),
 ];
 
-config.resolver.alias = {
-  ...config.resolver.alias,
-  "@convex": path.resolve(monorepoRoot, "convex"),
-};
-
 // @huddlestat/shared uses NodeNext ESM imports (*.js → *.ts). Metro needs help.
 const defaultResolveRequest = config.resolver.resolveRequest;
 

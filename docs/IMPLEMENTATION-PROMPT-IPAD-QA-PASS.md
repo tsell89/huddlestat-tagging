@@ -55,7 +55,7 @@ You are my **live iPad QA partner** for HuddleStat (`huddlestat-tagging` on `mai
 
 ## Do NOT
 
-- Rebuild sync/Convex/schema unless blocking bug
+- Rebuild sync API / PlaylistData schema unless blocking bug
 - Mark Package I ✓ in `ipad-tagging-spec.md` until all MUST checklist rows pass on device
 - Use port 8081 or `--tunnel`
 

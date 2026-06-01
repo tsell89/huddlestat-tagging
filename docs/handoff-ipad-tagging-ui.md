@@ -2,14 +2,14 @@
 
 **Milestone (2026-05-26):** Sync + live web working — see [dev-quickstart.md](./dev-quickstart.md). **Next UX plan:** [next-session-tagging-ux.md](./next-session-tagging-ux.md).
 
-Use this document to start a **new Cursor session** focused on redesigning the live tagging surface. **Do not rebuild sync, Convex, or PlaylistData schema** unless a bug is found — those layers work.
+Use this document to start a **new Cursor session** focused on redesigning the live tagging surface. **Do not rebuild sync API, PlaylistData schema, or platform Postgres** unless a bug is found — those layers work.
 
 ---
 
 ## Copy-paste prompt for the next agent
 
 ```
-You are continuing HuddleStat (monorepo at /Users/tsellhorn/HuddleStat).
+You are continuing HuddleStat Tagging (repo: huddlestat-tagging; platform: sibling huddlestat-platform).
 
 READ FIRST (in order):
 1. ~/.cursor/plans/huddlestat_architecture_plan_e44998b1.plan.md — especially "iPad tagging surface" and "iPad-specific UX choices" (landscape, large tap targets, one-screen tagging, minimize taps).
@@ -31,15 +31,15 @@ The current Phase 2 MVP UI is functionally complete but **UX is unacceptable** f
 
 ## What is already done (keep)
 
-- Phase 1: Convex schema, web `/game/[slug]`, game create on web.
-- Phase 2 backend: expo-sqlite, outbox FIFO, sync to Convex (`lib/sync/`, `lib/db/`), Expo SDK 54, monorepo metro/babel fixes.
+- Phase 1: Platform Postgres + web `/game/[slug]`, game create on web.
+- Phase 2 backend: expo-sqlite, milestone publish to sync API (`lib/sync/`, `lib/db/`), Expo SDK 54, monorepo metro/babel fixes.
 - Shared: `PlaylistData`, `defaultKickoffPlay`, play # join key.
 - Mobile: home, new game, tagging route `app/game/[id].tsx`, sync bar ("N plays to sync"), resume game, kickoff as play #1 default.
 - Player fields exist in data model: kicker, returner, returnYards, kickYards, tackler1/2, passer, receiver, rusher, etc.
 
 ## Known issues to fix in UI (not necessarily in sync)
 
-- iPad physical device: use **cloud** `EXPO_PUBLIC_CONVEX_URL` (`https://….convex.cloud`), not local `http://127.0.0.1`. Web live link uses Mac LAN IP for port 3000 only — see [dev-quickstart.md](./dev-quickstart.md).
+- iPad physical device: use **LAN** `EXPO_PUBLIC_SYNC_API_URL` (not `127.0.0.1`). Web live link uses Mac LAN IP for port 3000 — see [dev-quickstart.md](./dev-quickstart.md) and [cloud-sync.md](./cloud-sync.md).
 - Web and iPad only match when opening the **same game slug** shown on the tagger.
 - Navigation: back from tagging should go home (`router.replace('/')`) — already fixed.
 
@@ -88,8 +88,8 @@ From architecture plan:
 
 | Area | Status |
 |------|--------|
-| Phase 1 web + Convex | Done |
-| Phase 2 SQLite + outbox + sync | Done (needs LAN IP on real iPad) |
+| Phase 1 web + Postgres platform | Done |
+| Phase 2 SQLite + milestone publish | Done (needs LAN IP on real iPad) |
 | Phase 2 tagging UI | **Functional MVP, UX failed review** |
 | PlaylistData fields | Wired in DB + sync; UI uses keyboard/steppers |
 
@@ -102,7 +102,7 @@ From architecture plan:
 | `apps/mobile/components/PlayPlayerFields.tsx` | Conditional player text inputs |
 | `apps/mobile/lib/db/plays.ts` | `saveLocalPlay`, local storage |
 | `packages/shared/src/index.ts` | Enums, `PlaylistData`, `defaultKickoffPlay` |
-| `convex/plays.ts` | `create` mutation for sync |
+| `apps/sync-api` (platform) | `POST /v1/publish` ingest |
 
 ### User feedback (verbatim themes)
 
@@ -133,16 +133,19 @@ From architecture plan:
 ## Dev setup reminder
 
 ```bash
-cd /Users/tsellhorn/HuddleStat
-nvm use
-npx convex dev          # terminal 1
-npm run dev:web         # terminal 2, Node 22+
-npm run dev:mobile:clear # terminal 3; iPad uses Expo Go SDK 54
+# Platform (Postgres + sync API + web)
+cd ~/huddlestat-platform && nvm use && npm run db:up && npm run db:migrate
+npm run dev:sync   # terminal 1 — port 3001
+npm run dev:web    # terminal 2 — port 3000
+
+# Tagging (this repo)
+cd ~/huddlestat-tagging && npm run dev:mobile:clear  # terminal 3
 ```
 
-Physical iPad `.env`:
+Physical iPad `.env` (see `apps/mobile/.env.example`):
 
 ```
-EXPO_PUBLIC_CONVEX_URL=http://<MAC_LAN_IP>:3210
+EXPO_PUBLIC_SYNC_API_URL=http://<MAC_LAN_IP>:3001
+EXPO_PUBLIC_SYNC_API_KEY=dev-sync-key
 EXPO_PUBLIC_WEB_BASE_URL=http://<MAC_LAN_IP>:3000
 ```

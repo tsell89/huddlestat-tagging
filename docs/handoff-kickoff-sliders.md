@@ -1,6 +1,6 @@
 # Handoff: Kickoff sliders (READ THIS FIRST)
 
-> **For the next agent.** The user is blocked on kickoff UX. Do NOT re-scaffold sync, Convex, or PlaylistData. Fix the kickoff slider UI only, using this spec exactly.
+> **For the next agent.** The user is blocked on kickoff UX. Do NOT re-scaffold sync API, Postgres platform, or PlaylistData. Fix the kickoff slider UI only, using this spec exactly.
 
 > **Field / yard math:** [field-position-model.md](field-position-model.md) is canonical (0–100 axis, Hudl −49…50…+49, **0** = TD or safety).
 
@@ -22,7 +22,7 @@ READ FIRST:
 Mission: Fix kickoff caught-at and returned-to sliders per the spec below.
 Integrate Touchback (far left) and Touchdown (far right) on the slider row.
 
-Do NOT change sync/Convex/PlaylistData schema.
+Do NOT change sync API / PlaylistData schema.
 Display own territory as "Own 5" never "-5".
 Hudl export still uses signed integers (-5, 25, etc.) in playlistDataSchema.
 

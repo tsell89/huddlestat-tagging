@@ -26,7 +26,7 @@
 
 ## Manual iPad session — §2.4 only
 
-Connection: `REACT_NATIVE_PACKAGER_HOSTNAME=$(ipconfig getifaddr en0) npx expo start --clear --lan --port 8082`. Convex unset (expected). Offline OK.
+Connection: `REACT_NATIVE_PACKAGER_HOSTNAME=$(ipconfig getifaddr en0) npx expo start --clear --lan --port 8082`. Sync API unset (expected). Offline OK.
 
 | Play | Tag | Device result | Notes |
 |------|-----|---------------|-------|
@@ -50,7 +50,7 @@ Play 7 was not required to save for §2.4 acceptance; kickoff-role defect record
 | Node 22 (`nvm use`) | ✓ | Required before Metro |
 | Expo LAN port **8082** | ✓ | Do not use 8081 (wrong repo) or `--tunnel` (ngrok body error) |
 | Expo Go Local Network | ✓ | User-enabled on iPad |
-| Convex / sync rebuild | — | Intentionally skipped per QA scope |
+| Sync API rebuild | — | Intentionally skipped per QA scope |
 | Prior automated-only rows | ✓ | `npm install`, typecheck, unit tests unchanged from 2026-05-27 agent review |
 
 ---

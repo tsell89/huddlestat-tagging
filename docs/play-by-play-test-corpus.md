@@ -4,7 +4,7 @@ Node-only regression corpus for [`nextDraftAfterPlay`](../packages/shared/src/pl
 
 **Related:** [ipad-tagging-spec.md](./ipad-tagging-spec.md) §6 transition matrix · [field-position-model.md](./field-position-model.md) · [overtime-rules.md](./overtime-rules.md) · [pbp-exception-ux.md](./pbp-exception-ux.md)
 
-**Out of scope:** Convex sync, Gate 3 roster, `PlaylistData` schema changes (unless a replay failure proves breakage), iPad/Expo tests.
+**Out of scope:** Platform sync API, Gate 3 roster, `PlaylistData` schema changes (unless a replay failure proves breakage), iPad/Expo tests.
 
 ---
 

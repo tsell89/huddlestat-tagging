@@ -1,6 +1,6 @@
 # HuddleStat Tagging
 
-Open-source **iPad play tagging** for high school football. Tag live on the sideline, export **Hudl-compatible CSV**, and optionally sync to [HuddleStat Cloud](https://github.com/tsell89/huddlestat) (commercial hosted service).
+Open-source **iPad play tagging** for high school football. Tag live on the sideline, export **Hudl-compatible CSV**, and optionally sync to [HuddleStat Platform](https://github.com/tsell89/huddlestat-platform) (commercial hosted service).
 
 **Friday workflow:** tag on iPad → export Hudl 32-col CSV → coach uploads to Hudl. After film, coach corrects in Hudl; **official stats** live in Hudl and the hosted platform via Hudl ingest (`official_saturday`) — iPad tagging is **unofficial** only. See [docs/hudl-canonical-tagging.md](./docs/hudl-canonical-tagging.md).
 
@@ -15,7 +15,7 @@ Open-source **iPad play tagging** for high school football. Tag live on the side
 
 ## What's not included (commercial platform)
 
-Live web dashboard, Convex storage, media guides, two-deep rosters, and hosted stats live in the private **[huddlestat](https://github.com/tsell89/huddlestat)** repo.
+Live web dashboard, Postgres storage, media guides, two-deep rosters, and hosted stats live in the private **[huddlestat-platform](https://github.com/tsell89/huddlestat-platform)** repo.
 
 ## Quick start
 
@@ -28,7 +28,7 @@ cp apps/mobile/.env.example apps/mobile/.env   # optional: cloud sync URL
 npm run dev:mobile
 ```
 
-Tagging works **fully offline** without `.env`. Set `EXPO_PUBLIC_CONVEX_URL` only if you run [HuddleStat Platform](https://github.com/tsell89/huddlestat) or your own compatible backend.
+Tagging works **fully offline** without `.env`. Set `EXPO_PUBLIC_SYNC_API_URL` and related vars only if you run [HuddleStat Platform](https://github.com/tsell89/huddlestat-platform) or your own compatible sync API — see [docs/cloud-sync.md](./docs/cloud-sync.md).
 
 ## Docs
 
@@ -39,7 +39,7 @@ Tagging works **fully offline** without `.env`. Set `EXPO_PUBLIC_CONVEX_URL` onl
 
 ## CI and platform integration
 
-`@huddlestat/shared` tests run via [`.github/workflows/shared-ci.yml`](./.github/workflows/shared-ci.yml), a **reusable workflow** that the private [huddlestat](https://github.com/tsell89/huddlestat) platform repo calls on every PR. The platform pins which tagging ref to test in its `tagging-ref.json`.
+`@huddlestat/shared` tests run via [`.github/workflows/shared-ci.yml`](./.github/workflows/shared-ci.yml), a **reusable workflow** that the private [huddlestat-platform](https://github.com/tsell89/huddlestat-platform) repo calls on every PR. The platform pins which tagging ref to test in its `tagging-ref.json`.
 
 Shared-package fixtures live under `packages/shared/fixtures/` so CI never depends on checking out the platform repo.
 

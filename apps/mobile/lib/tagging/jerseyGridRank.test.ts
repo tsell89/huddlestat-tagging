@@ -20,7 +20,7 @@ function mockPlay(overrides: Partial<LocalPlay> & Pick<LocalPlay, "playNumber">)
     id: `play-${overrides.playNumber}`,
     localGameId: "game-1",
     synced: false,
-    convexPlayId: null,
+    cloudPlayId: null,
     taggedAt: 0,
     ...overrides,
   };

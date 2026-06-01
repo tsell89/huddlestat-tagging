@@ -7,13 +7,13 @@ Paste the block below when starting Hudl-canonical work in **huddlestat-tagging*
 You are working on **huddlestat-tagging** (MIT) — iPad live tagging + `@huddlestat/shared`.
 
 **Platform SSOT (merged 2026-05-30):** read sibling or GitHub docs before changing stats semantics:
-- `../huddlestat/docs/hudl-canonical-architecture.md` — layer/source table + forbidden paths
+- `../huddlestat-platform/docs/hudl-canonical-architecture.md` — layer/source table + forbidden paths
 - [docs/hudl-canonical-tagging.md](./hudl-canonical-tagging.md) — **this repo's SSOT** (links platform + tagging layer table)
-- `../huddlestat/docs/hudl-canonical-violation-audit.md` — platform audit pattern
+- `../huddlestat-platform/docs/hudl-canonical-violation-audit.md` — platform audit pattern
 - [docs/hudl-canonical-violation-audit.md](./hudl-canonical-violation-audit.md) — tagging audit
 - `docs/maxpreps-stat-decisions.md` — B1/B7/B11 revised for Hudl-canonical
 - [docs/hudl-canonical-locked-decisions.md](./hudl-canonical-locked-decisions.md) — **D1–D4 locked product decisions**
-- `../huddlestat/docs/IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md` — **cross-repo implementation prompt**
+- `../huddlestat-platform/docs/IMPLEMENTATION-PROMPT-HUDL-CANONICAL.md` — **cross-repo implementation prompt**
 
 ## Hudl-canonical — tagging repo scope
 
@@ -103,4 +103,4 @@ Re-run when changing stats semantics or ingest paths:
 
 ### After merge
 
-Bump `tagging-ref.json` in platform repo `huddlestat` so CI picks up shared export changes.
+Bump `tagging-ref.json` in platform repo `huddlestat-platform` so CI picks up shared export changes.

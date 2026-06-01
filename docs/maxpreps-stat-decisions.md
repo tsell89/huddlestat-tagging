@@ -10,7 +10,7 @@ Living decision log for HuddleStat → MaxPreps export semantics. **Product rule
 
 ## Section A — shipped (do not re-decide)
 
-Merged in huddlestat-tagging + huddlestat:
+Merged in huddlestat-tagging + huddlestat-platform:
 
 - `packages/shared/src/defensiveCredits.ts` — shared tackle / TFL / sack rules (A1–A5)
 - `applyDefensiveCreditsToMap()` used by both `maxPrepsBoxScore.ts` and platform `seasonRollup.ts`
@@ -26,7 +26,7 @@ Merged in huddlestat-tagging + huddlestat:
 
 ## Section B — context (locked, do not re-decide)
 
-- **B1 (revised 2026-05-30 — Hudl-canonical):** **Official stats canonical in Hudl.** After film, coach corrects in Hudl; platform ingests **full 32-col Hudl export** (`parseHudlCsv`) for `official_saturday`. **Friday iPad tag is unofficial only** — not the official commit source. See [hudl-canonical-tagging.md](./hudl-canonical-tagging.md) and platform [Hudl-canonical](../huddlestat/docs/hudl-canonical-architecture.md).
+- **B1 (revised 2026-05-30 — Hudl-canonical):** **Official stats canonical in Hudl.** After film, coach corrects in Hudl; platform ingests **full 32-col Hudl export** (`parseHudlCsv`) for `official_saturday`. **Friday iPad tag is unofficial only** — not the official commit source. See [hudl-canonical-tagging.md](./hudl-canonical-tagging.md) and platform [Hudl-canonical](../huddlestat-platform/docs/hudl-canonical-architecture.md).
 - **B2:** `PLAY TYPE`, `KICKER`, `KICK YARDS`, `QTR`, etc. are expected on **32-col** committed plays (Hudl after film, or iPad export uploaded to Hudl).
 - MaxPreps `.txt` **primary path = Hudl download** — HuddleStat-derived `.txt` is parity/testing only (B7).
 - HuddleStat play log = foundation; don't let MaxPreps/Hudl stat semantics drive our model.

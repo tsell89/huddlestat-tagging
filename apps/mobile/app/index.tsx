@@ -18,8 +18,6 @@ import { useSync } from "@/context/sync-context";
 import { playsToSyncHint } from "@/lib/sync/copy";
 import { getLiveGameUrl } from "@/lib/sync/config";
 
-const convexConfigured = Boolean(process.env.EXPO_PUBLIC_CONVEX_URL);
-
 type GameSummary = LocalGame & {
   playCount: number;
   unsyncedPlayCount: number;
@@ -68,16 +66,6 @@ export default function HomeScreen() {
         <Text style={styles.brand}>HuddleStat</Text>
         <Text style={styles.subtitle}>iPad Tagger · offline-first</Text>
       </View>
-
-      {!convexConfigured ? (
-        <View style={styles.warn}>
-          <Text style={styles.warnTitle}>Convex not configured</Text>
-          <Text style={styles.warnBody}>
-            Set EXPO_PUBLIC_CONVEX_URL in apps/mobile/.env (from npx convex dev) to
-            enable sync to the live web dashboard.
-          </Text>
-        </View>
-      ) : null}
 
       <View style={styles.actions}>
         {resumeGame ? (
@@ -155,13 +143,8 @@ export default function HomeScreen() {
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>
-          Phase 2 · SQLite + outbox · PlaylistData schema
+          Offline-first · Hudl CSV export · optional platform sync
         </Text>
-        {convexConfigured ? (
-          <Text style={styles.footerLink}>
-            Web viewer: set NEXT_PUBLIC_CONVEX_URL on apps/web
-          </Text>
-        ) : null}
       </View>
     </View>
   );
@@ -187,24 +170,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#64748b",
     marginTop: 4,
-  },
-  warn: {
-    backgroundColor: "#fffbeb",
-    borderWidth: 1,
-    borderColor: "#fcd34d",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-  },
-  warnTitle: {
-    fontWeight: "600",
-    color: "#92400e",
-    marginBottom: 4,
-  },
-  warnBody: {
-    color: "#a16207",
-    fontSize: 14,
-    lineHeight: 20,
   },
   actions: {
     marginBottom: 24,
@@ -321,9 +286,5 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 13,
     color: "#94a3b8",
-  },
-  footerLink: {
-    fontSize: 12,
-    color: "#64748b",
   },
 });

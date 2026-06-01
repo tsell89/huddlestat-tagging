@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 /** Idempotent upgrades from SCHEMA_VERSION 1 → 2. */
 export const MIGRATIONS_V2 = [
@@ -32,13 +32,19 @@ export const MIGRATIONS_V5 = [
   `CREATE INDEX IF NOT EXISTS idx_qa_log_game ON qa_log(local_game_id, seq);`,
 ] as const;
 
+/** Rename legacy Convex-era remote id columns (v5 → v6). */
+export const MIGRATIONS_V6 = [
+  `ALTER TABLE games RENAME COLUMN convex_game_id TO cloud_game_id`,
+  `ALTER TABLE plays RENAME COLUMN convex_play_id TO cloud_play_id`,
+] as const;
+
 export const MIGRATIONS = [
   `CREATE TABLE IF NOT EXISTS games (
     id TEXT PRIMARY KEY NOT NULL,
     slug TEXT NOT NULL UNIQUE,
     team_code TEXT NOT NULL,
     opponent TEXT NOT NULL,
-    convex_game_id TEXT,
+    cloud_game_id TEXT,
     home_score INTEGER NOT NULL DEFAULT 0,
     away_score INTEGER NOT NULL DEFAULT 0,
     status TEXT NOT NULL DEFAULT 'pregame',
@@ -71,7 +77,7 @@ export const MIGRATIONS = [
     intercepted_by_json TEXT NOT NULL,
     spot_encoding TEXT,
     synced INTEGER NOT NULL DEFAULT 0,
-    convex_play_id TEXT,
+    cloud_play_id TEXT,
     tagged_at INTEGER NOT NULL,
     FOREIGN KEY (local_game_id) REFERENCES games(id),
     UNIQUE(local_game_id, play_number)

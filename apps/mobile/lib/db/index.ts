@@ -5,6 +5,7 @@ import {
   MIGRATIONS_V3,
   MIGRATIONS_V4,
   MIGRATIONS_V5,
+  MIGRATIONS_V6,
   SCHEMA_VERSION,
 } from "./schema";
 
@@ -94,6 +95,16 @@ async function migrateSchema(
       await database.execAsync(sql);
     }
     version = 5;
+  }
+
+  if (version < 6) {
+    if (await tableHasColumn(database, "games", "convex_game_id")) {
+      await database.execAsync(MIGRATIONS_V6[0]!);
+    }
+    if (await tableHasColumn(database, "plays", "convex_play_id")) {
+      await database.execAsync(MIGRATIONS_V6[1]!);
+    }
+    version = 6;
   }
 
   await database.runAsync(
