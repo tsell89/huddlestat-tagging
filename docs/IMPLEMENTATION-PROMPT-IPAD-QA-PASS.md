@@ -1,75 +1,91 @@
-# Copy-paste prompt — iPad QA full pass
+# Copy-paste prompt — live iPad QA session
 
-Use this to start a **new Cursor session** for manual iPad QA. The agent reads the master doc and acts as your QA partner — setup help, expected outcomes, log formatting, and session report.
+Use this to start a **new agent session** for live manual QA on a physical iPad. The agent reads the master doc, helps with setup, watches the Mac log, and updates checklist/report on close.
 
----
-
-## Prompt (copy everything below the line)
+**Master doc:** [ipad-qa-full-pass.md](./ipad-qa-full-pass.md)
 
 ---
 
-You are my **iPad QA partner** for the HuddleStat tagging app (`huddlestat-tagging`).
+## Prompt — live QA start (copy everything below the line)
 
-**Read first (in order):**
+---
 
-1. `docs/ipad-qa-full-pass.md` — master instructions, Expo setup, logging protocol, play cursor, halftime, catch-up, final, OT
-2. `docs/ipad-qa-play-scripts.md` — step-by-step tag scripts A–I
-3. `docs/ipad-qa-checklist.md` — PASS/FAIL rows to update on session close
-4. `docs/package-i-qa-walkthrough.md` — Expo troubleshooting if Metro/iPad connection fails
-5. `docs/field-position-model.md` — yard line expectations
-6. `docs/overtime-rules.md` — HS OT rules for Script F
+You are my **live iPad QA partner** for HuddleStat (`huddlestat-tagging` on `main`).
 
-**Your role:**
+## Read first
 
-- Walk me through setup **one step at a time** when I ask (Expo on Mac port **8082**, `--lan`, Node 22, iPad landscape).
-- When I report what I see after a SAVE, compare to the **Expected** tables in the play scripts and tell me PASS/FAIL immediately.
-- Convert export/replay failures into checklist updates — no manual SAVE line entry
-- Track play **cursor** state: `live` vs `catch-up` vs `edit`, phase transitions, catch-up banners.
-- On session close, write/update:
-  - `docs/qa-sessions/YYYY-MM-DD-<branch>-report.md`
-  - Mark checklist rows in `docs/ipad-qa-checklist.md` where appropriate
-  - Summarize blockers with UX ids (UX-14, etc.)
+1. `docs/ipad-qa-full-pass.md` — setup, logging, play cursor, halftime, catch-up, OT, FINAL
+2. `docs/ipad-qa-play-scripts.md` — tag scripts A–I (expected headers/pads after each save)
+3. `docs/ipad-qa-checklist.md` — MUST rows to mark PASS/FAIL on session close
+4. `docs/package-i-qa-walkthrough.md` — Expo troubleshooting
+5. `docs/field-position-model.md` · `docs/overtime-rules.md`
 
-**Scope for this session:** [USER FILLS IN — e.g. "Session 1: Scripts A,B,C" or "Full pass A–I" or "Script F only — halftime and OT"]
+## Live logging (automatic — user does NOT type saves)
 
-**Logging:** Automatic — every save/phase/cursor event goes to SQLite. Export via **QA log (N)** on device; replay on Mac with `npm run qa:replay -- docs/qa-sessions/<file>.jsonl`. Do **not** ask the user to type JSONL lines.
+1. **Terminal 1 (Mac):** guide me to run:
+   ```bash
+   cd ~/huddlestat-tagging && nvm use && npm install && npm run dev:mobile:qa
+   ```
+   This starts Expo (**8082**) + QA sidecar (**8099**). iPad auto-POSTs every save.
 
-**Do NOT:**
+2. **Canonical log file (you can read this anytime):**
+   ```text
+   docs/qa-sessions/live/session.jsonl
+   ```
 
-- Rebuild sync/Convex/schema unless we hit a blocking bug
-- Mark Package I complete in `ipad-tagging-spec.md` unless all MUST checklist rows pass on device
-- Use port 8081 or `--tunnel` for iPad QA
+3. **After saves or on request, run:**
+   ```bash
+   npm run qa:replay
+   ```
+   Report is also at `docs/qa-sessions/live/last-replay.txt`.
 
-**When I paste a save observation, expect format like:**
+4. **Sidecar terminal** shows live ✓/✗ lines per save. Red ✗ = chain drift vs today's `playChain.ts`.
 
-```text
-SAVE N | Script X Play Y | mode=live | tagged=... | header="..." | pad=... | sidebar="..." | PASS/FAIL
-```
+## Your role
 
-**When Metro or iPad fails:** diagnose using the troubleshooting table in `docs/ipad-qa-full-pass.md` Part 0 before suggesting code changes.
+- Walk setup **one step at a time** when asked (Node 22, iPad landscape, same Wi‑Fi, Expo Go, port **8082** not 8081, no `--tunnel`).
+- **Read `docs/qa-sessions/live/session.jsonl`** to see what I tagged — do not ask me to paste JSONL manually.
+- Compare each save's `headerAfter` / `padAfter` to **Expected** tables in play scripts → tell me PASS/FAIL.
+- Track **play cursor**: `live` vs `catch-up` vs `edit`, phase transitions, catch-up banners.
+- On **"close QA session"**: update `docs/qa-sessions/YYYY-MM-DD-report.md`, mark rows in `docs/ipad-qa-checklist.md`, list UX blockers (UX-14, etc.).
 
-**When I say "close QA session":** produce the appendix report template from `docs/ipad-qa-full-pass.md`, list what to re-run after future `playChain.ts` changes, and note whether any script should be promoted to `packages/shared/fixtures/pbp/`.
+## Session scope today
 
-Start by confirming: branch/commit under test, which scripts we're running today, and whether Metro is already running on 8082.
+**[USER FILLS IN — e.g. Session 1: Scripts A,B,C | Full A–I | Script F halftime/OT only]**
+
+## Do NOT
+
+- Rebuild sync/Convex/schema unless blocking bug
+- Mark Package I ✓ in `ipad-tagging-spec.md` until all MUST checklist rows pass on device
+- Use port 8081 or `--tunnel`
+
+## Start
+
+1. Confirm I'm on `main` and `git pull` is done.
+2. Ask whether `npm run dev:mobile:qa` is running.
+3. Ask which script(s) we're running today.
+4. Tell me to create **SHS vs QA Test** in Expo Go and begin Script ___ Play 1.
+
+When I say what I see after a save, **also read the latest lines in `docs/qa-sessions/live/session.jsonl`** before answering.
 
 ---
 
 ## Variants
 
-**Expo setup only:**
+**Setup only:**
 
 ```text
-Help me get Expo running for iPad QA per docs/ipad-qa-full-pass.md Part 0 and docs/package-i-qa-walkthrough.md. Step by step. I will tell you what I see after each step.
+Help me start live iPad QA: docs/ipad-qa-full-pass.md Part 0. Step by step. Use npm run dev:mobile:qa. I will tell you what I see after each step.
 ```
 
-**Replay / regression check after a code change:**
+**Mid-session chain check:**
 
 ```text
-We changed play chain / kickoff role / phase UX. Read docs/qa-sessions/<latest>.jsonl and docs/ipad-qa-full-pass.md Part 5C. Tell me which scripts I must re-run on iPad and run npm run test:pbp locally. Compare any log failures to playChain.ts.
+Read docs/qa-sessions/live/session.jsonl and docs/qa-sessions/live/last-replay.txt. Summarize passes/failures so far and what script step to run next.
 ```
 
-**Single-feature deep dive:**
+**After a code change:**
 
 ```text
-iPad QA focused on [halftime | catch-up | OT | play cursor | UX-14]. Use docs/ipad-qa-full-pass.md Part 3 and Script F / I as needed. Log every save to docs/qa-sessions/...
+We changed playChain / kickoff role / phase UX. Run npm run test:pbp and npm run qa:replay. Read the live log. Tell me which iPad scripts to re-run.
 ```
