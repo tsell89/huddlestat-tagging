@@ -78,6 +78,7 @@ export function PassPad({
             ballSpot={draft.yardLine}
             end={tackleEnd}
             onChange={onTackleEndChange}
+            allowTouchdown={draft.result !== Result.Sack}
             touchdownMode={isTouchdownTackleResult(draft.result)}
           />
         </View>

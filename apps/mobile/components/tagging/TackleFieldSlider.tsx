@@ -22,6 +22,8 @@ import {
   tackleStripCenterX,
   tackleStripRatioFromCenterX,
   tackleYardLineToFieldPos,
+  TACKLE_SLIDER_OPP_ONE,
+  TACKLE_SLIDER_OWN_ONE,
   TACKLE_STRIP_END_ZONE_PX,
   type TackleEnd,
 } from "@/lib/tagging/tackleSpot";
@@ -33,6 +35,7 @@ type TackleFieldSliderProps = {
   ballSpot: YardLine;
   end: TackleEnd;
   onChange: (end: TackleEnd) => void;
+  allowTouchdown?: boolean;
 };
 
 const ORBIT_GAIN_HEIGHT = 80;
@@ -244,6 +247,7 @@ export function TackleFieldSlider({
   ballSpot,
   end,
   onChange,
+  allowTouchdown = true,
 }: TackleFieldSliderProps) {
   const trackRef = useRef<View>(null);
   const trackWidthRef = useRef(0);
@@ -264,8 +268,12 @@ export function TackleFieldSlider({
   const atOppOne =
     end.kind === "yardline" && isTackleRightExtreme(end.yardLine);
   const showConfirmSafety = atOwnGoalLine;
-  const showConfirmTd = atOppOne && end.kind === "yardline";
-  const showThumb = !showConfirmSafety && !showConfirmTd;
+  const showConfirmTd =
+    allowTouchdown && atOppOne && end.kind === "yardline";
+  const confirmedSafety = end.kind === "safety";
+  const confirmedTouchdown = end.kind === "touchdown";
+  const outcomeConfirmed = confirmedSafety || confirmedTouchdown;
+  const showThumb = !showConfirmSafety && !showConfirmTd && !outcomeConfirmed;
 
   function clampLeft(center: number, halfWidth: number): number {
     if (trackWidth <= 0) return 0;
@@ -318,8 +326,8 @@ export function TackleFieldSlider({
   const panResponder = useMemo(
     () =>
       PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: () => true,
+        onStartShouldSetPanResponder: () => !outcomeConfirmed,
+        onMoveShouldSetPanResponder: () => !outcomeConfirmed,
         onPanResponderGrant: (evt) => {
           const touchPageX = evt.nativeEvent.pageX;
           trackRef.current?.measureInWindow((pageX, _pageY, width) => {
@@ -335,7 +343,7 @@ export function TackleFieldSlider({
         onPanResponderRelease: () => setDragRatio(null),
         onPanResponderTerminate: () => setDragRatio(null),
       }),
-    [setFromPageX],
+    [outcomeConfirmed, setFromPageX],
   );
 
   const activeFieldPos =
@@ -447,6 +455,8 @@ export function TackleFieldSlider({
   const showRightOrbit =
     showPlusFromGoal ||
     (showPlusFine && !atOppOne && !showConfirmTd);
+  const showConfirmedLeftOrbit = confirmedTouchdown;
+  const showConfirmedRightOrbit = confirmedSafety;
 
   return (
     <View style={styles.wrap}>
@@ -481,9 +491,13 @@ export function TackleFieldSlider({
           style={styles.trackBand}
           {...panResponder.panHandlers}
         >
-          {trackWidth > 0 && (showLeftOrbit || showRightOrbit) ? (
+          {trackWidth > 0 &&
+          (showLeftOrbit ||
+            showRightOrbit ||
+            showConfirmedLeftOrbit ||
+            showConfirmedRightOrbit) ? (
             <>
-              {showLeftOrbit ? (
+              {showLeftOrbit || showConfirmedLeftOrbit ? (
                 <View
                   style={[
                     styles.connectorDisc,
@@ -497,7 +511,7 @@ export function TackleFieldSlider({
                   pointerEvents="none"
                 />
               ) : null}
-              {showRightOrbit ? (
+              {showRightOrbit || showConfirmedRightOrbit ? (
                 <View
                   style={[
                     styles.connectorDisc,
@@ -520,7 +534,21 @@ export function TackleFieldSlider({
             <View style={[styles.thumb, { left: thumbLeft }]} />
           ) : null}
 
-          {trackWidth > 0 && showConfirmSafety ? (
+          {trackWidth > 0 && confirmedSafety ? (
+            <OrbitButton
+              center={thumbCenter}
+              label="Safety ✓"
+              onPress={() => undefined}
+              variant="confirm"
+            />
+          ) : trackWidth > 0 && confirmedTouchdown ? (
+            <OrbitButton
+              center={thumbCenter}
+              label="Touchdown ✓"
+              onPress={() => undefined}
+              variant="confirm"
+            />
+          ) : trackWidth > 0 && showConfirmSafety ? (
             <OrbitButton
               center={thumbCenter}
               label="Confirm\nSafety"
@@ -546,12 +574,34 @@ export function TackleFieldSlider({
             />
           ) : null}
 
-          {trackWidth > 0 && showConfirmTd ? (
+          {confirmedTouchdown ? (
+            <OrbitButton
+              center={thumbCenter - FINE_OFFSET}
+              label="−"
+              onPress={() =>
+                onChange({
+                  kind: "yardline",
+                  yardLine: TACKLE_SLIDER_OPP_ONE,
+                })
+              }
+            />
+          ) : trackWidth > 0 && showConfirmTd ? (
             <OrbitButton
               center={thumbCenter}
               label="Confirm\nTD"
               onPress={handleTouchdownPress}
               variant="confirm"
+            />
+          ) : confirmedSafety ? (
+            <OrbitButton
+              center={thumbCenter + FINE_OFFSET}
+              label="+"
+              onPress={() =>
+                onChange({
+                  kind: "yardline",
+                  yardLine: TACKLE_SLIDER_OWN_ONE,
+                })
+              }
             />
           ) : showPlusFromGoal ? (
             <OrbitButton

@@ -53,6 +53,7 @@ import {
 import {
   applyTackleSpotToDraft,
   initTackleEndFromDraft,
+  isAtOwnGoalLine,
   needsTackleSpot,
   type TackleEnd,
 } from "@/lib/tagging/tackleSpot";
@@ -286,8 +287,15 @@ function firstPlayerSlot(draft: PlaylistData): PlayerSlotKey | null {
   return slots[0] ?? null;
 }
 
-function canSaveDraft(draft: PlaylistData): boolean {
+function canSaveDraft(draft: PlaylistData, tackleEnd: TackleEnd): boolean {
   if (!draft.playType || !draft.result) return false;
+  if (
+    needsTackleSpot(draft.playType, draft.result) &&
+    tackleEnd.kind === "yardline" &&
+    isAtOwnGoalLine(tackleEnd.yardLine)
+  ) {
+    return false;
+  }
   // Gate 3: require jersey on each visible slot before save
   return true;
 }
@@ -1004,7 +1012,7 @@ export default function TaggingScreen() {
   }
 
   async function handleSavePlay() {
-    if (!id || !draft || !game || !canSaveDraft(draft)) return;
+    if (!id || !draft || !game || !canSaveDraft(draft, tackleEnd)) return;
     const phaseBefore = game.phase;
     const saveMode: QaSaveMode = editingPlayId
       ? "edit"
@@ -1255,7 +1263,7 @@ export default function TaggingScreen() {
           catchUpMode={catchUpMode}
           catchUpHint={catchUpHint}
           saving={saving}
-          saveDisabled={!canSaveDraft(draft)}
+          saveDisabled={!canSaveDraft(draft, tackleEnd)}
           onCatchUp={handleCatchUp}
           onSelectPlay={handleSelectPlay}
           onResumeLive={resumeLiveTagging}

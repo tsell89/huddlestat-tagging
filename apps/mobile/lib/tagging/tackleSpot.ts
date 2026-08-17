@@ -249,13 +249,17 @@ export function applyTackleSpotToDraft(
     return draft;
   }
 
-  const gainLoss = computeTackleGainLoss(draft.yardLine, end);
-  const result = resultForTackleEnd(draft, end);
+  const normalizedEnd: TackleEnd =
+    draft.result === Result.Sack && end.kind === "touchdown"
+      ? { kind: "yardline", yardLine: TACKLE_SLIDER_OPP_ONE }
+      : end;
+  const gainLoss = computeTackleGainLoss(draft.yardLine, normalizedEnd);
+  const result = resultForTackleEnd(draft, normalizedEnd);
   return {
     ...draft,
     result,
     gainLoss,
-    spotEncoding: encodeTackleSpotEncoding(draft.yardLine, end),
+    spotEncoding: encodeTackleSpotEncoding(draft.yardLine, normalizedEnd),
   };
 }
 

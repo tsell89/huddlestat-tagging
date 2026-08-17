@@ -28,7 +28,7 @@ export function phaseAdvanceAction(
   homeScore: number,
   awayScore: number,
 ): PhaseAdvanceAction | null {
-  if (phase === "FINAL" || phase === "OT") return null;
+  if (phase === "FINAL") return null;
 
   const tied = homeScore === awayScore;
 
@@ -45,6 +45,8 @@ export function phaseAdvanceAction(
       if (tied) {
         return { label: "Start overtime", nextPhase: "OT" };
       }
+      return { label: "End game", nextPhase: "FINAL" };
+    case "OT":
       return { label: "End game", nextPhase: "FINAL" };
     default:
       return null;

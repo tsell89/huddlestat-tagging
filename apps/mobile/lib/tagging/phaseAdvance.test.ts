@@ -41,8 +41,11 @@ describe("phaseAdvanceAction", () => {
     });
   });
 
-  test("hides advance in OT and FINAL", () => {
-    assert.equal(phaseAdvanceAction("OT", 21, 21), null);
+  test("OT can end; FINAL hides advance", () => {
+    assert.deepEqual(phaseAdvanceAction("OT", 21, 21), {
+      label: "End game",
+      nextPhase: "FINAL",
+    });
     assert.equal(phaseAdvanceAction("FINAL", 21, 14), null);
   });
 });

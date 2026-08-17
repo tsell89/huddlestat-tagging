@@ -105,4 +105,61 @@ describe("tackle confirmation semantics", () => {
     assert.equal(next.gainLoss, -5);
     assert.equal(next.spotEncoding, "tackle:-5|end:SA");
   });
+
+  test("pass touchdown confirmation derives Complete, TD", () => {
+    const draft = {
+      ...defaultOffensivePlay(1, "SHS"),
+      playType: PlayType.Pass,
+      result: Result.Complete,
+      yardLine: 10,
+    };
+    const next = applyTackleSpotToDraft(draft, { kind: "touchdown" });
+
+    assert.equal(next.result, Result.CompleteTd);
+    assert.equal(next.gainLoss, 10);
+    assert.equal(next.spotEncoding, "tackle:10|end:TD");
+  });
+
+  test("sack cannot be converted to a touchdown", () => {
+    const draft = {
+      ...defaultOffensivePlay(1, "SHS"),
+      playType: PlayType.Pass,
+      result: Result.Sack,
+      yardLine: 10,
+    };
+    const next = applyTackleSpotToDraft(draft, { kind: "touchdown" });
+
+    assert.equal(next.result, Result.Sack);
+    assert.equal(next.spotEncoding, "tackle:10|end:1");
+  });
+
+  test("moving off a confirmed endpoint demotes TD results", () => {
+    const runDraft = {
+      ...defaultOffensivePlay(1, "SHS"),
+      playType: PlayType.Run,
+      result: Result.RushTd,
+      yardLine: 10,
+    };
+    const passDraft = {
+      ...defaultOffensivePlay(1, "SHS"),
+      playType: PlayType.Pass,
+      result: Result.CompleteTd,
+      yardLine: 10,
+    };
+
+    assert.equal(
+      applyTackleSpotToDraft(runDraft, {
+        kind: "yardline",
+        yardLine: 1,
+      }).result,
+      Result.Rush,
+    );
+    assert.equal(
+      applyTackleSpotToDraft(passDraft, {
+        kind: "yardline",
+        yardLine: 1,
+      }).result,
+      Result.Complete,
+    );
+  });
 });
