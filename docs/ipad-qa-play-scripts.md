@@ -8,6 +8,8 @@ Step-by-step tags for [ipad-qa-checklist.md](./ipad-qa-checklist.md). Report eac
 
 ## Script A — Canonical drive + UX-14 regression
 
+**Encoded:** `recipe("scriptA")` and per-save snapshots in `apps/mobile/lib/tagging/taggingSession.test.ts` (pad actions → SAVE through `reduceTaggingSession`). Human iPad pass still required for layout/feel.
+
 **Game:** New · SHS vs QA Test · opening kickoff role **We receive** (Play 1).
 
 | Play | Situation | Tag steps | Expected after save |
@@ -77,6 +79,8 @@ Step-by-step tags for [ipad-qa-checklist.md](./ipad-qa-checklist.md). Report eac
 ---
 
 ## Script F — Phase bar, halftime, OT
+
+**Encoded:** session recipes `q2`, `halftime`, `q3Kickoff`, `q4Tied`, `otUsBall` in `apps/mobile/lib/tagging/taggingSessionRecipes.ts` (phase-bar / Start OT actions, not stuffed `PlaylistData`). Human iPad pass still required for banners and the Start OT modal.
 
 **Game:** New or use phase bar on existing test game.
 

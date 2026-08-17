@@ -406,6 +406,18 @@ node packages/shared/scripts/verify-game-chain.mjs hudl-spec-2-4
 
 There is **no in-app CSV export button yet** on iPad. Logs + optional cloud sync are the capture paths until export UI ships.
 
+### 5B2 — Session tests are the automated mirror of scripts A / F
+
+`qa:replay` only re-checks **saved** objects against `playChain`. It does not simulate pad taps, SAVE, or the phase bar — that is why human QA kept finding pad/role/phase bugs.
+
+Headless tagging session tests (`apps/mobile/lib/tagging/taggingSession.test.ts`, recipes in `taggingSessionRecipes.ts`) dispatch the same functions the iPad screen uses (`reduceTaggingSession` → SAVE / `phaseAdvance` / `startOt`). Script A (canonical drive + UX-14) and Script F (Q2, halftime, 2H kickoff, Q4 tied, HS OT) are encoded as named recipes. The PBP corpus stays **chain-only** — do not put pad taps in `plays.jsonl`.
+
+```bash
+npm test --workspace=@huddlestat/mobile
+```
+
+Human iPad pass remains required for layout, banners, and catch-up/edit (Script I).
+
 ### 5C — What happens when code changes later
 
 ```mermaid
@@ -418,9 +430,11 @@ flowchart LR
   subgraph ci [Every PR / local test]
     PBP[npm run test:pbp]
     Unit[npm run test]
+    Session[taggingSession recipes A/F]
     Chain[playChain.ts]
     Chain --> PBP
     Chain --> Unit
+    Session --> Unit
   end
   subgraph future [Future session]
     ReRun[Re-tag or replay log]
@@ -434,10 +448,10 @@ flowchart LR
 | Change type | What to re-run |
 |-------------|----------------|
 | `playChain.ts`, `advanceSituation`, OT logic | `npm run test:pbp` + Script A + affected scripts |
-| Kickoff role (`kickoffRoleResolve.ts`) | Scripts A, B, C, I + UX-14 rows |
-| Phase / halftime / catch-up UX | Script F + log `phase` entries |
-| Pad routing / UI only | UI sections; chain scripts may not need full re-tag |
-| Field position / sliders | Scripts A, G + field-position unit tests |
+| Kickoff role (`kickoffRoleResolve.ts`) | Session `scriptA` + Scripts A, B, C, I + UX-14 rows |
+| Phase / halftime / catch-up UX | Session recipes `halftime` / `q3Kickoff` / `otUsBall` + Script F + log `phase` entries |
+| Pad routing / SAVE defaults | `taggingSession.test.ts` (pad actions); chain scripts may not need full re-tag |
+| Field position / sliders | Scripts A, G + field-position unit tests + session Script A |
 
 **Sign-off rule:** Do not mark full Package I ✓ in [ipad-tagging-spec.md](./ipad-tagging-spec.md) §11 until every **MUST** row in [ipad-qa-checklist.md](./ipad-qa-checklist.md) passes or is explicitly waived.
 
@@ -488,6 +502,8 @@ Promote to fixture: yes/no — which script
 | Area | Path |
 |------|------|
 | Tagging screen | `apps/mobile/app/game/[id].tsx` |
+| Tagging session reducer | `apps/mobile/lib/tagging/taggingSession.ts` |
+| Session recipes (A / F) | `apps/mobile/lib/tagging/taggingSessionRecipes.ts` |
 | Phase bar | `apps/mobile/components/tagging/GamePhaseBar.tsx` |
 | Header | `apps/mobile/components/tagging/TaggingHeader.tsx` |
 | Sidebar / catch-up | `apps/mobile/components/tagging/PlayLogSidebar.tsx` |

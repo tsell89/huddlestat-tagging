@@ -1,6 +1,30 @@
 import { ODK, PlayType, Result, type PlaylistData } from "@huddlestat/shared";
+import { applyPlayTypeChange, getVisiblePlayerSlots } from "./playConfig";
 
 export type KickoffRole = "kick" | "receive";
+
+export function kickoffPlayTypeForRole(
+  role: KickoffRole,
+): typeof PlayType.Kickoff | typeof PlayType.KickoffReceive {
+  return role === "kick" ? PlayType.Kickoff : PlayType.KickoffReceive;
+}
+
+export function kickoffRoleFromDraft(draft: PlaylistData): KickoffRole {
+  return draft.playType === PlayType.KickoffReceive ? "receive" : "kick";
+}
+
+export function applyKickoffRole(
+  draft: PlaylistData,
+  role: KickoffRole,
+): PlaylistData {
+  const playType = kickoffPlayTypeForRole(role);
+  if (draft.playType === playType) return draft;
+  return applyPlayTypeChange({ ...draft, playType }, playType);
+}
+
+export function firstKickoffPlayerSlot(draft: PlaylistData) {
+  return getVisiblePlayerSlots(draft.playType, draft.result)[0] ?? null;
+}
 
 export function oppositeKickoffRole(role: KickoffRole): KickoffRole {
   return role === "kick" ? "receive" : "kick";

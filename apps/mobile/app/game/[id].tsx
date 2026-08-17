@@ -11,6 +11,20 @@ import {
   shouldFinalizeOtGame,
   type PlaylistData,
 } from "@huddlestat/shared";
+import {
+  applyPadDraftChange,
+  buildLiveDraft,
+  canSaveDraft,
+  finalizeTaggingDraft,
+  initLiveBallSpotsFromDraft,
+  openingKickoffRoleFromPlays,
+  quarterForRegulationPhase,
+  reduceTaggingSession,
+  sessionFromLiveState,
+  withKickoffRole,
+  withQuarterFromLast,
+  type TaggingSession,
+} from "@/lib/tagging/taggingSession";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
 import { PlayLogSidebar } from "@/components/tagging/PlayLogSidebar";
 import { StartOtModal } from "@/components/tagging/StartOtModal";
@@ -41,20 +55,16 @@ import {
   applyKickoffSpotsToDraft,
   defaultKickoffReturnSpots,
   initKickoffSpotsFromDraft,
-  touchbackDraftPatch,
   type KickoffReturnSpots,
 } from "@/lib/tagging/kickoffReturn";
 import {
   applyPuntSpotsToDraft,
-  defaultPuntSpots,
   initPuntSpotsFromDraft,
   type PuntSpots,
 } from "@/lib/tagging/puntReturn";
 import {
   applyTackleSpotToDraft,
   initTackleEndFromDraft,
-  isPendingTackleConfirm,
-  needsTackleSpot,
   type TackleEnd,
 } from "@/lib/tagging/tackleSpot";
 import {
@@ -65,7 +75,6 @@ import {
 import {
   applyFumbleSpotsToDraft,
   initFumbleSpotsFromDraft,
-  isPendingFumbleReturnConfirm,
   type FumbleRecoverySpots,
 } from "@/lib/tagging/fumbleRecovery";
 import {
@@ -87,17 +96,11 @@ import {
   persistOpeningKickoffRole,
   recordOpeningKickoffRole,
   resolveKickoffRoleAfterSave,
-  secondHalfKickoffRole,
   setKickoffRole,
   type KickoffRole,
 } from "@/lib/tagging/kickoffRole";
 import type { CatchUpHint } from "@/lib/tagging/catchUpHint";
-import { applyJerseyLeaderDefaults } from "@/lib/tagging/jerseyGridRank";
-import {
-  defaultOtOpeningDraft,
-  nextDraftAfterPlayForGame,
-  nextDraftForGame,
-} from "@/lib/tagging/nextDraftForGame";
+import { nextDraftForGame } from "@/lib/tagging/nextDraftForGame";
 import { useSync } from "@/context/sync-context";
 import {
   publishIfConfigured,
@@ -141,17 +144,6 @@ function playToDraft(play: LocalPlay): PlaylistData {
   };
 }
 
-function withKickoffRole(draft: PlaylistData, role: KickoffRole): PlaylistData {
-  return isKickoffDraft(draft) ? applyKickoffRole(draft, role) : draft;
-}
-
-function withQuarterFromLast(
-  draft: PlaylistData,
-  lastQuarter: number,
-): PlaylistData {
-  return { ...draft, quarter: lastQuarter };
-}
-
 async function applyScoreAfterSave(
   localGameId: string,
   allPlays: LocalPlay[],
@@ -185,137 +177,9 @@ async function applyScoreAfterSave(
   };
 }
 
-function quarterForRegulationPhase(phase: GamePhase): number | null {
-  if (phase === "Q1") return 1;
-  if (phase === "Q2") return 2;
-  if (phase === "Q3") return 3;
-  if (phase === "Q4") return 4;
-  if (phase === "OT") return 5;
-  return null;
-}
-
-function buildLiveDraft(
-  plays: LocalPlay[],
-  nextNum: number,
-  teamCode: string,
-  kickoffRole: KickoffRole,
-  phase: GamePhase,
-): PlaylistData {
-  const last = plays[plays.length - 1];
-  const phaseQuarter = quarterForRegulationPhase(phase);
-  if (last) {
-    const lastQuarter = phaseQuarter ?? last.quarter;
-    return withQuarterFromLast(
-      ensureOffensePadDraft(
-        withKickoffRole(
-          nextDraftForGame(playToDraft(last), nextNum, teamCode, phase),
-          kickoffRole,
-        ),
-      ),
-      lastQuarter,
-    );
-  }
-  return withKickoffRole(
-    defaultKickoffPlay(nextNum, teamCode, {
-      result: Result.Return,
-      quarter: phaseQuarter ?? 1,
-    }),
-    kickoffRole,
-  );
-}
-
-function initLiveBallSpotsFromDraft(draft: PlaylistData | null) {
-  return {
-    intSpots: initInterceptionSpotsFromDraft(draft),
-    fumbleSpots: initFumbleSpotsFromDraft(draft),
-    blockedSpots: initBlockedKickSpotsFromDraft(draft),
-    penaltyFoulSpot: initPenaltyFoulSpotFromDraft(draft),
-  };
-}
-
-function applySpotDraft(
-  draft: PlaylistData,
-  kickoff: KickoffReturnSpots,
-  punt: PuntSpots,
-  end: TackleEnd,
-  intSpots: InterceptionReturnSpots,
-  fumbleSpots: FumbleRecoverySpots,
-  blockedSpots: BlockedKickRecoverySpots,
-  penaltyFoulSpot: number,
-) {
-  return applyPenaltySpotToDraft(
-    applyBlockedKickSpotsToDraft(
-      applyFumbleSpotsToDraft(
-        applyInterceptionSpotsToDraft(
-          applyTackleSpotToDraft(
-            applyPuntSpotsToDraft(
-              applyKickoffSpotsToDraft(ensureOffensePadDraft(draft), kickoff),
-              punt,
-            ),
-            end,
-          ),
-          intSpots,
-        ),
-        fumbleSpots,
-      ),
-      blockedSpots,
-    ),
-    penaltyFoulSpot as PlaylistData["yardLine"],
-  );
-}
-
-function finalizeTaggingDraft(
-  draft: PlaylistData,
-  gamePlays: LocalPlay[],
-  kickoff: KickoffReturnSpots,
-  punt: PuntSpots,
-  end: TackleEnd,
-  intSpots: InterceptionReturnSpots,
-  fumbleSpots: FumbleRecoverySpots,
-  blockedSpots: BlockedKickRecoverySpots,
-  penaltyFoulSpot: number,
-): PlaylistData {
-  return applyJerseyLeaderDefaults(
-    applySpotDraft(
-      draft,
-      kickoff,
-      punt,
-      end,
-      intSpots,
-      fumbleSpots,
-      blockedSpots,
-      penaltyFoulSpot,
-    ),
-    gamePlays,
-  );
-}
-
 function firstPlayerSlot(draft: PlaylistData): PlayerSlotKey | null {
   const slots = getVisiblePlayerSlots(draft.playType, draft.result);
   return slots[0] ?? null;
-}
-
-function canSaveDraft(
-  draft: PlaylistData,
-  tackleEnd: TackleEnd,
-  fumbleSpots?: FumbleRecoverySpots,
-): boolean {
-  if (!draft.playType || !draft.result) return false;
-  if (
-    needsTackleSpot(draft.playType, draft.result) &&
-    isPendingTackleConfirm(tackleEnd)
-  ) {
-    return false;
-  }
-  if (
-    draft.result === Result.Fumble &&
-    fumbleSpots &&
-    isPendingFumbleReturnConfirm(fumbleSpots)
-  ) {
-    return false;
-  }
-  // Gate 3: require jersey on each visible slot before save
-  return true;
 }
 
 async function persistKickoffRoleIfChanged(
@@ -373,6 +237,43 @@ export default function TaggingScreen() {
     initPenaltyFoulSpotFromDraft(null),
   );
   const offLiveRef = useRef(false);
+
+  function liveSession(): TaggingSession | null {
+    if (!game || !draft) return null;
+    return sessionFromLiveState({
+      teamCode: game.teamCode,
+      openingKickoffRole: openingKickoffRoleFromPlays(
+        plays.map(playToDraft),
+        kickoffRole,
+      ),
+      kickoffRole,
+      phase: game.phase,
+      otPossession: game.otPossession,
+      status: game.status,
+      plays: plays.map(playToDraft),
+      draft,
+      kickoffSpots,
+      puntSpots,
+      tackleEnd,
+      intSpots,
+      fumbleSpots,
+      blockedSpots,
+      penaltyFoulSpot,
+    });
+  }
+
+  function applySessionDraft(next: TaggingSession) {
+    setKickoffSpots(next.kickoffSpots);
+    setPuntSpots(next.puntSpots);
+    setTackleEnd(next.tackleEnd);
+    setIntSpots(next.intSpots);
+    setFumbleSpots(next.fumbleSpots);
+    setBlockedSpots(next.blockedSpots);
+    setPenaltyFoulSpot(next.penaltyFoulSpot);
+    setDraft(next.draft);
+    setActivePlayerSlot(firstPlayerSlot(next.draft));
+    setKickoffRoleState(next.kickoffRole);
+  }
 
   useEffect(() => {
     offLiveRef.current = editingPlayId !== null || catchUpMode;
@@ -604,48 +505,13 @@ export default function TaggingScreen() {
     setEditingPlayId(null);
   }
 
-  async function startHalftimeCatchUp() {
-    if (!game || !id) return;
+  async function startHalftimeCatchUp(reduced: TaggingSession) {
+    if (!id) return;
     setCatchUpMode(true);
     setCatchUpHint("halftime-kickoff");
     setEditingPlayId(null);
-    const role = await secondHalfKickoffRole(id);
-    await setKickoffRole(id, role);
-    setKickoffRoleState(role);
-    const d = withKickoffRole(
-      defaultKickoffPlay(nextPlayNumber, game.teamCode, {
-        quarter: 3,
-        yardLine: -40,
-        result: Result.Return,
-      }),
-      role,
-    );
-    const withNum = { ...d, playNumber: nextPlayNumber };
-    const kickoff = initKickoffSpotsFromDraft(withNum);
-    const punt = initPuntSpotsFromDraft(withNum);
-    setKickoffSpots(kickoff);
-    setPuntSpots(punt);
-    const end = initTackleEndFromDraft(withNum);
-    setTackleEnd(end);
-    const liveBall = initLiveBallSpotsFromDraft(withNum);
-    setIntSpots(liveBall.intSpots);
-    setFumbleSpots(liveBall.fumbleSpots);
-    setBlockedSpots(liveBall.blockedSpots);
-    setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
-    setDraft(
-      finalizeTaggingDraft(
-        withNum,
-        plays,
-        kickoff,
-        punt,
-        end,
-        liveBall.intSpots,
-        liveBall.fumbleSpots,
-        liveBall.blockedSpots,
-        liveBall.penaltyFoulSpot,
-      ),
-    );
-    setActivePlayerSlot(firstPlayerSlot(withNum));
+    await setKickoffRole(id, reduced.kickoffRole);
+    applySessionDraft(reduced);
   }
 
   async function applyPhaseChange(next: GamePhase) {
@@ -668,12 +534,15 @@ export default function TaggingScreen() {
       setShowOtModal(true);
       return;
     }
+    const session = liveSession();
+    if (!session) return;
+    const reduced = reduceTaggingSession(session, { type: "phaseAdvance" });
     if (next === "FINAL") {
       if (game.phase === "Q4") {
         startQuarterReview("quarter-review-q4");
       }
       await finalizeLocalGame(id);
-      setGame({ ...game, phase: "FINAL", status: "final" });
+      setGame({ ...game, phase: reduced.phase, status: reduced.status });
       await recordPhase("FINAL", {
         banner: catchUpHintMessage("quarter-review-q4"),
       });
@@ -682,7 +551,7 @@ export default function TaggingScreen() {
     }
     if (next === "HALFTIME" && game.phase === "Q2") {
       await updateLocalGamePhase(id, "HALFTIME");
-      setGame({ ...game, phase: "HALFTIME" });
+      setGame({ ...game, phase: reduced.phase });
       startQuarterReview("quarter-review-q2");
       await recordPhase("HALFTIME", {
         banner: catchUpHintMessage("quarter-review-q2"),
@@ -692,27 +561,24 @@ export default function TaggingScreen() {
     }
     if (next === "Q3" && game.phase === "HALFTIME") {
       await updateLocalGamePhase(id, "Q3");
-      setGame({ ...game, phase: "Q3" });
-      startHalftimeCatchUp();
+      setGame({ ...game, phase: reduced.phase });
+      await startHalftimeCatchUp(reduced);
       await recordPhase("Q3", {
         banner: catchUpHintMessage("halftime-kickoff"),
       });
       triggerPublish(id, "live");
       return;
     }
-    const q = quarterForRegulationPhase(next);
-    await updateLocalGamePhase(id, next);
-    const updated = { ...game, phase: next };
+    await updateLocalGamePhase(id, reduced.phase);
+    const updated = { ...game, phase: reduced.phase };
     setGame(updated);
     if (game.phase === "Q1" && next === "Q2") {
       startQuarterReview("quarter-review-q1");
     } else if (game.phase === "Q3" && next === "Q4") {
       startQuarterReview("quarter-review-q3");
     }
-    await recordPhase(next);
-    if (q !== null && draft) {
-      setDraft({ ...draft, quarter: q });
-    }
+    await recordPhase(reduced.phase);
+    applySessionDraft(reduced);
     if (next === "Q1" && game.status === "pregame") {
       await updateLocalGameStatus(id, "live");
       setGame({ ...updated, status: "live" });
@@ -743,54 +609,31 @@ export default function TaggingScreen() {
 
   async function handleStartOt(otPossession: "us" | "them") {
     if (!id || !game) return;
+    const session = liveSession();
+    if (!session) return;
     setShowOtModal(false);
+    const reduced = reduceTaggingSession(session, {
+      type: "startOt",
+      possession: otPossession,
+    });
     await updateLocalGamePhase(id, "OT");
     await updateLocalOtPossession(id, otPossession);
     if (game.status !== "live" && game.status !== "final") {
       await updateLocalGameStatus(id, "live");
     }
-    const otDraft = defaultOtOpeningDraft(
-      nextPlayNumber,
-      game.teamCode,
-      otPossession,
-    );
-    const kickoff = initKickoffSpotsFromDraft(otDraft);
-    const punt = initPuntSpotsFromDraft(otDraft);
-    setKickoffSpots(kickoff);
-    setPuntSpots(punt);
-    const end = initTackleEndFromDraft(otDraft);
-    setTackleEnd(end);
-    const liveBall = initLiveBallSpotsFromDraft(otDraft);
-    setIntSpots(liveBall.intSpots);
-    setFumbleSpots(liveBall.fumbleSpots);
-    setBlockedSpots(liveBall.blockedSpots);
-    setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
-    setDraft(
-      finalizeTaggingDraft(
-        ensureOffensePadDraft(otDraft),
-        plays,
-        kickoff,
-        punt,
-        end,
-        liveBall.intSpots,
-        liveBall.fumbleSpots,
-        liveBall.blockedSpots,
-        liveBall.penaltyFoulSpot,
-      ),
-    );
-    setActivePlayerSlot(firstPlayerSlot(otDraft));
+    applySessionDraft(reduced);
     setGame({
       ...game,
-      phase: "OT",
-      otPossession,
-      status: game.status === "pregame" ? "live" : game.status,
+      phase: reduced.phase,
+      otPossession: reduced.otPossession,
+      status: reduced.status,
     });
     await logQaPhaseEvent({
       game: {
         ...game,
-        phase: "OT",
-        otPossession,
-        status: game.status === "pregame" ? "live" : game.status,
+        phase: reduced.phase,
+        otPossession: reduced.otPossession,
+        status: reduced.status,
       },
       action: `${game.phase}→OT`,
       phaseBefore: game.phase,
@@ -855,191 +698,31 @@ export default function TaggingScreen() {
   }
 
   function handleDraftChange(next: PlaylistData) {
-    const isKickoff =
-      next.playType === PlayType.Kickoff ||
-      next.playType === PlayType.KickoffReceive;
-    const isPunt = next.playType === PlayType.Punt;
-
-    if (isKickoff && next.result === Result.Touchback) {
-      setKickoffSpots(
-        defaultKickoffReturnSpots(next.playType === PlayType.Kickoff),
-      );
-      setDraft(touchbackDraftPatch(next));
-      return;
-    }
-
-    if (isKickoff && next.result === Result.Return) {
-      setDraft(applyKickoffSpotsToDraft(next, kickoffSpots));
-      return;
-    }
-
-    if (isPunt && next.result === Result.Touchback) {
-      setPuntSpots(defaultPuntSpots(next.yardLine));
-      setDraft(touchbackDraftPatch(next));
-      return;
-    }
-
-    if (
-      isPunt &&
-      (next.result === Result.Return || next.result === Result.Downed)
-    ) {
-      const spotInputsChanged =
-        draft?.playType !== next.playType ||
-        draft?.result !== next.result ||
-        draft?.yardLine !== next.yardLine;
-
-      if (spotInputsChanged) {
-        const spots = initPuntSpotsFromDraft(next);
-        setPuntSpots(spots);
-        setDraft(applyPuntSpotsToDraft(next, spots));
-      } else {
-        setDraft(applyPuntSpotsToDraft(next, puntSpots));
-      }
-      return;
-    }
-
-    if (isPunt && next.result === Result.Blocked) {
-      const spotInputsChanged =
-        draft?.playType !== next.playType ||
-        draft?.result !== next.result ||
-        draft?.yardLine !== next.yardLine;
-
-      if (spotInputsChanged) {
-        const spots = initBlockedKickSpotsFromDraft(next);
-        setBlockedSpots(spots);
-        setDraft(applyBlockedKickSpotsToDraft(next, spots));
-      } else {
-        setDraft(applyBlockedKickSpotsToDraft(next, blockedSpots));
-      }
-      return;
-    }
-
-    if (isPunt && next.result === Result.Penalty) {
-      const spotInputsChanged =
-        draft?.playType !== next.playType ||
-        draft?.result !== next.result ||
-        draft?.yardLine !== next.yardLine;
-
-      if (spotInputsChanged) {
-        const foul = initPenaltyFoulSpotFromDraft(next);
-        setPenaltyFoulSpot(foul);
-        setDraft(applyPenaltySpotToDraft(next, foul));
-      } else {
-        setDraft(
-          applyPenaltySpotToDraft(
-            next,
-            penaltyFoulSpot as PlaylistData["yardLine"],
-          ),
-        );
-      }
-      return;
-    }
-
-    if (isPunt) {
+    if (!draft) {
       setDraft(next);
       return;
     }
-
-    if (
-      next.playType === PlayType.Pass &&
-      next.result === Result.Interception
-    ) {
-      const spotInputsChanged =
-        draft?.playType !== next.playType ||
-        draft?.result !== next.result ||
-        draft?.yardLine !== next.yardLine;
-
-      if (spotInputsChanged) {
-        const spots = initInterceptionSpotsFromDraft(next);
-        setIntSpots(spots);
-        setDraft(applyInterceptionSpotsToDraft(next, spots));
-      } else {
-        setDraft(applyInterceptionSpotsToDraft(next, intSpots));
-      }
-      return;
-    }
-
-    if (
-      (next.playType === PlayType.Run || next.playType === PlayType.Pass) &&
-      next.result === Result.Fumble
-    ) {
-      const spotInputsChanged =
-        draft?.playType !== next.playType ||
-        draft?.result !== next.result ||
-        draft?.yardLine !== next.yardLine;
-
-      if (spotInputsChanged) {
-        const spots = initFumbleSpotsFromDraft(next);
-        setFumbleSpots(spots);
-        setDraft(applyFumbleSpotsToDraft(next, spots));
-      } else {
-        setDraft(applyFumbleSpotsToDraft(next, fumbleSpots));
-      }
-      return;
-    }
-
-    if (
-      (next.playType === PlayType.Run ||
-        next.playType === PlayType.Pass ||
-        next.playType === PlayType.FieldGoal) &&
-      next.result === Result.Penalty
-    ) {
-      const spotInputsChanged =
-        draft?.playType !== next.playType ||
-        draft?.result !== next.result ||
-        draft?.yardLine !== next.yardLine;
-
-      if (spotInputsChanged) {
-        const foul = initPenaltyFoulSpotFromDraft(next);
-        setPenaltyFoulSpot(foul);
-        setDraft(applyPenaltySpotToDraft(next, foul));
-      } else {
-        setDraft(
-          applyPenaltySpotToDraft(
-            next,
-            penaltyFoulSpot as PlaylistData["yardLine"],
-          ),
-        );
-      }
-      return;
-    }
-
-    if (
-      next.playType === PlayType.FieldGoal &&
-      next.result === Result.Blocked
-    ) {
-      const spotInputsChanged =
-        draft?.playType !== next.playType ||
-        draft?.result !== next.result ||
-        draft?.yardLine !== next.yardLine;
-
-      if (spotInputsChanged) {
-        const spots = initBlockedKickSpotsFromDraft(next);
-        setBlockedSpots(spots);
-        setDraft(applyBlockedKickSpotsToDraft(next, spots));
-      } else {
-        setDraft(applyBlockedKickSpotsToDraft(next, blockedSpots));
-      }
-      return;
-    }
-
-    if (needsTackleSpot(next.playType, next.result)) {
-      const spotInputsChanged =
-        draft?.playType !== next.playType ||
-        draft?.result !== next.result ||
-        draft?.yardLine !== next.yardLine;
-
-      if (spotInputsChanged) {
-        const end = initTackleEndFromDraft(next);
-        setTackleEnd(end);
-        setDraft(applyTackleSpotToDraft(next, end));
-      } else {
-        setDraft(applyTackleSpotToDraft(next, tackleEnd));
-      }
-      return;
-    }
-
-    setDraft(next);
+    const applied = applyPadDraftChange(
+      {
+        draft,
+        kickoffSpots,
+        puntSpots,
+        tackleEnd,
+        intSpots,
+        fumbleSpots,
+        blockedSpots,
+        penaltyFoulSpot,
+      },
+      next,
+    );
+    setKickoffSpots(applied.kickoffSpots);
+    setPuntSpots(applied.puntSpots);
+    setTackleEnd(applied.tackleEnd);
+    setIntSpots(applied.intSpots);
+    setFumbleSpots(applied.fumbleSpots);
+    setBlockedSpots(applied.blockedSpots);
+    setPenaltyFoulSpot(applied.penaltyFoulSpot);
+    setDraft(applied.draft);
   }
 
   async function handleSavePlay() {
@@ -1123,67 +806,39 @@ export default function TaggingScreen() {
         updatedGame = await applyScoreAfterSave(id, newPlays, game);
         setGame(updatedGame);
       } else {
-        if (isKickoffDraft(toSave)) {
+        const session = liveSession();
+        if (!session) return;
+        const reduced = reduceTaggingSession(session, { type: "save" });
+        const toSaveReduced = reduced.plays[reduced.plays.length - 1];
+        if (isKickoffDraft(toSaveReduced)) {
           await persistOpeningKickoffRole(
             id,
-            kickoffRoleFromDraft(toSave),
+            kickoffRoleFromDraft(toSaveReduced),
             plays.length,
           );
         }
-        const saved = await saveLocalPlay(id, toSave);
+        const saved = await saveLocalPlay(id, toSaveReduced);
         const newPlays = [...plays, saved];
         setPlays(newPlays);
-        const nextNum = draft.playNumber + 1;
-        setNextPlayNumber(nextNum);
-        const nextChainDraft = withQuarterFromLast(
-          ensureOffensePadDraft(
-            nextDraftAfterPlayForGame(toSave, nextNum, game.teamCode, game.phase),
-          ),
-          toSave.quarter,
-        );
-        const nextKickoffRole = resolveKickoffRoleAfterSave(
-          toSave,
-          nextChainDraft,
-          kickoffRole,
-        );
+        setNextPlayNumber(reduced.draft.playNumber);
         await persistKickoffRoleIfChanged(
           id,
-          nextKickoffRole,
+          reduced.kickoffRole,
           kickoffRole,
           setKickoffRoleState,
         );
-        const next = withKickoffRole(nextChainDraft, nextKickoffRole);
-        nextDraftForLog = next;
-        nextKickoffRoleForLog = nextKickoffRole;
-        savedPlayForLog = toSave;
-        const kickoff = initKickoffSpotsFromDraft(next);
-        const punt = initPuntSpotsFromDraft(next);
-        setKickoffSpots(kickoff);
-        setPuntSpots(punt);
-        const end = initTackleEndFromDraft(next);
-        setTackleEnd(end);
-        const liveBall = initLiveBallSpotsFromDraft(next);
-        setIntSpots(liveBall.intSpots);
-        setFumbleSpots(liveBall.fumbleSpots);
-        setBlockedSpots(liveBall.blockedSpots);
-        setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
-        setDraft(
-          finalizeTaggingDraft(
-            next,
-            newPlays,
-            kickoff,
-            punt,
-            end,
-            liveBall.intSpots,
-            liveBall.fumbleSpots,
-            liveBall.blockedSpots,
-            liveBall.penaltyFoulSpot,
-          ),
-        );
-        setActivePlayerSlot(firstPlayerSlot(next));
+        applySessionDraft(reduced);
+        nextDraftForLog = reduced.draft;
+        nextKickoffRoleForLog = reduced.kickoffRole;
+        savedPlayForLog = toSaveReduced;
         setCatchUpMode(false);
         setCatchUpHint(null);
-        updatedGame = await applyScoreAfterSave(id, newPlays, game);
+        updatedGame = await applyScoreAfterSave(id, newPlays, {
+          ...game,
+          phase: reduced.phase,
+          status: reduced.status,
+          otPossession: reduced.otPossession,
+        });
         setGame(updatedGame);
       }
       setUnsyncedCount(await countUnsyncedPlays(id));
