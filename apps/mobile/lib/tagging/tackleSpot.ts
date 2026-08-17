@@ -146,7 +146,8 @@ export function isTackleLeftExtreme(yardLine: YardLine): boolean {
 }
 
 export function isTackleRightExtreme(yardLine: YardLine): boolean {
-  return hudlToFieldPosition(yardLine) >= FIELD_OPP_GOAL - 1;
+  if (Math.round(yardLine) === HUDL_END_ZONE) return false;
+  return Math.round(yardLine) === TACKLE_SLIDER_OPP_ONE;
 }
 
 export function tackleStepYardLine(

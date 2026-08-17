@@ -50,6 +50,7 @@ describe("tackle slider axis", () => {
 
   test("opp 1 is right extreme", () => {
     assert.equal(isTackleRightExtreme(TACKLE_SLIDER_OPP_ONE), true);
+    assert.equal(isTackleRightExtreme(TACKLE_SLIDER_OWN_GOAL), false);
   });
 
   test("step between goal line and own 1", () => {

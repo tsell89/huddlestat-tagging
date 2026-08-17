@@ -423,8 +423,9 @@ export function applyResultChange(
 ): PlaylistData {
   const { playType } = draft;
   const leavingConfirmedTouchdown =
-    (draft.result === Result.RushTd && result === Result.Rush) ||
-    (draft.result === Result.CompleteTd && result === Result.Complete);
+    (draft.result === Result.RushTd ||
+      draft.result === Result.CompleteTd) &&
+    result !== draft.result;
   const noGain =
     result === Result.Incomplete ||
     result === Result.TippedPass ||
