@@ -9,6 +9,7 @@ type TapGridProps<T extends string> = {
   /** @deprecated use size */
   compact?: boolean;
   size?: "default" | "compact" | "dense";
+  disabled?: boolean;
 };
 
 export function TapGrid<T extends string>({
@@ -18,6 +19,7 @@ export function TapGrid<T extends string>({
   columns = 3,
   compact = false,
   size,
+  disabled = false,
 }: TapGridProps<T>) {
   const resolvedSize = size ?? (compact ? "compact" : "default");
   const cellHeight =
@@ -42,8 +44,10 @@ export function TapGrid<T extends string>({
                 minHeight: cellHeight,
               },
               selected && styles.cellSelected,
+              disabled && styles.cellDisabled,
             ]}
             onPress={() => onChange(opt)}
+            disabled={disabled}
           >
             <Text
               style={[
@@ -81,6 +85,9 @@ const styles = StyleSheet.create({
   cellSelected: {
     backgroundColor: LAYOUT.colors.navy,
     borderColor: LAYOUT.colors.navy,
+  },
+  cellDisabled: {
+    opacity: 0.55,
   },
   cellText: {
     fontSize: 13,

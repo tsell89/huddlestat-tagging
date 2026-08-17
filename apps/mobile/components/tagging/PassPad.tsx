@@ -57,7 +57,14 @@ export function PassPad({
       <View style={styles.resultWrap}>
         <TapGrid
           options={alternates}
-          value={draft.result}
+          value={
+            draft.result === Result.CompleteTd
+              ? Result.Complete
+              : draft.result
+          }
+          disabled={
+            tackleEnd.kind === "touchdown" || tackleEnd.kind === "safety"
+          }
           onChange={(result) => {
             const next = applyPasserLeaderDefault(
               applyResultChange(draft, result),

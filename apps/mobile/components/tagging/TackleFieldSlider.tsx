@@ -45,6 +45,7 @@ const FINE_BTN_SIZE = 56;
 const THUMB_SIZE = FINE_BTN_SIZE;
 /** Center-to-center distance from thumb to ± button */
 const FINE_OFFSET = FINE_BTN_SIZE + 12;
+const ENDPOINT_FINE_OFFSET = 92;
 const CONNECTOR_SIZE = FINE_OFFSET;
 const GAIN_LABEL_HALF = 72;
 const SPOT_LABEL_HALF = 72;
@@ -252,6 +253,8 @@ export function TackleFieldSlider({
   const trackRef = useRef<View>(null);
   const trackWidthRef = useRef(0);
   const trackPageXRef = useRef(0);
+  const onChangeRef = useRef(onChange);
+  const outcomeConfirmedRef = useRef(false);
   const [trackWidth, setTrackWidth] = useState(0);
   const [dragRatio, setDragRatio] = useState<number | null>(null);
 
@@ -273,6 +276,8 @@ export function TackleFieldSlider({
   const confirmedSafety = end.kind === "safety";
   const confirmedTouchdown = end.kind === "touchdown";
   const outcomeConfirmed = confirmedSafety || confirmedTouchdown;
+  onChangeRef.current = onChange;
+  outcomeConfirmedRef.current = outcomeConfirmed;
   const showThumb = !showConfirmSafety && !showConfirmTd && !outcomeConfirmed;
 
   function clampLeft(center: number, halfWidth: number): number {
@@ -304,12 +309,12 @@ export function TackleFieldSlider({
     (centerX: number) => {
       const width = trackWidthRef.current;
       const ratio = tackleStripRatioFromCenterX(width, centerX);
-      onChange({
+      onChangeRef.current({
         kind: "yardline",
         yardLine: tackleRatioToYardLine(ratio),
       });
     },
-    [onChange],
+    [],
   );
 
   const setFromPageX = useCallback(
@@ -326,8 +331,8 @@ export function TackleFieldSlider({
   const panResponder = useMemo(
     () =>
       PanResponder.create({
-        onStartShouldSetPanResponder: () => !outcomeConfirmed,
-        onMoveShouldSetPanResponder: () => !outcomeConfirmed,
+        onStartShouldSetPanResponder: () => !outcomeConfirmedRef.current,
+        onMoveShouldSetPanResponder: () => !outcomeConfirmedRef.current,
         onPanResponderGrant: (evt) => {
           const touchPageX = evt.nativeEvent.pageX;
           trackRef.current?.measureInWindow((pageX, _pageY, width) => {
@@ -343,7 +348,7 @@ export function TackleFieldSlider({
         onPanResponderRelease: () => setDragRatio(null),
         onPanResponderTerminate: () => setDragRatio(null),
       }),
-    [outcomeConfirmed, setFromPageX],
+    [setFromPageX],
   );
 
   const activeFieldPos =
@@ -457,6 +462,14 @@ export function TackleFieldSlider({
     (showPlusFine && !atOppOne && !showConfirmTd);
   const showConfirmedLeftOrbit = confirmedTouchdown;
   const showConfirmedRightOrbit = confirmedSafety;
+  const leftOrbitOffset =
+    showConfirmTd || confirmedTouchdown
+      ? ENDPOINT_FINE_OFFSET
+      : FINE_OFFSET;
+  const rightOrbitOffset =
+    showConfirmSafety || confirmedSafety
+      ? ENDPOINT_FINE_OFFSET
+      : FINE_OFFSET;
 
   return (
     <View style={styles.wrap}>
@@ -504,7 +517,7 @@ export function TackleFieldSlider({
                     {
                       left:
                         thumbCenter -
-                        FINE_OFFSET / 2 -
+                        leftOrbitOffset / 2 -
                         CONNECTOR_SIZE / 2,
                     },
                   ]}
@@ -518,7 +531,7 @@ export function TackleFieldSlider({
                     {
                       left:
                         thumbCenter +
-                        FINE_OFFSET / 2 -
+                        rightOrbitOffset / 2 -
                         CONNECTOR_SIZE / 2,
                     },
                   ]}
@@ -557,7 +570,7 @@ export function TackleFieldSlider({
             />
           ) : showMinusToGoal || (atOppOne && spotMoved && showConfirmTd) ? (
             <OrbitButton
-              center={thumbCenter - FINE_OFFSET}
+              center={thumbCenter - leftOrbitOffset}
               label="−"
               onPress={() => handleFineStep(-1)}
               disabled={
@@ -567,7 +580,7 @@ export function TackleFieldSlider({
             />
           ) : showMinusFine ? (
             <OrbitButton
-              center={thumbCenter - FINE_OFFSET}
+              center={thumbCenter - leftOrbitOffset}
               label="−"
               onPress={() => handleFineStep(-1)}
               disabled={!canTackleStepYardLine(end.yardLine, -1)}
@@ -576,7 +589,7 @@ export function TackleFieldSlider({
 
           {confirmedTouchdown ? (
             <OrbitButton
-              center={thumbCenter - FINE_OFFSET}
+              center={thumbCenter - leftOrbitOffset}
               label="−"
               onPress={() =>
                 onChange({
@@ -594,7 +607,7 @@ export function TackleFieldSlider({
             />
           ) : confirmedSafety ? (
             <OrbitButton
-              center={thumbCenter + FINE_OFFSET}
+              center={thumbCenter + rightOrbitOffset}
               label="+"
               onPress={() =>
                 onChange({
@@ -605,14 +618,14 @@ export function TackleFieldSlider({
             />
           ) : showPlusFromGoal ? (
             <OrbitButton
-              center={thumbCenter + FINE_OFFSET}
+              center={thumbCenter + rightOrbitOffset}
               label="+"
               onPress={() => handleFineStep(1)}
               disabled={!canTackleStepYardLine(end.yardLine, 1)}
             />
           ) : showPlusFine ? (
             <OrbitButton
-              center={thumbCenter + FINE_OFFSET}
+              center={thumbCenter + rightOrbitOffset}
               label="+"
               onPress={() => handleFineStep(1)}
               disabled={!canTackleStepYardLine(end.yardLine, 1)}

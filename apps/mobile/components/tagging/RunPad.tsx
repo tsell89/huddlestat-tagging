@@ -55,7 +55,10 @@ export function RunPad({
       <View style={styles.resultWrap}>
         <TapGrid
           options={alternates}
-          value={draft.result}
+          value={draft.result === Result.RushTd ? Result.Rush : draft.result}
+          disabled={
+            tackleEnd.kind === "touchdown" || tackleEnd.kind === "safety"
+          }
           onChange={(result) => {
             onChange(applyResultChange(draft, result));
             const slots = getVisiblePlayerSlots(draft.playType, result);
