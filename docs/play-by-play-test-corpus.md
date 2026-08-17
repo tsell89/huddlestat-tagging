@@ -55,6 +55,8 @@ When automation finds unsupported or ambiguous state, the tagger must keep going
 
 **Product meta excluded from replay:** kickoff role (UX-14), quarter-break catch-up UI — chain tests compare situation + pad class only.
 
+**iPad pad/SAVE/phase (not this corpus):** Headless tagging session tests live in `apps/mobile/lib/tagging/taggingSession.ts` (+ `taggingSessionRecipes.ts`). They dispatch the same pad actions, SAVE, and phase-bar steps as the iPad screen. Do **not** encode pad taps as `plays.jsonl` — the PBP corpus starts from already-complete `PlaylistData` and replays `playChain` only.
+
 ---
 
 ## Corpus layout

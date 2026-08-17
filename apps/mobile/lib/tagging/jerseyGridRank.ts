@@ -5,7 +5,6 @@ import {
   type PlayerRef,
   decodeFumbleSpotEncoding,
 } from "@huddlestat/shared";
-import type { LocalPlay } from "../db/types";
 import { POSITION_GROUPS, type PositionGroupSlot } from "./positionGroups";
 import {
   getVisiblePlayerSlots,
@@ -134,7 +133,7 @@ function addCount(counts: Map<string, number>, jersey: string | null, weight = 1
   counts.set(jersey, (counts.get(jersey) ?? 0) + weight);
 }
 
-function countJerseyUsage(plays: LocalPlay[], slot: PositionGroupSlot): Map<string, number> {
+function countJerseyUsage(plays: PlaylistData[], slot: PositionGroupSlot): Map<string, number> {
   const counts = new Map<string, number>();
 
   for (const play of plays) {
@@ -204,7 +203,7 @@ function sortEntries(entries: JerseyGridEntry[]): JerseyGridEntry[] {
 }
 
 export function buildJerseyGridRankings(
-  plays: LocalPlay[],
+  plays: PlaylistData[],
   slot: PositionGroupSlot,
   draft?: PlaylistData,
 ): JerseyGridEntry[] {
@@ -239,16 +238,16 @@ export function buildJerseyGridRankings(
   return sortEntries(entries);
 }
 
-export function getGamePasserLeader(plays: LocalPlay[]): string | null {
+export function getGamePasserLeader(plays: PlaylistData[]): string | null {
   return getSlotLeader(plays, "passer");
 }
 
-export function getGameRusherLeader(plays: LocalPlay[]): string | null {
+export function getGameRusherLeader(plays: PlaylistData[]): string | null {
   return getSlotLeader(plays, "rusher");
 }
 
 function getSlotLeader(
-  plays: LocalPlay[],
+  plays: PlaylistData[],
   slot: PositionGroupSlot,
 ): string | null {
   const counts = countJerseyUsage(plays, slot);
@@ -273,7 +272,7 @@ function getSlotLeader(
 /** Pre-fill passer on new PassPad snaps with the game leader QB. */
 export function applyPasserLeaderDefault(
   draft: PlaylistData,
-  plays: LocalPlay[],
+  plays: PlaylistData[],
 ): PlaylistData {
   if (!getVisiblePlayerSlots(draft.playType, draft.result).includes("passer")) {
     return draft;
@@ -294,7 +293,7 @@ export function applyPasserLeaderDefault(
  */
 export function applyRusherLeaderDefault(
   draft: PlaylistData,
-  plays: LocalPlay[],
+  plays: PlaylistData[],
 ): PlaylistData {
   if (!getVisiblePlayerSlots(draft.playType, draft.result).includes("rusher")) {
     return draft;
@@ -315,7 +314,7 @@ export function applyRusherLeaderDefault(
 
 export function applyJerseyLeaderDefaults(
   draft: PlaylistData,
-  plays: LocalPlay[],
+  plays: PlaylistData[],
 ): PlaylistData {
   return applyRusherLeaderDefault(
     applyPasserLeaderDefault(draft, plays),
