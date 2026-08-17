@@ -14,20 +14,21 @@ import {
   fgAttemptYards,
   FG_NO_GOOD_IN_FIELD,
   isFgNoGoodSpotEncoding,
-} from "@/lib/tagging/fieldGoal";
-import { hudlToFieldPosition } from "@/lib/tagging/fieldPosition100";
-import { touchbackDraftPatch } from "@/lib/tagging/kickoffReturn";
-import { needsTackleSpot } from "@/lib/tagging/tackleSpot";
+} from "./fieldGoal";
+import { hudlToFieldPosition } from "./fieldPosition100";
+import { touchbackDraftPatch } from "./kickoffReturn";
+import { needsTackleSpot } from "./tackleSpot";
 import { POSITION_GROUPS as POSITION_GROUP_MAP } from "./positionGroups";
 import { getVisiblePlayerSlots, type PlayerSlotKey } from "./visiblePlayerSlots";
 
 export {
   getVisiblePlayerSlots,
   isPlayerSlotVisibleOnPlay,
+  firstEmptyVisiblePlayerSlot,
   type PlayerSlotKey,
 } from "./visiblePlayerSlots";
 
-export { needsTackleSpot } from "@/lib/tagging/tackleSpot";
+export { needsTackleSpot } from "./tackleSpot";
 
 /** HS max field-goal attempt distance (yards to goal + 10). */
 export const MAX_FG_RANGE = 62;
@@ -96,19 +97,56 @@ export function isOffensePadPlayType(
   );
 }
 
-export function shouldShowOffensePad(draft: PlaylistData): boolean {
-  if (isScoringPlayType(draft.playType)) return false;
+/** Scrimmage series — our offense or theirs (we tag Run/Pass with odk D). */
+function isOpenScrimmageDraft(draft: PlaylistData): boolean {
   return (
-    isOffensePadPlayType(draft.playType) ||
-    (draft.odk === ODK.Offense && draft.down >= 1 && !draft.playType)
+    (draft.odk === ODK.Offense || draft.odk === ODK.Defense) &&
+    draft.down >= 1 &&
+    !draft.playType
   );
 }
 
-/** New offensive series defaults to RunPad with Rush selected. */
+export function shouldShowOffensePad(draft: PlaylistData): boolean {
+  if (isScoringPlayType(draft.playType)) return false;
+  return isOffensePadPlayType(draft.playType) || isOpenScrimmageDraft(draft);
+}
+
+/** Which tagging pad TaggingPad should mount for this draft. */
+export type TaggingPadKind =
+  | "kickoff"
+  | "scoring"
+  | "punt-receive"
+  | "offense"
+  | "none";
+
+export function taggingPadKind(draft: PlaylistData): TaggingPadKind {
+  if (
+    draft.playType === PlayType.Kickoff ||
+    draft.playType === PlayType.KickoffReceive
+  ) {
+    return "kickoff";
+  }
+  if (isScoringPlayType(draft.playType)) return "scoring";
+  if (draft.playType === PlayType.PuntReceive) return "punt-receive";
+  if (shouldShowOffensePad(draft)) return "offense";
+  return "none";
+}
+
+/** New scrimmage series defaults by situation (UX-11 / UX-12). */
+export function defaultOffensePlayType(draft: PlaylistData): OffensePlayType {
+  const fourthDown = draft.down === 4;
+  const shortFourth = fourthDown && draft.distance <= 2;
+  if (shortFourth) return PlayType.Run;
+  if (fourthDown && fgInRange(draft.yardLine)) return PlayType.FieldGoal;
+  if (fourthDown) return PlayType.Punt;
+  return PlayType.Run;
+}
+
+/** New scrimmage series defaults to situational play type (usually Run · Rush). */
 export function ensureOffensePadDraft(draft: PlaylistData): PlaylistData {
   if (isScoringPlayType(draft.playType)) return draft;
-  if (draft.odk === ODK.Offense && draft.down >= 1 && !draft.playType) {
-    return applyPlayTypeChange(draft, PlayType.Run);
+  if (isOpenScrimmageDraft(draft)) {
+    return applyPlayTypeChange(draft, defaultOffensePlayType(draft));
   }
   return draft;
 }
@@ -225,14 +263,12 @@ export function getAlternateResultsForPlayType(
     case PlayType.Run:
       return [
         Result.Rush,
-        Result.RushTd,
         Result.Fumble,
         Result.Penalty,
       ];
     case PlayType.Pass:
       return [
         Result.Complete,
-        Result.CompleteTd,
         Result.Incomplete,
         Result.Sack,
         Result.Interception,
@@ -424,8 +460,14 @@ export function applyResultChange(
   result: PlaylistData["result"],
 ): PlaylistData {
   const { playType } = draft;
+  const leavingConfirmedTouchdown =
+    (draft.result === Result.RushTd ||
+      draft.result === Result.CompleteTd) &&
+    result !== draft.result;
   const noGain =
-    result === Result.Incomplete || result === Result.TippedPass;
+    result === Result.Incomplete ||
+    result === Result.TippedPass ||
+    leavingConfirmedTouchdown;
   const keepSpotEncoding =
     !noGain &&
     draft.result === result &&
@@ -437,6 +479,7 @@ export function applyResultChange(
     spotEncoding: keepSpotEncoding ? draft.spotEncoding : undefined,
     tackler1: emptyIfHidden("tackler1", playType, result, draft.tackler1),
     tackler2: emptyIfHidden("tackler2", playType, result, draft.tackler2),
+    passer: emptyIfHidden("passer", playType, result, draft.passer),
     receiver: emptyIfHidden("receiver", playType, result, draft.receiver),
     rusher: emptyIfHidden("rusher", playType, result, draft.rusher),
     interceptedBy: emptyIfHidden("interceptedBy", playType, result, draft.interceptedBy),
@@ -501,5 +544,5 @@ export const PLAYER_SLOT_LABELS: Record<PlayerSlotKey, string> = {
   kicker: "Kicker",
   returner: "Returner",
   interceptedBy: "INT by",
-  recoveredBy: "Recovered",
+  recoveredBy: "Recovered by",
 };

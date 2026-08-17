@@ -1,6 +1,6 @@
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import {
   PlayType,
   Result,
@@ -13,7 +13,6 @@ import {
 } from "@huddlestat/shared";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
 import { PlayLogSidebar } from "@/components/tagging/PlayLogSidebar";
-import { GamePhaseBar } from "@/components/tagging/GamePhaseBar";
 import { StartOtModal } from "@/components/tagging/StartOtModal";
 import { TaggingHeader } from "@/components/tagging/TaggingHeader";
 import { TaggingPad } from "@/components/tagging/TaggingPad";
@@ -54,6 +53,7 @@ import {
 import {
   applyTackleSpotToDraft,
   initTackleEndFromDraft,
+  isPendingTackleConfirm,
   needsTackleSpot,
   type TackleEnd,
 } from "@/lib/tagging/tackleSpot";
@@ -65,6 +65,7 @@ import {
 import {
   applyFumbleSpotsToDraft,
   initFumbleSpotsFromDraft,
+  isPendingFumbleReturnConfirm,
   type FumbleRecoverySpots,
 } from "@/lib/tagging/fumbleRecovery";
 import {
@@ -91,7 +92,7 @@ import {
   type KickoffRole,
 } from "@/lib/tagging/kickoffRole";
 import type { CatchUpHint } from "@/lib/tagging/catchUpHint";
-import { applyPasserLeaderDefault } from "@/lib/tagging/jerseyGridRank";
+import { applyJerseyLeaderDefaults } from "@/lib/tagging/jerseyGridRank";
 import {
   defaultOtOpeningDraft,
   nextDraftAfterPlayForGame,
@@ -110,6 +111,7 @@ import {
 } from "@/lib/qa/logger";
 import { QaLogExportButton } from "@/components/QaLogExportButton";
 import { catchUpHintMessage } from "@/lib/tagging/catchUpHint";
+import { phaseAdvanceAction } from "@/lib/tagging/phaseAdvance";
 
 function playToDraft(play: LocalPlay): PlaylistData {
   return {
@@ -169,10 +171,17 @@ async function applyScoreAfterSave(
     };
   }
 
+  let status = currentGame.status;
+  if (status === "pregame" && allPlays.length > 0) {
+    await updateLocalGameStatus(localGameId, "live");
+    status = "live";
+  }
+
   return {
     ...currentGame,
     homeScore: score.us,
     awayScore: score.them,
+    status,
   };
 }
 
@@ -266,7 +275,7 @@ function finalizeTaggingDraft(
   blockedSpots: BlockedKickRecoverySpots,
   penaltyFoulSpot: number,
 ): PlaylistData {
-  return applyPasserLeaderDefault(
+  return applyJerseyLeaderDefaults(
     applySpotDraft(
       draft,
       kickoff,
@@ -286,8 +295,25 @@ function firstPlayerSlot(draft: PlaylistData): PlayerSlotKey | null {
   return slots[0] ?? null;
 }
 
-function canSaveDraft(draft: PlaylistData): boolean {
+function canSaveDraft(
+  draft: PlaylistData,
+  tackleEnd: TackleEnd,
+  fumbleSpots?: FumbleRecoverySpots,
+): boolean {
   if (!draft.playType || !draft.result) return false;
+  if (
+    needsTackleSpot(draft.playType, draft.result) &&
+    isPendingTackleConfirm(tackleEnd)
+  ) {
+    return false;
+  }
+  if (
+    draft.result === Result.Fumble &&
+    fumbleSpots &&
+    isPendingFumbleReturnConfirm(fumbleSpots)
+  ) {
+    return false;
+  }
   // Gate 3: require jersey on each visible slot before save
   return true;
 }
@@ -354,13 +380,18 @@ export default function TaggingScreen() {
 
   const load = useCallback(async () => {
     if (!id) return;
-    const g = await getLocalGame(id);
-    if (!g) {
+    const g0 = await getLocalGame(id);
+    if (!g0) {
       router.replace("/");
       return;
     }
-    setGame(g);
     const existing = await listPlaysForGame(id);
+    let g = g0;
+    if (g.status === "pregame" && existing.length > 0) {
+      await updateLocalGameStatus(id, "live");
+      g = { ...g, status: "live" };
+    }
+    setGame(g);
     setPlays(existing);
     setUnsyncedCount(await countUnsyncedPlays(id));
     const nextNum = await getNextPlayNumber(id);
@@ -688,6 +719,28 @@ export default function TaggingScreen() {
     }
   }
 
+  function handlePhaseAdvancePress() {
+    if (!game) return;
+    const action = phaseAdvanceAction(
+      game.phase,
+      game.homeScore,
+      game.awayScore,
+    );
+    if (!action) return;
+    if (action.nextPhase === "FINAL") {
+      Alert.alert(
+        "End game?",
+        "Mark this game FINAL? You can still review plays in the log.",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "End game", onPress: () => void applyPhaseChange("FINAL") },
+        ],
+      );
+      return;
+    }
+    void applyPhaseChange(action.nextPhase);
+  }
+
   async function handleStartOt(otPossession: "us" | "them") {
     if (!id || !game) return;
     setShowOtModal(false);
@@ -754,8 +807,14 @@ export default function TaggingScreen() {
     }
     if (!draft || !isKickoffDraft(draft)) return;
     const next = applyKickoffRole(draft, role);
-    setDraft(next);
-    setActivePlayerSlot(firstKickoffPlayerSlot(next));
+    const spots = defaultKickoffReturnSpots(role === "kick");
+    setKickoffSpots(spots);
+    const withResult =
+      next.result === Result.Return || next.result === Result.Touchback
+        ? next
+        : { ...next, result: Result.Return };
+    setDraft(applyKickoffSpotsToDraft(withResult, spots));
+    setActivePlayerSlot(firstKickoffPlayerSlot(withResult));
   }
 
   function handleKickoffSpotsChange(spots: KickoffReturnSpots) {
@@ -802,7 +861,9 @@ export default function TaggingScreen() {
     const isPunt = next.playType === PlayType.Punt;
 
     if (isKickoff && next.result === Result.Touchback) {
-      setKickoffSpots(defaultKickoffReturnSpots());
+      setKickoffSpots(
+        defaultKickoffReturnSpots(next.playType === PlayType.Kickoff),
+      );
       setDraft(touchbackDraftPatch(next));
       return;
     }
@@ -982,7 +1043,7 @@ export default function TaggingScreen() {
   }
 
   async function handleSavePlay() {
-    if (!id || !draft || !game || !canSaveDraft(draft)) return;
+    if (!id || !draft || !game || !canSaveDraft(draft, tackleEnd, fumbleSpots)) return;
     const phaseBefore = game.phase;
     const saveMode: QaSaveMode = editingPlayId
       ? "edit"
@@ -1165,6 +1226,12 @@ export default function TaggingScreen() {
     );
   }
 
+  const phaseAdvance = phaseAdvanceAction(
+    game.phase,
+    game.homeScore,
+    game.awayScore,
+  );
+
   return (
     <View style={styles.container}>
       <SyncStatusBar localGameId={id} />
@@ -1174,9 +1241,12 @@ export default function TaggingScreen() {
         draft={draft}
         unsyncedCount={unsyncedCount}
         undoEnabled={false}
+        phaseAdvance={
+          phaseAdvance
+            ? { label: phaseAdvance.label, onPress: handlePhaseAdvancePress }
+            : null
+        }
       />
-
-      <GamePhaseBar phase={game.phase} onPhasePress={(p) => void applyPhaseChange(p)} />
 
       <View style={styles.qaExportRow}>
         <QaLogExportButton localGameId={id!} slug={game.slug} compact />
@@ -1224,7 +1294,7 @@ export default function TaggingScreen() {
           catchUpMode={catchUpMode}
           catchUpHint={catchUpHint}
           saving={saving}
-          saveDisabled={!canSaveDraft(draft)}
+          saveDisabled={!canSaveDraft(draft, tackleEnd, fumbleSpots)}
           onCatchUp={handleCatchUp}
           onSelectPlay={handleSelectPlay}
           onResumeLive={resumeLiveTagging}

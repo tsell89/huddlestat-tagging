@@ -82,12 +82,12 @@ Step-by-step tags for [ipad-qa-checklist.md](./ipad-qa-checklist.md). Report eac
 
 | Step | Action | Expected |
 |------|--------|----------|
-| F1 | Tap **Q1** active in GamePhaseBar | phase Q1, quarter 1 on saves |
-| F2 | Tag 1–2 plays · verify header quarter badge | |
-| F3 | Tap **Q2** → **HALFTIME** | phase HALFTIME · no new play row required |
-| F4 | Tap catch-up / **Start 2nd half** | Halftime catch-up banner (PlayLogSidebar) |
+| F1 | Header shows **Q1** once (not Q1 · Q1) | single quarter label |
+| F2 | Tap **Go to 2nd quarter** in header | phase Q2; quarter review banner |
+| F3 | Tap **Go to halftime** | phase HALFTIME · no new play row |
+| F4 | Tap **Start 2nd half** | Halftime catch-up banner (PlayLogSidebar) |
 | F5 | Tag 2H kickoff sequence (Own 40 · We receive) | quarter 3 on 2H plays |
-| F6 | Tap **OT** → Start OT modal | Choose **We have ball first** |
+| F6 | Q4 tied → **Start overtime** in header → Start OT modal | Choose **We have ball first** |
 | F7 | Tag OT snap @ Own 10 (or ±10 per rules) | quarter 5 · odk matches choice |
 | F8 | Score TD → XP Good · SAVE | **Next = OT opponent possession @ ±10** · **not** kickoff (D7/J5) |
 | F9 | Verify score header updates without confirm dialog | |

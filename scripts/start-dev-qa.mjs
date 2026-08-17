@@ -8,12 +8,29 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = process.env.QA_LOG_PORT ?? "8099";
 
-function lanIp() {
+function tryIface(iface) {
   try {
-    return execSync("ipconfig getifaddr en0", { encoding: "utf8" }).trim();
+    const ip = execSync(`ipconfig getifaddr ${iface}`, { encoding: "utf8" }).trim();
+    return ip || null;
   } catch {
-    return "127.0.0.1";
+    return null;
   }
+}
+
+/** Prefer Wi-Fi (en0), then the default-route interface (Thunderbolt Ethernet, etc.). */
+function lanIp() {
+  if (process.env.QA_LAN_IP) return process.env.QA_LAN_IP.trim();
+  const fromWifi = tryIface("en0");
+  if (fromWifi) return fromWifi;
+  try {
+    const route = execSync("route -n get default", { encoding: "utf8" });
+    const iface = route.match(/interface:\s+(\S+)/)?.[1];
+    const fromRoute = iface ? tryIface(iface) : null;
+    if (fromRoute) return fromRoute;
+  } catch {
+    // fall through
+  }
+  return "127.0.0.1";
 }
 
 const ip = lanIp();

@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -15,24 +15,30 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { createLocalGame } from "@/lib/db/games";
 
+/** Extra scroll slack so Start tagging stays above the iPad keyboard. */
+const KEYBOARD_SCROLL_PADDING = 280;
+
 export default function NewGameScreen() {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
-  const cardTopY = useRef(0);
-  const opponentFieldY = useRef(0);
   const opponentRef = useRef<TextInputType>(null);
   const [teamCode, setTeamCode] = useState("SHS");
   const [opponent, setOpponent] = useState("");
   const [saving, setSaving] = useState(false);
 
-  function scrollOpponentIntoView() {
+  function scrollSubmitIntoView() {
     requestAnimationFrame(() => {
-      scrollRef.current?.scrollTo({
-        y: Math.max(0, cardTopY.current + opponentFieldY.current - 32),
-        animated: true,
-      });
+      scrollRef.current?.scrollToEnd({ animated: true });
     });
   }
+
+  useEffect(() => {
+    const show = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      scrollSubmitIntoView,
+    );
+    return () => show.remove();
+  }, []);
 
   async function handleCreate() {
     if (!teamCode.trim() || !opponent.trim()) return;
@@ -58,8 +64,8 @@ export default function NewGameScreen() {
         contentContainerStyle={[
           styles.scrollContent,
           {
-            paddingTop: insets.top + 16,
-            paddingBottom: insets.bottom + 24,
+            paddingTop: insets.top + 48,
+            paddingBottom: insets.bottom + KEYBOARD_SCROLL_PADDING,
           },
         ]}
         keyboardShouldPersistTaps="handled"
@@ -71,49 +77,41 @@ export default function NewGameScreen() {
           <Text style={styles.backText}>← Games</Text>
         </Pressable>
 
-        <View
-          style={styles.card}
-          onLayout={(e) => {
-            cardTopY.current = e.nativeEvent.layout.y;
-          }}
-        >
+        <View style={styles.card}>
           <Text style={styles.title}>New game</Text>
           <Text style={styles.subtitle}>
             Saved locally first. Stats publish to the web at halftime, after
             scoring plays, and at the final whistle.
           </Text>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>Team code</Text>
-            <TextInput
-              style={styles.input}
-              value={teamCode}
-              onChangeText={setTeamCode}
-              placeholder="SHS"
-              autoCapitalize="characters"
-              returnKeyType="next"
-              onSubmitEditing={() => opponentRef.current?.focus()}
-              blurOnSubmit={false}
-            />
-          </View>
+          <View style={styles.fieldRow}>
+            <View style={styles.field}>
+              <Text style={styles.label}>Team code</Text>
+              <TextInput
+                style={styles.input}
+                value={teamCode}
+                onChangeText={setTeamCode}
+                placeholder="SHS"
+                autoCapitalize="characters"
+                returnKeyType="next"
+                onSubmitEditing={() => opponentRef.current?.focus()}
+                blurOnSubmit={false}
+              />
+            </View>
 
-          <View
-            style={styles.field}
-            onLayout={(e) => {
-              opponentFieldY.current = e.nativeEvent.layout.y;
-            }}
-          >
-            <Text style={styles.label}>Opponent</Text>
-            <TextInput
-              ref={opponentRef}
-              style={styles.input}
-              value={opponent}
-              onChangeText={setOpponent}
-              placeholder="Rival High"
-              returnKeyType="done"
-              onFocus={scrollOpponentIntoView}
-              onSubmitEditing={() => void handleCreate()}
-            />
+            <View style={styles.field}>
+              <Text style={styles.label}>Opponent</Text>
+              <TextInput
+                ref={opponentRef}
+                style={styles.input}
+                value={opponent}
+                onChangeText={setOpponent}
+                placeholder="Rival High"
+                returnKeyType="done"
+                onFocus={scrollSubmitIntoView}
+                onSubmitEditing={() => void handleCreate()}
+              />
+            </View>
           </View>
 
           <Pressable
@@ -141,7 +139,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: "center",
+    justifyContent: "flex-start",
     paddingHorizontal: 40,
     minHeight: "100%",
   },
@@ -158,16 +156,14 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   card: {
-    alignSelf: "flex-start",
     width: "100%",
-    maxWidth: 480,
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 32,
     borderWidth: 1,
     borderColor: "#e2e8f0",
     gap: 20,
-    marginTop: 40,
+    marginTop: 8,
   },
   title: {
     fontSize: 28,
@@ -179,7 +175,12 @@ const styles = StyleSheet.create({
     color: "#64748b",
     lineHeight: 24,
   },
+  fieldRow: {
+    flexDirection: "row",
+    gap: 16,
+  },
   field: {
+    flex: 1,
     gap: 8,
   },
   label: {

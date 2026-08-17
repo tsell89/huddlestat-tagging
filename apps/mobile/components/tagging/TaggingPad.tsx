@@ -1,11 +1,10 @@
-import { PlayType, type PlaylistData } from "@huddlestat/shared";
+import type { PlaylistData, YardLine } from "@huddlestat/shared";
 import { KickoffTaggingPad } from "@/components/tagging/KickoffTaggingPad";
 import { OffensePad } from "@/components/tagging/OffensePad";
 import { ScoringPad } from "@/components/tagging/ScoringPad";
 import type { LocalPlay } from "@/lib/db/types";
 import {
-  isScoringPlayType,
-  shouldShowOffensePad,
+  taggingPadKind,
   type PlayerSlotKey,
 } from "@/lib/tagging/playConfig";
 import type { KickoffReturnSpots } from "@/lib/tagging/kickoffReturn";
@@ -15,7 +14,6 @@ import type { TackleEnd } from "@/lib/tagging/tackleSpot";
 import type { InterceptionReturnSpots } from "@/lib/tagging/interceptionReturn";
 import type { FumbleRecoverySpots } from "@/lib/tagging/fumbleRecovery";
 import type { BlockedKickRecoverySpots } from "@/lib/tagging/blockedKickRecovery";
-import type { YardLine } from "@huddlestat/shared";
 
 type TaggingPadProps = {
   draft: PlaylistData;
@@ -41,23 +39,17 @@ type TaggingPadProps = {
   onPenaltyFoulSpotChange: (spot: YardLine) => void;
 };
 
-function isKickoffPlay(draft: PlaylistData): boolean {
-  return (
-    draft.playType === PlayType.Kickoff ||
-    draft.playType === PlayType.KickoffReceive
-  );
-}
-
 export function TaggingPad(props: TaggingPadProps) {
-  if (isKickoffPlay(props.draft)) {
+  const kind = taggingPadKind(props.draft);
+  if (kind === "kickoff") {
     return <KickoffTaggingPad {...props} />;
   }
 
-  if (isScoringPlayType(props.draft.playType)) {
+  if (kind === "scoring") {
     return <ScoringPad {...props} />;
   }
 
-  if (shouldShowOffensePad(props.draft)) {
+  if (kind === "offense" || kind === "punt-receive") {
     return <OffensePad {...props} />;
   }
 

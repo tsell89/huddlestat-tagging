@@ -1,5 +1,6 @@
 import {
   HS_TOUCHBACK_YARD_LINE,
+  fieldPositionToHudl,
   hudlToFieldPosition,
   yardsAdvanced,
 } from "../fieldPosition100.js";
@@ -30,7 +31,7 @@ function endHudlFromSpotEncoding(
     ) {
       const endPos =
         hudlToFieldPosition(play.yardLine) + play.gainLoss;
-      return play.yardLine + play.gainLoss;
+      return fieldPositionToHudl(endPos);
     }
     return null;
   }
@@ -100,13 +101,48 @@ export function checkPlayInvariants(play: PlaylistData): InvariantViolation[] {
     if (
       play.result === Result.Return &&
       play.returnYards !== undefined &&
-      play.returnYards !== expectedGain
+      play.returnYards !== expectedGain &&
+      play.playType !== PlayType.Kickoff
     ) {
       out.push({
         playNumber: play.playNumber,
         rule: "return_yards_match",
         detail: `returnYards ${play.returnYards} vs computed ${expectedGain}`,
       });
+    }
+    if (
+      play.result === Result.Return &&
+      play.playType === PlayType.Kickoff &&
+      play.returnYards !== undefined &&
+      play.returnYards !== -expectedGain
+    ) {
+      out.push({
+        playNumber: play.playNumber,
+        rule: "we_kick_return_yards_match",
+        detail: `returnYards ${play.returnYards} vs receiving-team ${-expectedGain}`,
+      });
+    }
+  }
+
+  if (
+    play.spotEncoding?.startsWith("tackle:") &&
+    (play.result === Result.Rush ||
+      play.result === Result.Complete ||
+      play.result === Result.Sack)
+  ) {
+    const endMatch = /\|end:(-?\d+)$/.exec(play.spotEncoding);
+    if (endMatch) {
+      const endHudl = Number(endMatch[1]);
+      const taggedGain = yardsAdvanced(play.yardLine, endHudl);
+      const expectedGain =
+        play.odk === "D" ? -taggedGain : taggedGain;
+      if (play.gainLoss !== expectedGain) {
+        out.push({
+          playNumber: play.playNumber,
+          rule: "scrimmage_gain_matches_spot",
+          detail: `odk ${play.odk} gainLoss ${play.gainLoss} vs offensive ${expectedGain} (${play.yardLine} → ${endHudl})`,
+        });
+      }
     }
   }
 

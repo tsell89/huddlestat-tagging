@@ -9,6 +9,7 @@ import {
 import {
   clampToRange,
   computeReturnYards,
+  encodeReturnEndPart,
   returnEndHudlYardLine,
   returnEndZoneSide,
   type ReturnEnd,
@@ -39,12 +40,7 @@ export function defaultBlockedKickRecoverySpots(
 export function encodeBlockedKickSpotEncoding(
   spots: BlockedKickRecoverySpots,
 ): string {
-  const endPart =
-    spots.returnEnd.kind === "yardline"
-      ? String(returnEndHudlYardLine(spots.returnEnd))
-      : spots.returnEnd.kind === "touchdown"
-        ? "TD"
-        : "SA";
+  const endPart = encodeReturnEndPart(spots.returnEnd);
   return `recover:${spots.recoveredAt}|end:${endPart}`;
 }
 

@@ -1,4 +1,5 @@
 import {
+  ODK,
   PlayType,
   Result,
   type PlaylistData,
@@ -17,10 +18,16 @@ import {
 } from "@/lib/tagging/fieldPosition100";
 import {
   clampToRange,
+  computeReturnYards,
+  encodeReturnEndPart,
   returnEndHudlYardLine,
   returnEndZoneSide,
   type ReturnEnd,
 } from "@/lib/tagging/kickoffReturn";
+import {
+  isPendingTackleConfirm,
+  type TackleEnd,
+} from "@/lib/tagging/tackleSpot";
 
 export type FumbleRecoverySpots = {
   fumbleAt: YardLine;
@@ -28,6 +35,28 @@ export type FumbleRecoverySpots = {
   recoveredAt: YardLine;
   returnEnd: ReturnEnd;
 };
+
+export function fumbleReturnEndToTackleEnd(end: ReturnEnd): TackleEnd {
+  if (end.kind === "touchdown") return { kind: "touchdown" };
+  if (end.kind === "safety") return { kind: "safety" };
+  if (end.kind === "endzone") return { kind: "endzone", side: end.side };
+  return { kind: "yardline", yardLine: end.yardLine };
+}
+
+export function tackleEndToFumbleReturnEnd(end: TackleEnd): ReturnEnd {
+  if (end.kind === "touchdown") return { kind: "touchdown" };
+  if (end.kind === "safety") return { kind: "safety" };
+  if (end.kind === "endzone") return { kind: "endzone", side: end.side };
+  return { kind: "yardline", yardLine: end.yardLine };
+}
+
+/** Defense return dragged into an EZ but not yet confirmed as TD / safety. */
+export function isPendingFumbleReturnConfirm(
+  spots: FumbleRecoverySpots,
+): boolean {
+  if (spots.recoveredBy !== "defense") return false;
+  return isPendingTackleConfirm(fumbleReturnEndToTackleEnd(spots.returnEnd));
+}
 
 export function defaultFumbleRecoverySpots(
   ballSpot: YardLine,
@@ -44,13 +73,8 @@ export function defaultFumbleRecoverySpots(
 }
 
 export function encodeFumbleSpotEncoding(spots: FumbleRecoverySpots): string {
-  const endPart =
-    spots.returnEnd.kind === "yardline"
-      ? String(returnEndHudlYardLine(spots.returnEnd))
-      : spots.returnEnd.kind === "touchdown"
-        ? "TD"
-        : "SA";
   const by = spots.recoveredBy === "offense" ? "O" : "D";
+  const endPart = encodeReturnEndPart(spots.returnEnd);
   if (
     spots.recoveredBy === "defense" &&
     spots.recoveredAt !== spots.fumbleAt
@@ -106,14 +130,21 @@ export function applyFumbleSpotsToDraft(
     return draft;
   }
   const endYard = returnEndHudlYardLine(spots.returnEnd);
-  const gainLoss = yardsAdvanced(
+  const taggedGain = yardsAdvanced(
     draft.yardLine,
     endYard,
     returnEndZoneSide(spots.returnEnd),
   );
+  const gainLoss =
+    draft.odk === ODK.Defense ? -taggedGain : taggedGain;
+  const returnYards =
+    spots.recoveredBy === "defense"
+      ? computeReturnYards(spots.recoveredAt, spots.returnEnd)
+      : undefined;
   return {
     ...draft,
     gainLoss,
+    returnYards,
     spotEncoding: encodeFumbleSpotEncoding(spots),
   };
 }

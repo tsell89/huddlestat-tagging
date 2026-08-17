@@ -111,6 +111,45 @@ describe("deriveScoreFromPlays", () => {
     ]);
     assert.deepEqual(score, { us: 6, them: 0 });
   });
+
+  test("we-kick KO return TD is their 6", () => {
+    const score = deriveScoreFromPlays([
+      play({
+        playNumber: 8,
+        odk: ODK.Kicking,
+        playType: PlayType.Kickoff,
+        result: Result.Return,
+        spotEncoding: "catch:5|end:TD",
+      }),
+    ]);
+    assert.deepEqual(score, { us: 0, them: 6 });
+  });
+
+  test("opponent INT return TD (odk O, end:TD) is their 6", () => {
+    const score = deriveScoreFromPlays([
+      play({
+        playNumber: 9,
+        odk: ODK.Offense,
+        playType: PlayType.Pass,
+        result: Result.Interception,
+        spotEncoding: "catch:20|end:TD",
+      }),
+    ]);
+    assert.deepEqual(score, { us: 0, them: 6 });
+  });
+
+  test("odk D rush TD with tackle|end:TD is still their 6", () => {
+    const score = deriveScoreFromPlays([
+      play({
+        playNumber: 10,
+        odk: ODK.Defense,
+        playType: PlayType.Run,
+        result: Result.RushTd,
+        spotEncoding: "tackle:-5|end:TD",
+      }),
+    ]);
+    assert.deepEqual(score, { us: 0, them: 6 });
+  });
 });
 
 describe("shouldFinalizeOtGame", () => {

@@ -30,7 +30,7 @@ export function defaultKickoffPlay(
     passer: emptyPlayerRef,
     receiver: emptyPlayerRef,
     rusher: emptyPlayerRef,
-    result: "",
+    result: Result.Return,
     team,
     tackler1: emptyPlayerRef,
     tackler2: emptyPlayerRef,

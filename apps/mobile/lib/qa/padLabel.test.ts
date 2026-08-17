@@ -41,4 +41,37 @@ describe("padLabelForDraft", () => {
     const d = { ...base(), playType: PlayType.ExtraPoint, down: 1, distance: 1 };
     assert.equal(padLabelForDraft(d), "Scoring");
   });
+
+  test("defense scrimmage with empty playType is Run", () => {
+    const d: PlaylistData = {
+      ...base(),
+      playType: "",
+      odk: ODK.Defense,
+      result: "",
+    };
+    assert.equal(padLabelForDraft(d), "Run");
+  });
+
+  test("4th & 13 @ Opp 28 empty type is FG", () => {
+    const d: PlaylistData = {
+      ...base(),
+      playType: "",
+      result: "",
+      down: 4,
+      distance: 13,
+      yardLine: 28,
+    };
+    assert.equal(padLabelForDraft(d), "FG");
+  });
+
+  test("punt receive stays Punt Rec", () => {
+    const d = {
+      ...base(),
+      playType: PlayType.PuntReceive,
+      odk: ODK.Defense,
+      down: 1,
+      distance: 10,
+    };
+    assert.equal(padLabelForDraft(d), "Punt Rec");
+  });
 });

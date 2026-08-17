@@ -6,7 +6,7 @@ import { PassPad } from "@/components/tagging/PassPad";
 import { PuntPad } from "@/components/tagging/PuntPad";
 import { RunPad } from "@/components/tagging/RunPad";
 import type { LocalPlay } from "@/lib/db/types";
-import { applyPasserLeaderDefault } from "@/lib/tagging/jerseyGridRank";
+import { applyJerseyLeaderDefaults } from "@/lib/tagging/jerseyGridRank";
 import {
   applyPlayTypeChange,
   ensureOffensePadDraft,
@@ -62,7 +62,7 @@ export function OffensePad({
   onPenaltyFoulSpotChange,
 }: OffensePadProps) {
   function handlePlayTypeChange(playType: OffensePlayType) {
-    const next = applyPasserLeaderDefault(
+    const next = applyJerseyLeaderDefaults(
       applyPlayTypeChange(draft, playType),
       gamePlays,
     );
@@ -72,11 +72,14 @@ export function OffensePad({
     );
   }
 
-  const bodyDraft = ensureOffensePadDraft(draft);
+  const isPuntReceive = draft.playType === PlayType.PuntReceive;
+  const bodyDraft = isPuntReceive ? draft : ensureOffensePadDraft(draft);
 
   return (
     <View style={styles.shell}>
-      <PlayTypeRow draft={bodyDraft} onChange={handlePlayTypeChange} />
+      {isPuntReceive ? null : (
+        <PlayTypeRow draft={bodyDraft} onChange={handlePlayTypeChange} />
+      )}
 
       {bodyDraft.playType === PlayType.Run ? (
         <RunPad
@@ -106,7 +109,8 @@ export function OffensePad({
           penaltyFoulSpot={penaltyFoulSpot}
           onPenaltyFoulSpotChange={onPenaltyFoulSpotChange}
         />
-      ) : bodyDraft.playType === PlayType.Punt ? (
+      ) : bodyDraft.playType === PlayType.Punt ||
+        bodyDraft.playType === PlayType.PuntReceive ? (
         <PuntPad
           draft={bodyDraft}
           onChange={onChange}

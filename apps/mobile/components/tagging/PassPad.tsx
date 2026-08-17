@@ -6,7 +6,7 @@ import { InterceptionReturnSpotsPanel } from "@/components/tagging/InterceptionR
 import { PenaltySpotPanel } from "@/components/tagging/PenaltySpotPanel";
 import { OffensePlayerSection } from "@/components/tagging/OffensePlayerSection";
 import type { LocalPlay } from "@/lib/db/types";
-import { applyPasserLeaderDefault } from "@/lib/tagging/jerseyGridRank";
+import { applyJerseyLeaderDefaults } from "@/lib/tagging/jerseyGridRank";
 import {
   applyResultChange,
   getAlternateResultsForPlayType,
@@ -57,9 +57,17 @@ export function PassPad({
       <View style={styles.resultWrap}>
         <TapGrid
           options={alternates}
-          value={draft.result}
+          value={
+            draft.result === Result.CompleteTd
+              ? Result.Complete
+              : draft.result
+          }
+          disabled={
+            // Step ± off the goal line to undo a confirmed TD / safety.
+            tackleEnd.kind === "touchdown" || tackleEnd.kind === "safety"
+          }
           onChange={(result) => {
-            const next = applyPasserLeaderDefault(
+            const next = applyJerseyLeaderDefaults(
               applyResultChange(draft, result),
               gamePlays,
             );
@@ -78,7 +86,9 @@ export function PassPad({
             ballSpot={draft.yardLine}
             end={tackleEnd}
             onChange={onTackleEndChange}
+            allowTouchdown={draft.result !== Result.Sack}
             touchdownMode={isTouchdownTackleResult(draft.result)}
+            odk={draft.odk}
           />
         </View>
       ) : draft.result === Result.Interception ? (

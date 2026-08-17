@@ -1,7 +1,16 @@
-import { PlayType, Result, type PlaylistData, type PlayerRef } from "@huddlestat/shared";
+import {
+  PlayType,
+  Result,
+  type PlaylistData,
+  type PlayerRef,
+  decodeFumbleSpotEncoding,
+} from "@huddlestat/shared";
 import type { LocalPlay } from "../db/types";
 import { POSITION_GROUPS, type PositionGroupSlot } from "./positionGroups";
-import { isPlayerSlotVisibleOnPlay } from "./visiblePlayerSlots";
+import {
+  getVisiblePlayerSlots,
+  isPlayerSlotVisibleOnPlay,
+} from "./visiblePlayerSlots";
 
 export type JerseyGridTier = "hero" | "frequent" | "standard" | "small";
 
@@ -89,10 +98,26 @@ function tierForCount(count: number, thresholds: TierThresholds): JerseyGridTier
   return "small";
 }
 
-function buildFallbackJerseys(slot: PositionGroupSlot): string[] {
+const OFFENSE_RECOVER_GROUPS = ["RB", "FB", "QB", "WR", "TE"] as const;
+
+function positionGroupsForSlot(
+  slot: PositionGroupSlot,
+  draft?: PlaylistData,
+): readonly string[] {
+  if (slot === "recoveredBy" && draft) {
+    const decoded = decodeFumbleSpotEncoding(draft.spotEncoding);
+    if (decoded?.recoveredBy === "offense") return OFFENSE_RECOVER_GROUPS;
+  }
+  return POSITION_GROUPS[slot];
+}
+
+function buildFallbackJerseys(
+  slot: PositionGroupSlot,
+  draft?: PlaylistData,
+): string[] {
   const jerseys: string[] = [];
   const seen = new Set<string>();
-  for (const position of POSITION_GROUPS[slot]) {
+  for (const position of positionGroupsForSlot(slot, draft)) {
     const pair = TWO_DEEP_BY_POSITION[position] ?? ["88", "89"];
     for (const jersey of pair) {
       if (!seen.has(jersey)) {
@@ -181,12 +206,13 @@ function sortEntries(entries: JerseyGridEntry[]): JerseyGridEntry[] {
 export function buildJerseyGridRankings(
   plays: LocalPlay[],
   slot: PositionGroupSlot,
+  draft?: PlaylistData,
 ): JerseyGridEntry[] {
   const counts = countJerseyUsage(plays, slot);
   const totalUsage = [...counts.values()].reduce((sum, count) => sum + count, 0);
 
   if (totalUsage === 0) {
-    return buildFallbackJerseys(slot).map((jersey) => ({
+    return buildFallbackJerseys(slot, draft).map((jersey) => ({
       jersey,
       count: 0,
       tier: "standard" as const,
@@ -194,7 +220,7 @@ export function buildJerseyGridRankings(
   }
 
   const thresholds = thresholdsForSlot(slot);
-  const fallback = buildFallbackJerseys(slot);
+  const fallback = buildFallbackJerseys(slot, draft);
   const jerseys = new Set([...counts.keys(), ...fallback]);
 
   let entries: JerseyGridEntry[] = [...jerseys].map((jersey) => {
@@ -214,7 +240,18 @@ export function buildJerseyGridRankings(
 }
 
 export function getGamePasserLeader(plays: LocalPlay[]): string | null {
-  const counts = countJerseyUsage(plays, "passer");
+  return getSlotLeader(plays, "passer");
+}
+
+export function getGameRusherLeader(plays: LocalPlay[]): string | null {
+  return getSlotLeader(plays, "rusher");
+}
+
+function getSlotLeader(
+  plays: LocalPlay[],
+  slot: PositionGroupSlot,
+): string | null {
+  const counts = countJerseyUsage(plays, slot);
   if (counts.size === 0) return null;
 
   let leader: string | null = null;
@@ -238,7 +275,9 @@ export function applyPasserLeaderDefault(
   draft: PlaylistData,
   plays: LocalPlay[],
 ): PlaylistData {
-  if (draft.playType !== PlayType.Pass) return draft;
+  if (!getVisiblePlayerSlots(draft.playType, draft.result).includes("passer")) {
+    return draft;
+  }
   if (draft.passer.jersey.trim()) return draft;
 
   const leader = getGamePasserLeader(plays);
@@ -248,4 +287,38 @@ export function applyPasserLeaderDefault(
     ...draft,
     passer: { ...draft.passer, jersey: leader, name: draft.passer.name || "" },
   };
+}
+
+/**
+ * UX-05 / UX-09: pre-fill rusher on Run (usage / two-deep) and Sack (passer leader).
+ */
+export function applyRusherLeaderDefault(
+  draft: PlaylistData,
+  plays: LocalPlay[],
+): PlaylistData {
+  if (!getVisiblePlayerSlots(draft.playType, draft.result).includes("rusher")) {
+    return draft;
+  }
+  if (draft.rusher.jersey.trim()) return draft;
+
+  const leader =
+    draft.playType === PlayType.Pass && draft.result === Result.Sack
+      ? (getGamePasserLeader(plays) ?? buildFallbackJerseys("passer")[0] ?? null)
+      : (getGameRusherLeader(plays) ?? buildFallbackJerseys("rusher")[0] ?? null);
+  if (!leader) return draft;
+
+  return {
+    ...draft,
+    rusher: { ...draft.rusher, jersey: leader, name: draft.rusher.name || "" },
+  };
+}
+
+export function applyJerseyLeaderDefaults(
+  draft: PlaylistData,
+  plays: LocalPlay[],
+): PlaylistData {
+  return applyRusherLeaderDefault(
+    applyPasserLeaderDefault(draft, plays),
+    plays,
+  );
 }

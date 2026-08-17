@@ -6,7 +6,13 @@
  * Start via: npm run dev:mobile:qa
  */
 import { createServer } from "node:http";
-import { appendFileSync, mkdirSync, existsSync, copyFileSync } from "node:fs";
+import {
+  appendFileSync,
+  mkdirSync,
+  existsSync,
+  copyFileSync,
+  writeFileSync,
+} from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
@@ -32,12 +38,29 @@ mkdirSync(archiveDir, { recursive: true });
 /** @type {Set<string>} game slugs that received a session line this sidecar run */
 const startedSlugs = new Set();
 
-function lanIp() {
+function tryIface(iface) {
   try {
-    return execSync("ipconfig getifaddr en0", { encoding: "utf8" }).trim();
+    const ip = execSync(`ipconfig getifaddr ${iface}`, { encoding: "utf8" }).trim();
+    return ip || null;
   } catch {
-    return "127.0.0.1";
+    return null;
   }
+}
+
+/** Prefer Wi-Fi (en0), then the default-route interface (Thunderbolt Ethernet, etc.). */
+function lanIp() {
+  if (process.env.QA_LAN_IP) return process.env.QA_LAN_IP.trim();
+  const fromWifi = tryIface("en0");
+  if (fromWifi) return fromWifi;
+  try {
+    const route = execSync("route -n get default", { encoding: "utf8" });
+    const iface = route.match(/interface:\s+(\S+)/)?.[1];
+    const fromRoute = iface ? tryIface(iface) : null;
+    if (fromRoute) return fromRoute;
+  } catch {
+    // fall through
+  }
+  return "127.0.0.1";
 }
 
 function slugFromPayload(body) {
@@ -73,6 +96,7 @@ function archiveLiveLogIfPresent() {
 
 if (process.env.QA_LOG_FRESH === "1" && existsSync(LIVE_LOG)) {
   archiveLiveLogIfPresent();
+  writeFileSync(LIVE_LOG, "");
 }
 
 function parsePlay(raw) {

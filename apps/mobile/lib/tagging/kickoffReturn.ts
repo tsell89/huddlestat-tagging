@@ -23,8 +23,16 @@ import {
 
 export type ReturnEnd =
   | { kind: "yardline"; yardLine: YardLine }
+  | { kind: "endzone"; side: "own" | "opponent" }
   | { kind: "touchdown" }
   | { kind: "safety" };
+
+export function encodeReturnEndPart(end: ReturnEnd): string {
+  if (end.kind === "yardline") return String(end.yardLine);
+  if (end.kind === "touchdown") return "TD";
+  if (end.kind === "safety") return "SA";
+  return end.side === "own" ? "0" : "1";
+}
 
 export type KickoffReturnSpots = {
   caughtAt: YardLine;
@@ -37,14 +45,24 @@ export const FIELD_MID = HUDL_MIDFIELD;
 export const FIELD_GOAL = HUDL_END_ZONE;
 
 export const CAUGHT_MIN = -49 as YardLine;
-export const CAUGHT_MAX = -1 as YardLine;
+export const CAUGHT_MAX = 49 as YardLine;
 export const CAUGHT_DEFAULT = -5 as YardLine;
+export const KICK_CAUGHT_DEFAULT = 5 as YardLine;
 
 export const RETURNED_MIN = -49 as YardLine;
 export const RETURNED_MAX = 49 as YardLine;
 export const RETURNED_DEFAULT = -25 as YardLine;
+export const KICK_RETURNED_DEFAULT = 25 as YardLine;
 
-export function defaultKickoffReturnSpots(): KickoffReturnSpots {
+export function defaultKickoffReturnSpots(
+  weKicked = false,
+): KickoffReturnSpots {
+  if (weKicked) {
+    return {
+      caughtAt: KICK_CAUGHT_DEFAULT,
+      returnEnd: { kind: "yardline", yardLine: KICK_RETURNED_DEFAULT },
+    };
+  }
   return {
     caughtAt: CAUGHT_DEFAULT,
     returnEnd: { kind: "yardline", yardLine: RETURNED_DEFAULT },
@@ -82,12 +100,22 @@ export function clampToRange(n: number, min: number, max: number): YardLine {
 
 export function returnEndHudlYardLine(returnEnd: ReturnEnd): YardLine {
   if (returnEnd.kind === "yardline") return returnEnd.yardLine;
+  if (returnEnd.kind === "endzone") {
+    return returnEnd.side === "own" ? FIELD_GOAL : (1 as YardLine);
+  }
   return FIELD_GOAL;
 }
 
 export function returnEndZoneSide(returnEnd: ReturnEnd): EndZoneSide | undefined {
-  if (returnEnd.kind === "safety") return "own";
-  if (returnEnd.kind === "touchdown") return "opponent";
+  if (returnEnd.kind === "safety" || (returnEnd.kind === "endzone" && returnEnd.side === "own")) {
+    return "own";
+  }
+  if (
+    returnEnd.kind === "touchdown" ||
+    (returnEnd.kind === "endzone" && returnEnd.side === "opponent")
+  ) {
+    return "opponent";
+  }
   return undefined;
 }
 
@@ -115,18 +143,27 @@ export function yardLineAfterPlay(
 export function computeReturnYards(
   caughtAt: YardLine,
   returnEnd: ReturnEnd,
+  weKicked = false,
 ): number {
-  if (returnEnd.kind === "touchdown") {
-    return yardsToOpponentGoal(caughtAt);
+  if (
+    returnEnd.kind === "touchdown" ||
+    (returnEnd.kind === "endzone" && returnEnd.side === "opponent")
+  ) {
+    return weKicked ? yardsToOwnGoal(caughtAt) : yardsToOpponentGoal(caughtAt);
   }
-  if (returnEnd.kind === "safety") {
-    return yardsToOwnGoal(caughtAt);
+  if (
+    returnEnd.kind === "safety" ||
+    (returnEnd.kind === "endzone" && returnEnd.side === "own")
+  ) {
+    return weKicked ? yardsToOpponentGoal(caughtAt) : yardsToOwnGoal(caughtAt);
   }
-  return yardsAdvanced(
+  if (returnEnd.kind !== "yardline") return 0;
+  const raw = yardsAdvanced(
     caughtAt,
     returnEnd.yardLine,
     returnEndZoneSide(returnEnd),
   );
+  return weKicked ? -raw : raw;
 }
 
 export function formatFieldPosition(yardLine: YardLine): string {
@@ -137,19 +174,24 @@ export function formatFieldPosition(yardLine: YardLine): string {
 }
 
 export function formatReturnEndDisplay(returnEnd: ReturnEnd): string {
-  if (returnEnd.kind === "touchdown") return "Touchdown";
-  if (returnEnd.kind === "safety") return "Safety";
+  if (
+    returnEnd.kind === "touchdown" ||
+    (returnEnd.kind === "endzone" && returnEnd.side === "opponent")
+  ) {
+    return "Touchdown";
+  }
+  if (
+    returnEnd.kind === "safety" ||
+    (returnEnd.kind === "endzone" && returnEnd.side === "own")
+  ) {
+    return "Safety";
+  }
+  if (returnEnd.kind !== "yardline") return "Safety";
   return formatFieldPosition(returnEnd.yardLine);
 }
 
 export function encodeKickoffReturnSpotEncoding(spots: KickoffReturnSpots): string {
-  const end =
-    spots.returnEnd.kind === "yardline"
-      ? String(spots.returnEnd.yardLine)
-      : spots.returnEnd.kind === "touchdown"
-        ? "TD"
-        : "SA";
-  return `catch:${spots.caughtAt}|end:${end}`;
+  return `catch:${spots.caughtAt}|end:${encodeReturnEndPart(spots.returnEnd)}`;
 }
 
 export function decodeKickoffReturnFromSpotEncoding(
@@ -177,14 +219,16 @@ export function decodeKickoffReturnFromSpotEncoding(
 export function spotsFromSavedReturn(
   returnYards: number | undefined,
   spotEncoding?: string,
+  weKicked = false,
 ): KickoffReturnSpots {
   const decoded = decodeKickoffReturnFromSpotEncoding(spotEncoding);
   if (decoded) return decoded;
   const yards = returnYards ?? 0;
-  if (yards === 0) return defaultKickoffReturnSpots();
-  const endPos = hudlToFieldPosition(CAUGHT_DEFAULT) + yards;
+  if (yards === 0) return defaultKickoffReturnSpots(weKicked);
+  const catchDefault = weKicked ? KICK_CAUGHT_DEFAULT : CAUGHT_DEFAULT;
+  const endPos = hudlToFieldPosition(catchDefault) + (weKicked ? -yards : yards);
   return {
-    caughtAt: CAUGHT_DEFAULT,
+    caughtAt: catchDefault,
     returnEnd: {
       kind: "yardline",
       yardLine: fieldPositionToHudl(
@@ -197,11 +241,12 @@ export function spotsFromSavedReturn(
 export function initKickoffSpotsFromDraft(
   draft: PlaylistData | null,
 ): KickoffReturnSpots {
-  if (!draft) return defaultKickoffReturnSpots();
+  const weKicked = draft?.playType === PlayType.Kickoff;
+  if (!draft) return defaultKickoffReturnSpots(false);
   if (draft.result === Result.Touchback) {
-    return defaultKickoffReturnSpots();
+    return defaultKickoffReturnSpots(weKicked);
   }
-  return spotsFromSavedReturn(draft.returnYards, draft.spotEncoding);
+  return spotsFromSavedReturn(draft.returnYards, draft.spotEncoding, weKicked);
 }
 
 /** HS kickoff touchback gross yards (kick spot → end zone). */
@@ -223,7 +268,12 @@ export function applyKickoffSpotsToDraft(
   if (draft.result !== Result.Return) {
     return draft;
   }
-  const returnYards = computeReturnYards(spots.caughtAt, spots.returnEnd);
+  const weKicked = draft.playType === PlayType.Kickoff;
+  const returnYards = computeReturnYards(
+    spots.caughtAt,
+    spots.returnEnd,
+    weKicked,
+  );
   const kickYards = yardsAdvanced(draft.yardLine, spots.caughtAt);
   return {
     ...draft,

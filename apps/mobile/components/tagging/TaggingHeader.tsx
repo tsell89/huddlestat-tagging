@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import type { GamePhase, PlaylistData } from "@huddlestat/shared";
 import type { LocalGame } from "@/lib/db/types";
 import { formatSituationLine } from "@/lib/tagging/formatSituation";
+import { headerPhaseLabel } from "@/lib/tagging/phaseAdvance";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 type TaggingHeaderProps = {
@@ -11,18 +12,8 @@ type TaggingHeaderProps = {
   unsyncedCount: number;
   onUndo?: () => void;
   undoEnabled?: boolean;
+  phaseAdvance?: { label: string; onPress: () => void } | null;
 };
-
-function phaseBadgeLabel(phase: GamePhase): string {
-  switch (phase) {
-    case "HALFTIME":
-      return "Halftime";
-    case "FINAL":
-      return "Final";
-    default:
-      return phase;
-  }
-}
 
 export function TaggingHeader({
   game,
@@ -30,8 +21,10 @@ export function TaggingHeader({
   unsyncedCount,
   onUndo,
   undoEnabled = false,
+  phaseAdvance,
 }: TaggingHeaderProps) {
   const { colors } = LAYOUT;
+  const phaseLabel = headerPhaseLabel(game.phase);
 
   return (
     <View style={[styles.bar, { borderBottomColor: colors.sectionBorder }]}>
@@ -44,13 +37,15 @@ export function TaggingHeader({
       </Pressable>
 
       <View style={styles.center}>
-        <Text style={styles.playLine}>
-          <Text style={styles.playNum}>PLAY #{draft.playNumber}</Text>
-          <Text style={styles.quarterBadge}> · Q{draft.quarter}</Text>
-          <Text style={styles.phaseBadge}> · {phaseBadgeLabel(game.phase)}</Text>
-          {"  ·  "}
-          {formatSituationLine(draft)}
-        </Text>
+        <View style={styles.playLine}>
+          <Text style={styles.playLabel}>PLAY</Text>
+          <Text style={styles.playNum}>{draft.playNumber}</Text>
+          <Text style={styles.phaseBadge}> · {phaseLabel}</Text>
+          <Text style={styles.situation} numberOfLines={1}>
+            {"  ·  "}
+            {formatSituationLine(draft)}
+          </Text>
+        </View>
         <Text style={styles.metaLine} numberOfLines={1}>
           {game.teamCode} vs {game.opponent}
           {unsyncedCount > 0
@@ -58,6 +53,16 @@ export function TaggingHeader({
             : ""}
         </Text>
       </View>
+
+      {phaseAdvance ? (
+        <Pressable
+          style={styles.phaseAdvanceBtn}
+          onPress={phaseAdvance.onPress}
+          hitSlop={4}
+        >
+          <Text style={styles.phaseAdvanceText}>{phaseAdvance.label}</Text>
+        </Pressable>
+      ) : null}
 
       <View style={styles.right}>
         <Text style={styles.score}>
@@ -115,25 +120,55 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   playLine: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
+    flexDirection: "row",
+    alignItems: "baseline",
+    minWidth: 0,
+  },
+  playLabel: {
+    color: LAYOUT.colors.navyLight,
+    fontSize: 14,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    flexShrink: 0,
   },
   playNum: {
     color: LAYOUT.colors.navyLight,
     fontSize: 14,
     fontWeight: "600",
-    letterSpacing: 0.5,
+    fontVariant: ["tabular-nums"],
+    minWidth: 32,
+    marginLeft: 6,
+    textAlign: "right",
+    flexShrink: 0,
   },
-  quarterBadge: {
-    color: "#fde68a",
-    fontSize: 14,
+  situation: {
+    flex: 1,
+    color: "#fff",
+    fontSize: 18,
     fontWeight: "700",
   },
   phaseBadge: {
-    color: "#a5f3fc",
+    color: "#fde68a",
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: "700",
+    flexShrink: 0,
+  },
+  phaseAdvanceBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "#4ade80",
+    backgroundColor: "rgba(74, 222, 128, 0.12)",
+    maxWidth: 160,
+    minHeight: LAYOUT.minTapTarget,
+    justifyContent: "center",
+  },
+  phaseAdvanceText: {
+    color: "#bbf7d0",
+    fontSize: 12,
+    fontWeight: "700",
+    textAlign: "center",
   },
   metaLine: {
     color: "#cbd5e1",

@@ -88,6 +88,32 @@ describe("canonical drive (spec §2.4)", () => {
     });
   });
 
+  test("odk D rush Opp 25 → Opp 32 (+7) → 2nd & 3 @ Opp 32, still D", () => {
+    const run = basePlay({
+      playNumber: 11,
+      playType: PlayType.Run,
+      result: Result.Rush,
+      odk: ODK.Defense,
+      yardLine: 25,
+      down: 1,
+      distance: 10,
+      gainLoss: 7,
+      spotEncoding: "tackle:25|end:32",
+    });
+
+    assert.equal(yardLineAfterPlay(run), 32);
+    assert.deepEqual(advanceSituation(run), {
+      down: 2,
+      distance: 3,
+      yardLine: 32,
+    });
+    const next = nextDraftAfterPlay(run, 12, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.down, 2);
+    assert.equal(next.distance, 3);
+    assert.equal(next.yardLine, 32);
+  });
+
   test("FG good on 4th → next draft is kickoff", () => {
     const fg = basePlay({
       playNumber: 4,
@@ -103,6 +129,7 @@ describe("canonical drive (spec §2.4)", () => {
 
     const next = nextDraftAfterPlay(fg, 5, TEAM);
     assert.equal(next.playType, PlayType.Kickoff);
+    assert.equal(next.result, Result.Return);
     assert.equal(next.odk, ODK.Kicking);
     assert.equal(next.down, 0);
     assert.equal(next.playNumber, 5);
@@ -162,6 +189,79 @@ describe("TD → scoring → kickoff chain", () => {
     const scoring = nextDraftAfterPlay(td, 11, TEAM);
     assert.equal(scoring.playType, PlayType.ExtraPointBlock);
     assert.equal(scoring.result, Result.Blocked);
+    assert.equal(scoring.odk, ODK.Defense);
+  });
+
+  test("odk D rush TD with tackle|end:TD → Extra Pt. Block (not our XP)", () => {
+    const td = basePlay({
+      playNumber: 10,
+      playType: PlayType.Run,
+      result: Result.RushTd,
+      yardLine: -5,
+      down: 1,
+      distance: 10,
+      gainLoss: 5,
+      odk: ODK.Defense,
+      spotEncoding: "tackle:-5|end:TD",
+    });
+
+    const scoring = nextDraftAfterPlay(td, 11, TEAM);
+    assert.equal(scoring.playType, PlayType.ExtraPointBlock);
+    assert.equal(scoring.result, Result.Blocked);
+    assert.equal(scoring.odk, ODK.Defense);
+  });
+
+  test("odk O rush TD with tackle|end:TD → Extra Pt. Good", () => {
+    const td = basePlay({
+      playNumber: 3,
+      playType: PlayType.Run,
+      result: Result.RushTd,
+      yardLine: 5,
+      down: 1,
+      distance: 10,
+      gainLoss: 5,
+      odk: ODK.Offense,
+      spotEncoding: "tackle:5|end:TD",
+    });
+
+    const scoring = nextDraftAfterPlay(td, 4, TEAM);
+    assert.equal(scoring.playType, PlayType.ExtraPoint);
+    assert.equal(scoring.result, Result.Good);
+    assert.equal(scoring.odk, ODK.Offense);
+  });
+
+  test("we-kick KO return TD → Extra Pt. Block (their score)", () => {
+    const ko = basePlay({
+      playNumber: 1,
+      playType: PlayType.Kickoff,
+      result: Result.Return,
+      odk: ODK.Kicking,
+      yardLine: -40,
+      down: 0,
+      distance: 0,
+      spotEncoding: "catch:-5|end:TD",
+    });
+
+    const scoring = nextDraftAfterPlay(ko, 2, TEAM);
+    assert.equal(scoring.playType, PlayType.ExtraPointBlock);
+    assert.equal(scoring.result, Result.Blocked);
+    assert.equal(scoring.odk, ODK.Defense);
+  });
+
+  test("INT return TD (odk O) → Extra Pt. Block (they picked us)", () => {
+    const pick = basePlay({
+      playNumber: 3,
+      playType: PlayType.Pass,
+      result: Result.Interception,
+      odk: ODK.Offense,
+      yardLine: 20,
+      down: 2,
+      distance: 8,
+      spotEncoding: "catch:20|end:TD",
+    });
+
+    const scoring = nextDraftAfterPlay(pick, 4, TEAM);
+    assert.equal(scoring.playType, PlayType.ExtraPointBlock);
     assert.equal(scoring.odk, ODK.Defense);
   });
 
@@ -255,11 +355,12 @@ describe("TD → scoring → kickoff chain", () => {
     });
 
     const scoring = nextDraftAfterPlay(punt, 6, TEAM);
-    assert.equal(scoring.playType, PlayType.ExtraPoint);
+    assert.equal(scoring.playType, PlayType.ExtraPointBlock);
+    assert.equal(scoring.odk, ODK.Defense);
     assert.equal(scoring.yardLine, 3);
   });
 
-  test("blocked punt recover|end:TD → Extra Pt scoring pad (odk O)", () => {
+  test("blocked punt recover|end:TD → Extra Pt. Block (they scored on our punt)", () => {
     const blocked = basePlay({
       playNumber: 6,
       playType: PlayType.Punt,
@@ -272,8 +373,8 @@ describe("TD → scoring → kickoff chain", () => {
     });
 
     const scoring = nextDraftAfterPlay(blocked, 7, TEAM);
-    assert.equal(scoring.playType, PlayType.ExtraPoint);
-    assert.equal(scoring.odk, ODK.Offense);
+    assert.equal(scoring.playType, PlayType.ExtraPointBlock);
+    assert.equal(scoring.odk, ODK.Defense);
     assert.equal(scoring.yardLine, 3);
   });
 
@@ -388,7 +489,7 @@ describe("TD → scoring → kickoff chain", () => {
 });
 
 describe("touchback @ Own 20 (HS)", () => {
-  test("kickoff touchback places next snap at Own 20", () => {
+  test("we kick touchback → they have 1st & 10 @ Opp 20 (odk D)", () => {
     const ko = {
       ...defaultKickoffPlay(1, TEAM),
       result: Result.Touchback,
@@ -396,14 +497,14 @@ describe("touchback @ Own 20 (HS)", () => {
     };
 
     assert.equal(yardLineAfterPlay(ko), -20);
-    assert.deepEqual(advanceSituation(ko), {
-      down: 1,
-      distance: 10,
-      yardLine: -20,
-    });
+    const next = nextDraftAfterPlay(ko, 2, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.yardLine, 20);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
   });
 
-  test("kickoff receive touchback places next snap at Own 20", () => {
+  test("we receive touchback → we have 1st & 10 @ Own 20 (odk O)", () => {
     const koRec = {
       ...defaultKickoffPlay(1, TEAM),
       playType: PlayType.KickoffReceive,
@@ -412,11 +513,11 @@ describe("touchback @ Own 20 (HS)", () => {
     };
 
     assert.equal(yardLineAfterPlay(koRec), -20);
-    assert.deepEqual(advanceSituation(koRec), {
-      down: 1,
-      distance: 10,
-      yardLine: -20,
-    });
+    const next = nextDraftAfterPlay(koRec, 2, TEAM);
+    assert.equal(next.odk, ODK.Offense);
+    assert.equal(next.yardLine, -20);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
   });
 
   test("kickoff receive return uses spotEncoding end spot", () => {
@@ -430,11 +531,27 @@ describe("touchback @ Own 20 (HS)", () => {
     };
 
     assert.equal(yardLineAfterPlay(koRec), -25);
-    assert.deepEqual(advanceSituation(koRec), {
-      down: 1,
-      distance: 10,
-      yardLine: -25,
-    });
+    const next = nextDraftAfterPlay(koRec, 2, TEAM);
+    assert.equal(next.odk, ODK.Offense);
+    assert.equal(next.yardLine, -25);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
+  });
+
+  test("we kick return to Opp 25 → they have 1st & 10 @ Opp 25 (odk D)", () => {
+    const ko = {
+      ...defaultKickoffPlay(1, TEAM),
+      result: Result.Return,
+      gainLoss: 20,
+      returnYards: 20,
+      spotEncoding: "catch:5|end:25",
+    };
+    assert.equal(yardLineAfterPlay(ko), 25);
+    const next = nextDraftAfterPlay(ko, 2, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.yardLine, 25);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
   });
 });
 
@@ -498,6 +615,24 @@ describe("punt receive chain", () => {
     assert.equal(next.odk, ODK.Defense);
     assert.equal(next.playType, PlayType.PuntReceive);
     assert.equal(next.yardLine, -20);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
+  });
+
+  test("punt rec touchback → they have 1st & 10 @ Opp 20 (odk D)", () => {
+    const puntRec = {
+      ...defaultKickoffPlay(6, TEAM),
+      playType: PlayType.PuntReceive,
+      odk: ODK.Defense,
+      result: Result.Touchback,
+      yardLine: -35,
+      down: 1,
+      distance: 10,
+      gainLoss: 0,
+    };
+    const next = nextDraftAfterPlay(puntRec, 7, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.yardLine, 20);
     assert.equal(next.down, 1);
     assert.equal(next.distance, 10);
   });
@@ -708,6 +843,30 @@ describe("Package H — live ball", () => {
     assert.equal(next.down, 3);
   });
 
+  test("odk D fumble recovered by them Opp 25→32 is +7, 2nd & 3 @ 32", () => {
+    const fumble = basePlay({
+      playType: PlayType.Run,
+      result: Result.Fumble,
+      yardLine: 25,
+      down: 1,
+      distance: 10,
+      spotEncoding: "fumble:28|end:32|by:O",
+      gainLoss: 7,
+      odk: ODK.Defense,
+    });
+
+    assert.deepEqual(advanceSituation(fumble), {
+      down: 2,
+      distance: 3,
+      yardLine: 32,
+    });
+    const next = nextDraftAfterPlay(fumble, 12, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.down, 2);
+    assert.equal(next.distance, 3);
+    assert.equal(next.yardLine, 32);
+  });
+
   test("FG no good in field → opponent @ LOS (flipped)", () => {
     const fg = basePlay({
       playType: PlayType.FieldGoal,
@@ -822,6 +981,72 @@ describe("Package H — live ball", () => {
       distance: 18,
       yardLine: -32,
     });
+  });
+});
+
+describe("converted 4th down", () => {
+  test("4th & 2 @ Own 40 rush +5 stays odk O, 1st & 10 @ Own 45", () => {
+    const run = basePlay({
+      playType: PlayType.Run,
+      result: Result.Rush,
+      yardLine: -40,
+      down: 4,
+      distance: 2,
+      gainLoss: 5,
+      odk: ODK.Offense,
+      spotEncoding: "tackle:-40|end:-45",
+    });
+
+    const saved = normalizePlayOnSave(run);
+    assert.equal(saved.result, Result.Rush);
+    assert.equal(isFailedFourthDown(run), false);
+
+    const next = nextDraftAfterPlay(run, 5, TEAM);
+    assert.equal(next.odk, ODK.Offense);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
+    assert.equal(next.yardLine, -45);
+  });
+
+  test("odk D converted 4th stays defense 1st & 10", () => {
+    const run = basePlay({
+      playType: PlayType.Run,
+      result: Result.Rush,
+      yardLine: 25,
+      down: 4,
+      distance: 2,
+      gainLoss: 5,
+      odk: ODK.Defense,
+      spotEncoding: "tackle:25|end:30",
+    });
+
+    const next = nextDraftAfterPlay(run, 8, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
+    assert.equal(next.yardLine, 30);
+  });
+
+  test("holding on 4th is not COP — same down, penalty spot", () => {
+    const penalty = basePlay({
+      playType: PlayType.Run,
+      result: Result.Penalty,
+      yardLine: -40,
+      down: 4,
+      distance: 5,
+      spotEncoding: "foul:-42",
+      gainLoss: 0,
+      odk: ODK.Offense,
+    });
+
+    assert.equal(isFailedFourthDown(penalty), false);
+    const saved = normalizePlayOnSave(penalty);
+    assert.equal(saved.result, Result.Penalty);
+
+    const next = nextDraftAfterPlay(penalty, 5, TEAM);
+    assert.equal(next.odk, ODK.Offense);
+    assert.equal(next.down, 4);
+    assert.equal(next.playType, "");
   });
 });
 
