@@ -833,12 +833,9 @@ export default function TaggingScreen() {
         savedPlayForLog = toSaveReduced;
         setCatchUpMode(false);
         setCatchUpHint(null);
-        updatedGame = await applyScoreAfterSave(id, newPlays, {
-          ...game,
-          phase: reduced.phase,
-          status: reduced.status,
-          otPossession: reduced.otPossession,
-        });
+        // Pass pre-save phase: applyScoreAfterSave calls finalizeLocalGame
+        // only when currentGame.phase is still OT (shouldFinalizeOtGame).
+        updatedGame = await applyScoreAfterSave(id, newPlays, game);
         setGame(updatedGame);
       }
       setUnsyncedCount(await countUnsyncedPlays(id));
