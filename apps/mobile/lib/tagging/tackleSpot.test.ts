@@ -8,6 +8,7 @@ import {
 import {
   applyTackleSpotToDraft,
   canTackleStepYardLine,
+  formatTackleEndDisplay,
   isAtOwnGoalLine,
   isAtOwnOne,
   isTackleLeftExtreme,
@@ -46,6 +47,13 @@ describe("tackle slider axis", () => {
     assert.equal(isAtOwnGoalLine(TACKLE_SLIDER_OWN_GOAL), true);
     assert.equal(isAtOwnOne(TACKLE_SLIDER_OWN_ONE), true);
     assert.equal(isTackleLeftExtreme(TACKLE_SLIDER_OWN_ONE), false);
+    assert.equal(
+      formatTackleEndDisplay({
+        kind: "yardline",
+        yardLine: TACKLE_SLIDER_OWN_GOAL,
+      }),
+      "Own goal line",
+    );
   });
 
   test("opp 1 is right extreme", () => {

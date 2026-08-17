@@ -10,8 +10,8 @@ import {
   yardsAdvanced,
   yardsToOpponentGoal,
   yardsToOwnGoal,
-} from "@/lib/tagging/fieldPosition100";
-import { formatFieldPosition } from "@/lib/tagging/kickoffReturn";
+} from "./fieldPosition100";
+import { formatFieldPosition } from "./kickoffReturn";
 
 export type TackleEnd =
   | { kind: "yardline"; yardLine: YardLine }
@@ -70,6 +70,7 @@ export function computeTackleGainLoss(
 export function formatTackleEndDisplay(end: TackleEnd): string {
   if (end.kind === "touchdown") return "Touchdown";
   if (end.kind === "safety") return "Safety";
+  if (Math.round(end.yardLine) === HUDL_END_ZONE) return "Own goal line";
   return formatFieldPosition(end.yardLine);
 }
 

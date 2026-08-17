@@ -14,10 +14,10 @@ import {
   fgAttemptYards,
   FG_NO_GOOD_IN_FIELD,
   isFgNoGoodSpotEncoding,
-} from "@/lib/tagging/fieldGoal";
-import { hudlToFieldPosition } from "@/lib/tagging/fieldPosition100";
-import { touchbackDraftPatch } from "@/lib/tagging/kickoffReturn";
-import { needsTackleSpot } from "@/lib/tagging/tackleSpot";
+} from "./fieldGoal";
+import { hudlToFieldPosition } from "./fieldPosition100";
+import { touchbackDraftPatch } from "./kickoffReturn";
+import { needsTackleSpot } from "./tackleSpot";
 import { POSITION_GROUPS as POSITION_GROUP_MAP } from "./positionGroups";
 import { getVisiblePlayerSlots, type PlayerSlotKey } from "./visiblePlayerSlots";
 
@@ -27,7 +27,7 @@ export {
   type PlayerSlotKey,
 } from "./visiblePlayerSlots";
 
-export { needsTackleSpot } from "@/lib/tagging/tackleSpot";
+export { needsTackleSpot } from "./tackleSpot";
 
 /** HS max field-goal attempt distance (yards to goal + 10). */
 export const MAX_FG_RANGE = 62;

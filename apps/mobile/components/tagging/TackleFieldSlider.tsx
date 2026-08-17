@@ -45,7 +45,7 @@ const FINE_BTN_SIZE = 56;
 const THUMB_SIZE = FINE_BTN_SIZE;
 /** Center-to-center distance from thumb to ± button */
 const FINE_OFFSET = FINE_BTN_SIZE + 12;
-const ENDPOINT_FINE_OFFSET = 92;
+const ENDPOINT_FINE_OFFSET = 112;
 const CONNECTOR_SIZE = FINE_OFFSET;
 const GAIN_LABEL_HALF = 72;
 const SPOT_LABEL_HALF = 72;
@@ -455,7 +455,7 @@ export function TackleFieldSlider({
 
   const showLeftOrbit =
     showMinusToGoal ||
-    (atOppOne && spotMoved && showConfirmTd) ||
+    (atOppOne && showConfirmTd) ||
     (showMinusFine && !showConfirmSafety);
   const showRightOrbit =
     showPlusFromGoal ||
@@ -568,7 +568,7 @@ export function TackleFieldSlider({
               onPress={handleSafetyPress}
               variant="confirm"
             />
-          ) : showMinusToGoal || (atOppOne && spotMoved && showConfirmTd) ? (
+          ) : showMinusToGoal || (atOppOne && showConfirmTd) ? (
             <OrbitButton
               center={thumbCenter - leftOrbitOffset}
               label="−"
