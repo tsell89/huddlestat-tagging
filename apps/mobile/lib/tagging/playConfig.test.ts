@@ -11,6 +11,7 @@ import {
   defaultOffensePlayType,
   ensureOffensePadDraft,
   shouldShowOffensePad,
+  taggingPadKind,
 } from "./playConfig";
 
 describe("applyResultChange", () => {
@@ -115,5 +116,41 @@ describe("ensureOffensePadDraft", () => {
     assert.equal(defaultOffensePlayType(draft), PlayType.Punt);
     const next = ensureOffensePadDraft(draft);
     assert.equal(next.playType, PlayType.Punt);
+  });
+});
+
+describe("taggingPadKind", () => {
+  test("Punt Rec mounts punt-receive, not offense (no Run/Pass/Punt/FG row)", () => {
+    const draft = {
+      ...defaultOffensivePlay(5, "SHS"),
+      odk: ODK.Defense,
+      playType: PlayType.PuntReceive,
+      result: Result.Downed,
+      down: 1,
+      distance: 10,
+      yardLine: 20,
+    };
+    assert.equal(shouldShowOffensePad(draft), false);
+    assert.equal(taggingPadKind(draft), "punt-receive");
+  });
+
+  test("odk D open scrimmage still mounts offense", () => {
+    const draft = {
+      ...defaultOffensivePlay(11, "SHS"),
+      odk: ODK.Defense,
+    };
+    assert.equal(taggingPadKind(draft), "offense");
+  });
+
+  test("our Punt still mounts offense so PlayTypeRow stays available", () => {
+    const draft = {
+      ...defaultOffensivePlay(4, "SHS"),
+      playType: PlayType.Punt,
+      result: Result.Downed,
+      down: 4,
+      distance: 10,
+      yardLine: -35,
+    };
+    assert.equal(taggingPadKind(draft), "offense");
   });
 });

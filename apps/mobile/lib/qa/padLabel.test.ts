@@ -63,4 +63,15 @@ describe("padLabelForDraft", () => {
     };
     assert.equal(padLabelForDraft(d), "FG");
   });
+
+  test("punt receive stays Punt Rec", () => {
+    const d = {
+      ...base(),
+      playType: PlayType.PuntReceive,
+      odk: ODK.Defense,
+      down: 1,
+      distance: 10,
+    };
+    assert.equal(padLabelForDraft(d), "Punt Rec");
+  });
 });

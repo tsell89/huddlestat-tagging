@@ -111,6 +111,27 @@ export function shouldShowOffensePad(draft: PlaylistData): boolean {
   return isOffensePadPlayType(draft.playType) || isOpenScrimmageDraft(draft);
 }
 
+/** Which tagging pad TaggingPad should mount for this draft. */
+export type TaggingPadKind =
+  | "kickoff"
+  | "scoring"
+  | "punt-receive"
+  | "offense"
+  | "none";
+
+export function taggingPadKind(draft: PlaylistData): TaggingPadKind {
+  if (
+    draft.playType === PlayType.Kickoff ||
+    draft.playType === PlayType.KickoffReceive
+  ) {
+    return "kickoff";
+  }
+  if (isScoringPlayType(draft.playType)) return "scoring";
+  if (draft.playType === PlayType.PuntReceive) return "punt-receive";
+  if (shouldShowOffensePad(draft)) return "offense";
+  return "none";
+}
+
 /** New scrimmage series defaults by situation (UX-11 / UX-12). */
 export function defaultOffensePlayType(draft: PlaylistData): OffensePlayType {
   const fourthDown = draft.down === 4;

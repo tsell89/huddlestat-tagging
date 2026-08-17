@@ -72,11 +72,14 @@ export function OffensePad({
     );
   }
 
-  const bodyDraft = ensureOffensePadDraft(draft);
+  const isPuntReceive = draft.playType === PlayType.PuntReceive;
+  const bodyDraft = isPuntReceive ? draft : ensureOffensePadDraft(draft);
 
   return (
     <View style={styles.shell}>
-      <PlayTypeRow draft={bodyDraft} onChange={handlePlayTypeChange} />
+      {isPuntReceive ? null : (
+        <PlayTypeRow draft={bodyDraft} onChange={handlePlayTypeChange} />
+      )}
 
       {bodyDraft.playType === PlayType.Run ? (
         <RunPad
@@ -106,7 +109,8 @@ export function OffensePad({
           penaltyFoulSpot={penaltyFoulSpot}
           onPenaltyFoulSpotChange={onPenaltyFoulSpotChange}
         />
-      ) : bodyDraft.playType === PlayType.Punt ? (
+      ) : bodyDraft.playType === PlayType.Punt ||
+        bodyDraft.playType === PlayType.PuntReceive ? (
         <PuntPad
           draft={bodyDraft}
           onChange={onChange}
