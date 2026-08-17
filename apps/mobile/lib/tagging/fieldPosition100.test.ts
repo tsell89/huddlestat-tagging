@@ -3,6 +3,7 @@ import { describe, test } from "node:test";
 import {
   canStepHudlYardLine,
   fieldPositionToSliderRatio,
+  hudlToSliderRatio,
   stepHudlYardLine,
 } from "./fieldPosition100";
 
@@ -23,5 +24,9 @@ describe("stepHudlYardLine", () => {
     assert.equal(fieldPositionToSliderRatio(0), 0);
     assert.equal(fieldPositionToSliderRatio(100), 1);
     assert.equal(fieldPositionToSliderRatio(50), 0.5);
+  });
+
+  test("hudl yard line and internal position share slider ratio", () => {
+    assert.equal(fieldPositionToSliderRatio(75), hudlToSliderRatio(25));
   });
 });

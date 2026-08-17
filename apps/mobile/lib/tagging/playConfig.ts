@@ -225,14 +225,12 @@ export function getAlternateResultsForPlayType(
     case PlayType.Run:
       return [
         Result.Rush,
-        Result.RushTd,
         Result.Fumble,
         Result.Penalty,
       ];
     case PlayType.Pass:
       return [
         Result.Complete,
-        Result.CompleteTd,
         Result.Incomplete,
         Result.Sack,
         Result.Interception,

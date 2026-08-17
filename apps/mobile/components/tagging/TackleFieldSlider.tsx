@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState, Fragment } from "react";
 import {
   Alert,
   LayoutChangeEvent,
@@ -9,26 +9,24 @@ import {
   View,
 } from "react-native";
 import {
-  fieldRatioToYardLine,
-  fieldYardLineToRatio,
-  formatFieldPosition,
-} from "@/lib/tagging/kickoffReturn";
-import {
-  canStepHudlYardLine,
-  fieldPositionToSliderRatio,
-  stepHudlYardLine,
-} from "@/lib/tagging/fieldPosition100";
-import { LAYOUT } from "@/lib/tagging/layoutConstants";
-import {
+  canTackleStepYardLine,
   computeTackleGainLoss,
   formatTackleEndDisplay,
-  isTackleLeftExtreme,
+  isAtOwnGoalLine,
+  isAtOwnOne,
   isTackleRightExtreme,
   sliderYardLineForTackleEnd,
-  TACKLE_SLIDER_OWN_ONE,
-  TACKLE_SLIDER_OPP_ONE,
+  tackleRatioToFieldPosition,
+  tackleRatioToYardLine,
+  tackleStepYardLine,
+  tackleStripCenterX,
+  tackleStripRatioFromCenterX,
+  tackleYardLineToFieldPos,
+  TACKLE_STRIP_END_ZONE_PX,
   type TackleEnd,
 } from "@/lib/tagging/tackleSpot";
+import { formatFieldPosition } from "@/lib/tagging/kickoffReturn";
+import { LAYOUT } from "@/lib/tagging/layoutConstants";
 import type { YardLine } from "@huddlestat/shared";
 
 type TackleFieldSliderProps = {
@@ -37,10 +35,9 @@ type TackleFieldSliderProps = {
   onChange: (end: TackleEnd) => void;
 };
 
-const THUMB_TRAVEL_PAD = 16;
 const ORBIT_GAIN_HEIGHT = 80;
 const ORBIT_SPOT_HEIGHT = 44;
-const RULER_HEIGHT = 36;
+const RULER_HEIGHT = 48;
 const FINE_BTN_SIZE = 56;
 const THUMB_SIZE = FINE_BTN_SIZE;
 /** Center-to-center distance from thumb to ± button */
@@ -48,11 +45,20 @@ const FINE_OFFSET = FINE_BTN_SIZE + 12;
 const CONNECTOR_SIZE = FINE_OFFSET;
 const GAIN_LABEL_HALF = 72;
 const SPOT_LABEL_HALF = 72;
-const RULER_DIGIT_W = 9;
 
-/** 10-yard ruler: G · 10 · 20 · 30 · 40 · 50 · 40 · 30 · 20 · 10 · G */
-const RULER_MARKS: { pos: number; label: string }[] = [
-  { pos: 0, label: "G" },
+const FIELD_GREEN = "#2f7d32";
+const FIELD_GREEN_ALT = "#297429";
+const FIELD_LINE = "rgba(255,255,255,0.92)";
+const FIELD_GOAL = "#f5d547";
+const GOAL_LINE_W = 3;
+
+const FIELD_DIGIT_W = 13;
+const FIELD_DIGIT_LINE_GAP = 5;
+const FIELD_LINE_IN_NUM_W = 2;
+const FIELD_ARROW_SLOT = 8;
+
+/** 10-yard numbers on the strip (internal 0–100 field axis). */
+const FIELD_YARD_NUMBERS: { pos: number; label: string }[] = [
   { pos: 10, label: "10" },
   { pos: 20, label: "20" },
   { pos: 30, label: "30" },
@@ -62,61 +68,172 @@ const RULER_MARKS: { pos: number; label: string }[] = [
   { pos: 70, label: "30" },
   { pos: 80, label: "20" },
   { pos: 90, label: "10" },
-  { pos: 100, label: "G" },
 ];
 
-function rulerMarkLeft(tickX: number, tickAnchorOffset: number): number {
-  return tickX - tickAnchorOffset;
+const MOW_STRIPE_COUNT = 24;
+
+function fieldPosCenterX(trackWidth: number, fieldPos: number): number {
+  return tackleStripCenterX(trackWidth, fieldPos);
+}
+
+function FieldArrow({ direction }: { direction: "left" | "right" }) {
+  return (
+    <View
+      style={[
+        styles.fieldArrow,
+        direction === "left" ? styles.fieldArrowLeft : styles.fieldArrowRight,
+      ]}
+    />
+  );
+}
+
+function FieldYardNumber({
+  label,
+  arrow,
+  lineCenterX,
+}: {
+  label: string;
+  arrow: "left" | "right" | "none";
+  lineCenterX: number;
+}) {
+  const tens = label[0] ?? "";
+  const ones = label[1] ?? "";
+  const leftArrowW = arrow === "left" ? FIELD_ARROW_SLOT : 0;
+  const rightArrowW = arrow === "right" ? FIELD_ARROW_SLOT : 0;
+  const lineCenterFromRowStart =
+    leftArrowW +
+    FIELD_DIGIT_W +
+    FIELD_DIGIT_LINE_GAP +
+    FIELD_LINE_IN_NUM_W / 2;
+  const rowWidth =
+    leftArrowW +
+    FIELD_DIGIT_W +
+    FIELD_DIGIT_LINE_GAP +
+    FIELD_LINE_IN_NUM_W +
+    FIELD_DIGIT_LINE_GAP +
+    FIELD_DIGIT_W +
+    rightArrowW;
+
+  return (
+    <View
+      style={[
+        styles.fieldNumberWrap,
+        { left: lineCenterX - lineCenterFromRowStart, width: rowWidth },
+      ]}
+      pointerEvents="none"
+    >
+      <View
+        style={[
+          styles.fieldNumberYardLine,
+          {
+            left:
+              lineCenterFromRowStart - FIELD_LINE_IN_NUM_W / 2,
+          },
+        ]}
+      />
+      <View style={styles.fieldNumberRow}>
+        {arrow === "left" ? (
+          <View style={styles.fieldArrowSlot}>
+            <FieldArrow direction="left" />
+          </View>
+        ) : null}
+        <Text style={styles.fieldDigit}>{tens}</Text>
+        <View style={styles.fieldDigitLineGap} />
+        <Text style={styles.fieldDigit}>{ones}</Text>
+        {arrow === "right" ? (
+          <View style={styles.fieldArrowSlot}>
+            <FieldArrow direction="right" />
+          </View>
+        ) : null}
+      </View>
+    </View>
+  );
 }
 
 function FieldRuler({ trackWidth }: { trackWidth: number }) {
-  const thumbTravel = Math.max(0, trackWidth - THUMB_TRAVEL_PAD);
+  const yardPositions = useMemo(() => {
+    const marks: number[] = [];
+    for (let pos = 0; pos <= 100; pos += 5) marks.push(pos);
+    return marks;
+  }, []);
+
+  const hashPositions = useMemo(() => {
+    const marks: number[] = [];
+    for (let pos = 0; pos <= 100; pos += 1) marks.push(pos);
+    return marks;
+  }, []);
 
   return (
-    <View style={styles.ruler}>
-      {RULER_MARKS.map(({ pos, label }) => {
-        const ratio = fieldPositionToSliderRatio(pos);
-        const tickX = ratio * thumbTravel;
-        const isGoal = label === "G";
-        const isMid = pos === 50;
+    <View style={styles.fieldStrip}>
+      <View style={styles.mowStripes} pointerEvents="none">
+        {Array.from({ length: MOW_STRIPE_COUNT }, (_, i) => (
+          <View
+            key={i}
+            style={[
+              styles.mowStripe,
+              { backgroundColor: i % 2 === 0 ? FIELD_GREEN : FIELD_GREEN_ALT },
+            ]}
+          />
+        ))}
+      </View>
 
-        if (isGoal) {
-          return (
-            <View
-              key={pos}
-              style={[styles.rulerMarkRow, { left: rulerMarkLeft(tickX, 0) }]}
-            >
-              <View style={[styles.rulerTick, styles.rulerTickMajor]} />
-              <Text style={styles.rulerLabelGoal}>G</Text>
-            </View>
-          );
-        }
+      <View
+        style={[
+          styles.fieldGoalLine,
+          { left: fieldPosCenterX(trackWidth, 0) - GOAL_LINE_W / 2 },
+        ]}
+        pointerEvents="none"
+      />
+      <View
+        style={[
+          styles.fieldGoalLine,
+          {
+            left: fieldPosCenterX(trackWidth, 100) - GOAL_LINE_W / 2,
+          },
+        ]}
+        pointerEvents="none"
+      />
 
-        const tens = label[0] ?? "";
-        const ones = label[1] ?? "";
-        const tickAnchor = RULER_DIGIT_W + 1;
-
+      {yardPositions.map((pos) => {
+        if (pos === 0 || pos === 100 || pos % 10 === 0) return null;
+        const x = fieldPosCenterX(trackWidth, pos);
         return (
           <View
-            key={pos}
-            style={[
-              styles.rulerMarkRow,
-              { left: rulerMarkLeft(tickX, tickAnchor) },
-            ]}
-          >
-            <Text style={[styles.rulerDigit, isMid && styles.rulerLabelMid]}>
-              {tens}
-            </Text>
+            key={`yard-${pos}`}
+            style={[styles.fieldYardLine, styles.fieldYardLineFive, { left: x - 0.5 }]}
+            pointerEvents="none"
+          />
+        );
+      })}
+
+      {hashPositions.map((pos) => {
+        if (pos % 5 === 0) return null;
+        const x = fieldPosCenterX(trackWidth, pos);
+        return (
+          <Fragment key={`hash-${pos}`}>
             <View
-              style={[
-                styles.rulerTick,
-                isMid && styles.rulerTickMajor,
-              ]}
+              style={[styles.fieldHash, { left: x - 1, top: 2 }]}
+              pointerEvents="none"
             />
-            <Text style={[styles.rulerDigit, isMid && styles.rulerLabelMid]}>
-              {ones}
-            </Text>
-          </View>
+            <View
+              style={[styles.fieldHash, styles.fieldHashBottom, { left: x - 1 }]}
+              pointerEvents="none"
+            />
+          </Fragment>
+        );
+      })}
+
+      {FIELD_YARD_NUMBERS.map(({ pos, label }) => {
+        const lineCenterX = fieldPosCenterX(trackWidth, pos);
+        const arrow =
+          pos === 50 ? "none" : pos < 50 ? ("left" as const) : ("right" as const);
+        return (
+          <FieldYardNumber
+            key={`num-${pos}`}
+            label={label}
+            arrow={arrow}
+            lineCenterX={lineCenterX}
+          />
         );
       })}
     </View>
@@ -141,8 +258,14 @@ export function TackleFieldSlider({
   const gainLabel =
     gainLoss > 0 ? `+${gainLoss}` : String(gainLoss);
   const spotLabel = formatTackleEndDisplay(end);
-  const atLeft = end.kind === "yardline" && isTackleLeftExtreme(end.yardLine);
-  const atRight = end.kind === "yardline" && isTackleRightExtreme(end.yardLine);
+  const atOwnGoalLine =
+    end.kind === "yardline" && isAtOwnGoalLine(end.yardLine);
+  const atOwnOne = end.kind === "yardline" && isAtOwnOne(end.yardLine);
+  const atOppOne =
+    end.kind === "yardline" && isTackleRightExtreme(end.yardLine);
+  const showConfirmSafety = atOwnGoalLine;
+  const showConfirmTd = atOppOne && end.kind === "yardline";
+  const showThumb = !showConfirmSafety && !showConfirmTd;
 
   function clampLeft(center: number, halfWidth: number): number {
     if (trackWidth <= 0) return 0;
@@ -160,29 +283,36 @@ export function TackleFieldSlider({
     });
   }, []);
 
-  const ratioFromPageX = useCallback((pageX: number): number | null => {
+  const centerXFromPageX = useCallback((pageX: number): number | null => {
     const width = trackWidthRef.current;
-    if (width <= THUMB_TRAVEL_PAD) return null;
+    if (width <= 2 * TACKLE_STRIP_END_ZONE_PX) return null;
     const localX = pageX - trackPageXRef.current;
-    const usable = width - THUMB_TRAVEL_PAD;
-    return Math.min(1, Math.max(0, localX / usable));
+    const minX = TACKLE_STRIP_END_ZONE_PX;
+    const maxX = width - TACKLE_STRIP_END_ZONE_PX;
+    return Math.min(maxX, Math.max(minX, localX));
   }, []);
 
-  const commitRatio = useCallback((ratio: number) => {
-    onChange({
-      kind: "yardline",
-      yardLine: fieldRatioToYardLine(ratio),
-    });
-  }, [onChange]);
+  const commitCenterX = useCallback(
+    (centerX: number) => {
+      const width = trackWidthRef.current;
+      const ratio = tackleStripRatioFromCenterX(width, centerX);
+      onChange({
+        kind: "yardline",
+        yardLine: tackleRatioToYardLine(ratio),
+      });
+    },
+    [onChange],
+  );
 
   const setFromPageX = useCallback(
     (pageX: number, commit: boolean) => {
-      const ratio = ratioFromPageX(pageX);
-      if (ratio === null) return;
-      setDragRatio(ratio);
-      if (commit) commitRatio(ratio);
+      const centerX = centerXFromPageX(pageX);
+      if (centerX === null) return;
+      const width = trackWidthRef.current;
+      setDragRatio(tackleStripRatioFromCenterX(width, centerX));
+      if (commit) commitCenterX(centerX);
     },
-    [commitRatio, ratioFromPageX],
+    [centerXFromPageX, commitCenterX],
   );
 
   const panResponder = useMemo(
@@ -208,32 +338,35 @@ export function TackleFieldSlider({
     [setFromPageX],
   );
 
-  const activeRatio =
-    dragRatio ?? fieldYardLineToRatio(sliderYardLine);
-  const thumbTravel = Math.max(0, trackWidth - THUMB_TRAVEL_PAD);
-  const thumbLeft = trackWidth > 0 ? activeRatio * thumbTravel : 0;
-  const thumbCenter = thumbLeft + THUMB_SIZE / 2;
+  const activeFieldPos =
+    dragRatio !== null
+      ? tackleRatioToFieldPosition(dragRatio)
+      : tackleYardLineToFieldPos(sliderYardLine);
+  const thumbCenter =
+    trackWidth > 0
+      ? fieldPosCenterX(trackWidth, activeFieldPos)
+      : TACKLE_STRIP_END_ZONE_PX;
+  const thumbLeft = thumbCenter - THUMB_SIZE / 2;
+  const gainFontSize = Math.abs(gainLoss) >= 10 ? 34 : 44;
+  const gainLineHeight = Math.abs(gainLoss) >= 10 ? 38 : 48;
+  const gainTop = Math.abs(gainLoss) >= 10 ? 4 : 10;
 
   function handleFineStep(delta: 1 | -1) {
     if (end.kind !== "yardline") return;
     onChange({
       kind: "yardline",
-      yardLine: stepHudlYardLine(end.yardLine, delta),
+      yardLine: tackleStepYardLine(end.yardLine, delta),
     });
   }
 
   function handleSafetyPress() {
     Alert.alert(
-      "Safety?",
-      "Confirm a safety on this play? If not, the ball stays at Own 1 (−1).",
+      "Confirm safety?",
+      "Mark this play as a safety?",
       [
+        { text: "No", style: "cancel" },
         {
-          text: "Own 1 (−1)",
-          onPress: () =>
-            onChange({ kind: "yardline", yardLine: TACKLE_SLIDER_OWN_ONE }),
-        },
-        {
-          text: "Confirm safety",
+          text: "Yes",
           style: "destructive",
           onPress: () => onChange({ kind: "safety" }),
         },
@@ -243,16 +376,12 @@ export function TackleFieldSlider({
 
   function handleTouchdownPress() {
     Alert.alert(
-      "Touchdown?",
-      "Confirm touchdown on this play? If not, the ball stays at Opp 1 (+1).",
+      "Confirm touchdown?",
+      "Mark this play as a touchdown?",
       [
+        { text: "No", style: "cancel" },
         {
-          text: "Opp 1 (+1)",
-          onPress: () =>
-            onChange({ kind: "yardline", yardLine: TACKLE_SLIDER_OPP_ONE }),
-        },
-        {
-          text: "Confirm TD",
+          text: "Yes",
           onPress: () => onChange({ kind: "touchdown" }),
         },
       ],
@@ -296,10 +425,28 @@ export function TackleFieldSlider({
     );
   }
 
+  const showMinusToGoal = atOwnOne && spotMoved && end.kind === "yardline";
+  const showPlusFromGoal = atOwnGoalLine && end.kind === "yardline";
   const showMinusFine =
-    end.kind === "yardline" && spotMoved && !atLeft;
+    end.kind === "yardline" &&
+    spotMoved &&
+    !atOwnGoalLine &&
+    !atOwnOne &&
+    !atOppOne;
   const showPlusFine =
-    end.kind === "yardline" && spotMoved && !atRight;
+    end.kind === "yardline" &&
+    spotMoved &&
+    !atOwnGoalLine &&
+    !atOppOne &&
+    !atOwnOne;
+
+  const showLeftOrbit =
+    showMinusToGoal ||
+    (atOppOne && spotMoved && showConfirmTd) ||
+    (showMinusFine && !showConfirmSafety);
+  const showRightOrbit =
+    showPlusFromGoal ||
+    (showPlusFine && !atOppOne && !showConfirmTd);
 
   return (
     <View style={styles.wrap}>
@@ -317,7 +464,12 @@ export function TackleFieldSlider({
           <Text
             style={[
               styles.gainLabel,
-              { left: clampLeft(thumbCenter, GAIN_LABEL_HALF) },
+              {
+                left: clampLeft(thumbCenter, GAIN_LABEL_HALF),
+                top: gainTop,
+                fontSize: gainFontSize,
+                lineHeight: gainLineHeight,
+              },
             ]}
           >
             {gainLabel}
@@ -329,13 +481,9 @@ export function TackleFieldSlider({
           style={styles.trackBand}
           {...panResponder.panHandlers}
         >
-          {trackWidth > 0 &&
-          (showMinusFine ||
-            showPlusFine ||
-            (atLeft && end.kind === "yardline") ||
-            (atRight && end.kind === "yardline")) ? (
+          {trackWidth > 0 && (showLeftOrbit || showRightOrbit) ? (
             <>
-              {showMinusFine || (atLeft && end.kind === "yardline") ? (
+              {showLeftOrbit ? (
                 <View
                   style={[
                     styles.connectorDisc,
@@ -349,7 +497,7 @@ export function TackleFieldSlider({
                   pointerEvents="none"
                 />
               ) : null}
-              {showPlusFine || (atRight && end.kind === "yardline") ? (
+              {showRightOrbit ? (
                 <View
                   style={[
                     styles.connectorDisc,
@@ -368,37 +516,56 @@ export function TackleFieldSlider({
 
           <View style={styles.track} />
 
-          <View style={[styles.thumb, { left: thumbLeft }]} />
+          {showThumb ? (
+            <View style={[styles.thumb, { left: thumbLeft }]} />
+          ) : null}
 
-          {trackWidth > 0 && atLeft && end.kind === "yardline" ? (
+          {trackWidth > 0 && showConfirmSafety ? (
             <OrbitButton
-              center={thumbCenter - FINE_OFFSET}
+              center={thumbCenter}
               label="Confirm\nSafety"
               onPress={handleSafetyPress}
               variant="confirm"
+            />
+          ) : showMinusToGoal || (atOppOne && spotMoved && showConfirmTd) ? (
+            <OrbitButton
+              center={thumbCenter - FINE_OFFSET}
+              label="−"
+              onPress={() => handleFineStep(-1)}
+              disabled={
+                end.kind !== "yardline" ||
+                !canTackleStepYardLine(end.yardLine, -1)
+              }
             />
           ) : showMinusFine ? (
             <OrbitButton
               center={thumbCenter - FINE_OFFSET}
               label="−"
               onPress={() => handleFineStep(-1)}
-              disabled={!canStepHudlYardLine(end.yardLine, -1)}
+              disabled={!canTackleStepYardLine(end.yardLine, -1)}
             />
           ) : null}
 
-          {trackWidth > 0 && atRight && end.kind === "yardline" ? (
+          {trackWidth > 0 && showConfirmTd ? (
             <OrbitButton
-              center={thumbCenter + FINE_OFFSET}
+              center={thumbCenter}
               label="Confirm\nTD"
               onPress={handleTouchdownPress}
               variant="confirm"
+            />
+          ) : showPlusFromGoal ? (
+            <OrbitButton
+              center={thumbCenter + FINE_OFFSET}
+              label="+"
+              onPress={() => handleFineStep(1)}
+              disabled={!canTackleStepYardLine(end.yardLine, 1)}
             />
           ) : showPlusFine ? (
             <OrbitButton
               center={thumbCenter + FINE_OFFSET}
               label="+"
               onPress={() => handleFineStep(1)}
-              disabled={!canStepHudlYardLine(end.yardLine, 1)}
+              disabled={!canTackleStepYardLine(end.yardLine, 1)}
             />
           ) : null}
         </View>
@@ -485,7 +652,6 @@ const styles = StyleSheet.create({
     backgroundColor: LAYOUT.colors.navy,
     borderWidth: 3,
     borderColor: "#fff",
-    marginLeft: -2,
     zIndex: 2,
   },
   fineBtn: {
@@ -550,52 +716,112 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: LAYOUT.colors.navy,
   },
-  ruler: {
+  fieldStrip: {
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
     height: RULER_HEIGHT,
+    borderRadius: 6,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#1a4d1c",
   },
-  rulerMarkRow: {
-    position: "absolute",
-    bottom: 0,
+  mowStripes: {
+    ...StyleSheet.absoluteFillObject,
     flexDirection: "row",
-    alignItems: "flex-end",
-    gap: 1,
   },
-  rulerDigit: {
-    width: RULER_DIGIT_W,
-    textAlign: "center",
-    fontSize: 10,
-    fontWeight: "600",
-    color: LAYOUT.colors.placeholderText,
-    fontVariant: ["tabular-nums"],
-    lineHeight: 12,
-    paddingBottom: 1,
+  mowStripe: {
+    flex: 1,
   },
-  rulerTick: {
+  fieldGoalLine: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: GOAL_LINE_W,
+    backgroundColor: FIELD_GOAL,
+    opacity: 0.95,
+    zIndex: 2,
+  },
+  fieldYardLine: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    backgroundColor: FIELD_LINE,
+  },
+  fieldYardLineFive: {
+    width: 1,
+    opacity: 0.55,
+  },
+  fieldHash: {
+    position: "absolute",
     width: 2,
-    height: 10,
-    backgroundColor: LAYOUT.colors.placeholderText,
-    opacity: 0.7,
-    marginBottom: 1,
+    height: 4,
+    backgroundColor: FIELD_LINE,
+    opacity: 0.75,
   },
-  rulerTickMajor: {
-    height: 14,
-    backgroundColor: LAYOUT.colors.textMuted,
-    opacity: 0.9,
+  fieldHashBottom: {
+    bottom: 2,
   },
-  rulerLabelGoal: {
-    fontSize: 11,
+  fieldNumberWrap: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    justifyContent: "center",
+    zIndex: 3,
+  },
+  fieldNumberYardLine: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: FIELD_LINE_IN_NUM_W,
+    backgroundColor: FIELD_LINE,
+    opacity: 0.95,
+  },
+  fieldNumberRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fieldArrowSlot: {
+    width: FIELD_ARROW_SLOT,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fieldDigit: {
+    width: FIELD_DIGIT_W,
+    textAlign: "center",
+    fontSize: 13,
     fontWeight: "800",
-    color: LAYOUT.colors.navy,
-    lineHeight: 12,
-    paddingBottom: 1,
+    color: FIELD_LINE,
+    letterSpacing: 0,
+    includeFontPadding: false,
+    backgroundColor: FIELD_GREEN,
+    textShadowColor: "rgba(0,0,0,0.35)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
-  rulerLabelMid: {
-    fontWeight: "800",
-    color: LAYOUT.colors.textMuted,
+  fieldDigitLineGap: {
+    width: FIELD_DIGIT_LINE_GAP,
+  },
+  fieldArrow: {
+    width: 0,
+    height: 0,
+    borderTopWidth: 4,
+    borderBottomWidth: 4,
+    borderTopColor: "transparent",
+    borderBottomColor: "transparent",
+    opacity: 0.95,
+  },
+  fieldArrowLeft: {
+    borderRightWidth: 5,
+    borderRightColor: FIELD_LINE,
+    marginRight: 1,
+  },
+  fieldArrowRight: {
+    borderLeftWidth: 5,
+    borderLeftColor: FIELD_LINE,
+    marginLeft: 1,
   },
   fromSpot: {
     fontSize: 12,

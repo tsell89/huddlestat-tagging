@@ -1,23 +1,13 @@
 import type { GamePhase, PlaylistData } from "@huddlestat/shared";
 import { formatSituationLine } from "@/lib/tagging/formatSituation";
-
-function phaseBadgeLabel(phase: GamePhase): string {
-  switch (phase) {
-    case "HALFTIME":
-      return "Halftime";
-    case "FINAL":
-      return "Final";
-    default:
-      return phase;
-  }
-}
+import { headerPhaseLabel } from "@/lib/tagging/phaseAdvance";
 
 /** TaggingHeader-style line for QA logs. */
 export function formatQaHeaderLine(
   draft: PlaylistData,
   phase: GamePhase,
 ): string {
-  return `PLAY #${draft.playNumber} · Q${draft.quarter} · ${phaseBadgeLabel(phase)} · ${formatSituationLine(draft)}`;
+  return `PLAY #${draft.playNumber} · ${headerPhaseLabel(phase)} · ${formatSituationLine(draft)}`;
 }
 
 /** Sidebar one-liner for a saved play. */
