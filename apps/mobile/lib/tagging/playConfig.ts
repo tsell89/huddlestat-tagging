@@ -24,6 +24,7 @@ import { getVisiblePlayerSlots, type PlayerSlotKey } from "./visiblePlayerSlots"
 export {
   getVisiblePlayerSlots,
   isPlayerSlotVisibleOnPlay,
+  firstEmptyVisiblePlayerSlot,
   type PlayerSlotKey,
 } from "./visiblePlayerSlots";
 
@@ -96,19 +97,35 @@ export function isOffensePadPlayType(
   );
 }
 
-export function shouldShowOffensePad(draft: PlaylistData): boolean {
-  if (isScoringPlayType(draft.playType)) return false;
+/** Scrimmage series — our offense or theirs (we tag Run/Pass with odk D). */
+function isOpenScrimmageDraft(draft: PlaylistData): boolean {
   return (
-    isOffensePadPlayType(draft.playType) ||
-    (draft.odk === ODK.Offense && draft.down >= 1 && !draft.playType)
+    (draft.odk === ODK.Offense || draft.odk === ODK.Defense) &&
+    draft.down >= 1 &&
+    !draft.playType
   );
 }
 
-/** New offensive series defaults to RunPad with Rush selected. */
+export function shouldShowOffensePad(draft: PlaylistData): boolean {
+  if (isScoringPlayType(draft.playType)) return false;
+  return isOffensePadPlayType(draft.playType) || isOpenScrimmageDraft(draft);
+}
+
+/** New scrimmage series defaults by situation (UX-11 / UX-12). */
+export function defaultOffensePlayType(draft: PlaylistData): OffensePlayType {
+  const fourthDown = draft.down === 4;
+  const shortFourth = fourthDown && draft.distance <= 2;
+  if (shortFourth) return PlayType.Run;
+  if (fourthDown && fgInRange(draft.yardLine)) return PlayType.FieldGoal;
+  if (fourthDown) return PlayType.Punt;
+  return PlayType.Run;
+}
+
+/** New scrimmage series defaults to situational play type (usually Run · Rush). */
 export function ensureOffensePadDraft(draft: PlaylistData): PlaylistData {
   if (isScoringPlayType(draft.playType)) return draft;
-  if (draft.odk === ODK.Offense && draft.down >= 1 && !draft.playType) {
-    return applyPlayTypeChange(draft, PlayType.Run);
+  if (isOpenScrimmageDraft(draft)) {
+    return applyPlayTypeChange(draft, defaultOffensePlayType(draft));
   }
   return draft;
 }
@@ -441,6 +458,7 @@ export function applyResultChange(
     spotEncoding: keepSpotEncoding ? draft.spotEncoding : undefined,
     tackler1: emptyIfHidden("tackler1", playType, result, draft.tackler1),
     tackler2: emptyIfHidden("tackler2", playType, result, draft.tackler2),
+    passer: emptyIfHidden("passer", playType, result, draft.passer),
     receiver: emptyIfHidden("receiver", playType, result, draft.receiver),
     rusher: emptyIfHidden("rusher", playType, result, draft.rusher),
     interceptedBy: emptyIfHidden("interceptedBy", playType, result, draft.interceptedBy),
@@ -505,5 +523,5 @@ export const PLAYER_SLOT_LABELS: Record<PlayerSlotKey, string> = {
   kicker: "Kicker",
   returner: "Returner",
   interceptedBy: "INT by",
-  recoveredBy: "Recovered",
+  recoveredBy: "Recovered by",
 };

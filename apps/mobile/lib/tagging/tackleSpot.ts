@@ -1,4 +1,4 @@
-import { PlayType, Result, type PlaylistData, type YardLine } from "@huddlestat/shared";
+import { ODK, PlayType, Result, type PlaylistData, type YardLine } from "@huddlestat/shared";
 import {
   canStepHudlYardLine,
   FIELD_MIN,
@@ -15,8 +15,15 @@ import { formatFieldPosition } from "./kickoffReturn";
 
 export type TackleEnd =
   | { kind: "yardline"; yardLine: YardLine }
+  | { kind: "endzone"; side: "own" | "opponent" }
   | { kind: "touchdown" }
   | { kind: "safety" };
+
+/** Own end zone rest position (safety). Thumb sits in the painted EZ, not on the goal line. */
+export const TACKLE_SLIDER_SAFETY_POS = 0;
+
+/** Opponent end zone rest position (touchdown). In-field is 1–99; 100 is the opp goal line. */
+export const TACKLE_SLIDER_TD_POS = 101;
 
 export function needsTackleSpot(
   playType: PlaylistData["playType"],
@@ -54,24 +61,41 @@ export function defaultTackleEnd(
 export function computeTackleGainLoss(
   ballSpot: YardLine,
   end: TackleEnd,
+  odk: PlaylistData["odk"] = ODK.Offense,
 ): number {
-  if (end.kind === "touchdown") {
-    return yardsToOpponentGoal(ballSpot);
-  }
-  if (end.kind === "safety") {
-    return yardsToOwnGoal(ballSpot);
-  }
-  if (end.kind === "yardline" && Math.round(end.yardLine) === HUDL_END_ZONE) {
-    return yardsAdvanced(ballSpot, end.yardLine, "own");
-  }
+  const taggedTeamGain = taggedTeamTackleGain(ballSpot, end);
+  return odk === ODK.Defense ? -taggedTeamGain : taggedTeamGain;
+}
+
+function taggedTeamTackleGain(ballSpot: YardLine, end: TackleEnd): number {
+  if (isOppEndZoneEnd(end)) return yardsToOpponentGoal(ballSpot);
+  if (isOwnEndZoneEnd(end)) return yardsToOwnGoal(ballSpot);
+  if (end.kind !== "yardline") return 0;
   return yardsAdvanced(ballSpot, end.yardLine);
 }
 
 export function formatTackleEndDisplay(end: TackleEnd): string {
-  if (end.kind === "touchdown") return "Touchdown";
-  if (end.kind === "safety") return "Safety";
-  if (Math.round(end.yardLine) === HUDL_END_ZONE) return "Own goal line";
-  return formatFieldPosition(end.yardLine);
+  if (isOppEndZoneEnd(end)) return "Touchdown";
+  if (isOwnEndZoneEnd(end)) return "Safety";
+  if (end.kind === "yardline") return formatFieldPosition(end.yardLine);
+  return "Safety";
+}
+
+export function isOwnEndZoneEnd(end: TackleEnd): boolean {
+  if (end.kind === "safety") return true;
+  if (end.kind === "endzone") return end.side === "own";
+  return end.kind === "yardline" && isAtOwnGoalLine(end.yardLine);
+}
+
+export function isOppEndZoneEnd(end: TackleEnd): boolean {
+  if (end.kind === "touchdown") return true;
+  return end.kind === "endzone" && end.side === "opponent";
+}
+
+/** Dragged into an end zone but not yet confirmed as Safety / Touchdown. */
+export function isPendingTackleConfirm(end: TackleEnd): boolean {
+  if (end.kind === "endzone") return true;
+  return end.kind === "yardline" && isAtOwnGoalLine(end.yardLine);
 }
 
 /** Own goal line (0) — confirm safety here. */
@@ -83,8 +107,11 @@ export const TACKLE_SLIDER_OWN_ONE = -1 as YardLine;
 /** Right draggable yard line before opp goal = Opp 1 (+1). */
 export const TACKLE_SLIDER_OPP_ONE = 1 as YardLine;
 
-/** Green end-zone padding on the field strip (goal line inset from strip edge). */
-export const TACKLE_STRIP_END_ZONE_PX = 24;
+/**
+ * Painted end-zone width. Sized to the 56px thumb so 0 and 101 rest fully
+ * inside the EZ instead of sitting on the goal line.
+ */
+export const TACKLE_STRIP_END_ZONE_PX = 56;
 
 /** Full field 0–100 (goal line to goal line) → slider ratio 0–1. */
 export function tackleFieldPositionToRatio(pos: number): number {
@@ -99,9 +126,21 @@ export function tackleRatioToFieldPosition(ratio: number): number {
   return Math.round(50 + ((r - 0.5) / 0.5) * 50);
 }
 
+/** Ruler / in-field: 0 and 100 sit on the goal lines. */
 export function tackleStripCenterX(trackWidth: number, fieldPos: number): number {
   const fieldWidth = Math.max(0, trackWidth - 2 * TACKLE_STRIP_END_ZONE_PX);
   return TACKLE_STRIP_END_ZONE_PX + tackleFieldPositionToRatio(fieldPos) * fieldWidth;
+}
+
+/** Thumb rest: 0 and 101 sit in the painted end zones. */
+export function tackleThumbCenterX(trackWidth: number, sliderPos: number): number {
+  if (sliderPos <= TACKLE_SLIDER_SAFETY_POS) {
+    return TACKLE_STRIP_END_ZONE_PX / 2;
+  }
+  if (sliderPos >= TACKLE_SLIDER_TD_POS) {
+    return trackWidth - TACKLE_STRIP_END_ZONE_PX / 2;
+  }
+  return tackleStripCenterX(trackWidth, sliderPos);
 }
 
 export function tackleStripRatioFromCenterX(
@@ -113,6 +152,63 @@ export function tackleStripRatioFromCenterX(
   return Math.min(
     1,
     Math.max(0, (centerX - TACKLE_STRIP_END_ZONE_PX) / fieldWidth),
+  );
+}
+
+/**
+ * Map a finger position to slider axis 0 / 1–99 / 101.
+ * The painted EZ pads are 0 and 101; the inner field never snaps to those.
+ */
+export function tackleSliderPosFromCenterX(
+  trackWidth: number,
+  centerX: number,
+): number {
+  const ez = TACKLE_STRIP_END_ZONE_PX;
+  if (trackWidth <= 2 * ez) return TACKLE_SLIDER_SAFETY_POS;
+  if (centerX < ez) return TACKLE_SLIDER_SAFETY_POS;
+  if (centerX > trackWidth - ez) return TACKLE_SLIDER_TD_POS;
+  const pos = tackleRatioToFieldPosition(
+    tackleStripRatioFromCenterX(trackWidth, centerX),
+  );
+  if (pos <= FIELD_OWN_GOAL) return FIELD_MIN;
+  if (pos >= FIELD_OPP_GOAL) return FIELD_OPP_GOAL - 1;
+  return pos;
+}
+
+export function sliderPosForTackleEnd(end: TackleEnd): number {
+  if (isOwnEndZoneEnd(end)) return TACKLE_SLIDER_SAFETY_POS;
+  if (isOppEndZoneEnd(end)) return TACKLE_SLIDER_TD_POS;
+  if (end.kind === "yardline") return tackleYardLineToFieldPos(end.yardLine);
+  return TACKLE_SLIDER_SAFETY_POS;
+}
+
+export function tackleEndFromSliderPos(
+  pos: number,
+  allowTouchdown: boolean,
+): TackleEnd {
+  if (pos <= TACKLE_SLIDER_SAFETY_POS) {
+    return { kind: "endzone", side: "own" };
+  }
+  if (pos >= TACKLE_SLIDER_TD_POS) {
+    if (!allowTouchdown) {
+      return { kind: "yardline", yardLine: TACKLE_SLIDER_OPP_ONE };
+    }
+    return { kind: "endzone", side: "opponent" };
+  }
+  return {
+    kind: "yardline",
+    yardLine: fieldPositionToHudl(pos),
+  };
+}
+
+export function tackleEndFromCenterX(
+  trackWidth: number,
+  centerX: number,
+  allowTouchdown: boolean,
+): TackleEnd {
+  return tackleEndFromSliderPos(
+    tackleSliderPosFromCenterX(trackWidth, centerX),
+    allowTouchdown,
   );
 }
 
@@ -183,8 +279,12 @@ export function sliderYardLineForTackleEnd(
   ballSpot: YardLine,
 ): YardLine {
   if (end.kind === "yardline") return end.yardLine;
-  if (end.kind === "touchdown") return TACKLE_SLIDER_OPP_ONE;
-  if (end.kind === "safety") return TACKLE_SLIDER_OWN_GOAL;
+  if (end.kind === "touchdown" || (end.kind === "endzone" && end.side === "opponent")) {
+    return TACKLE_SLIDER_OPP_ONE;
+  }
+  if (end.kind === "safety" || (end.kind === "endzone" && end.side === "own")) {
+    return TACKLE_SLIDER_OWN_GOAL;
+  }
   return ballSpot;
 }
 
@@ -197,7 +297,11 @@ export function encodeTackleSpotEncoding(
       ? String(end.yardLine)
       : end.kind === "touchdown"
         ? "TD"
-        : "SA";
+        : end.kind === "safety"
+          ? "SA"
+          : end.side === "own"
+            ? "0"
+            : "1";
   return `tackle:${ballSpot}|end:${endPart}`;
 }
 
@@ -229,7 +333,9 @@ export function initTackleEndFromDraft(draft: PlaylistData): TackleEnd {
   }
 
   if (draft.gainLoss !== 0) {
-    const endPos = hudlToFieldPosition(draft.yardLine) + draft.gainLoss;
+    const axisGain =
+      draft.odk === ODK.Defense ? -draft.gainLoss : draft.gainLoss;
+    const endPos = hudlToFieldPosition(draft.yardLine) + axisGain;
     if (endPos >= FIELD_OPP_GOAL) return { kind: "touchdown" };
     if (endPos <= FIELD_OWN_GOAL) return { kind: "safety" };
     return {
@@ -251,11 +357,18 @@ export function applyTackleSpotToDraft(
     return draft;
   }
 
+  const oppScoreAttempt =
+    end.kind === "touchdown" ||
+    (end.kind === "endzone" && end.side === "opponent");
   const normalizedEnd: TackleEnd =
-    draft.result === Result.Sack && end.kind === "touchdown"
+    draft.result === Result.Sack && oppScoreAttempt
       ? { kind: "yardline", yardLine: TACKLE_SLIDER_OPP_ONE }
       : end;
-  const gainLoss = computeTackleGainLoss(draft.yardLine, normalizedEnd);
+  const gainLoss = computeTackleGainLoss(
+    draft.yardLine,
+    normalizedEnd,
+    draft.odk,
+  );
   const result = resultForTackleEnd(draft, normalizedEnd);
   return {
     ...draft,

@@ -9,33 +9,38 @@ import {
   View,
 } from "react-native";
 import {
-  canTackleStepYardLine,
   computeTackleGainLoss,
   formatTackleEndDisplay,
-  isAtOwnGoalLine,
   isAtOwnOne,
+  isOppEndZoneEnd,
+  isOwnEndZoneEnd,
+  isPendingTackleConfirm,
   isTackleRightExtreme,
-  sliderYardLineForTackleEnd,
-  tackleRatioToFieldPosition,
-  tackleRatioToYardLine,
+  tackleEndFromCenterX,
+  tackleSliderPosFromCenterX,
   tackleStepYardLine,
   tackleStripCenterX,
-  tackleStripRatioFromCenterX,
-  tackleYardLineToFieldPos,
+  tackleThumbCenterX,
+  sliderPosForTackleEnd,
   TACKLE_SLIDER_OPP_ONE,
   TACKLE_SLIDER_OWN_ONE,
+  TACKLE_SLIDER_TD_POS,
   TACKLE_STRIP_END_ZONE_PX,
   type TackleEnd,
 } from "@/lib/tagging/tackleSpot";
 import { formatFieldPosition } from "@/lib/tagging/kickoffReturn";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
-import type { YardLine } from "@huddlestat/shared";
+import { ODK, type PlaylistData, type YardLine } from "@huddlestat/shared";
 
 type TackleFieldSliderProps = {
   ballSpot: YardLine;
   end: TackleEnd;
   onChange: (end: TackleEnd) => void;
   allowTouchdown?: boolean;
+  odk?: PlaylistData["odk"];
+  sectionLabel?: string;
+  showGain?: boolean;
+  compact?: boolean;
 };
 
 const ORBIT_GAIN_HEIGHT = 80;
@@ -45,11 +50,9 @@ const FINE_BTN_SIZE = 56;
 const THUMB_SIZE = FINE_BTN_SIZE;
 /** Center-to-center distance from thumb to ± button */
 const FINE_OFFSET = FINE_BTN_SIZE + 12;
-const CONFIRM_BTN_WIDTH = 104;
-const ENDPOINT_BTN_GAP = 16;
-const CONNECTOR_SIZE = FINE_OFFSET;
 const GAIN_LABEL_HALF = 72;
 const SPOT_LABEL_HALF = 72;
+const CHROME_HEIGHT = ORBIT_SPOT_HEIGHT + ORBIT_GAIN_HEIGHT;
 
 const FIELD_GREEN = "#2f7d32";
 const FIELD_GREEN_ALT = "#297429";
@@ -155,7 +158,13 @@ function FieldYardNumber({
   );
 }
 
-function FieldRuler({ trackWidth }: { trackWidth: number }) {
+function FieldRuler({
+  trackWidth,
+  height,
+}: {
+  trackWidth: number;
+  height: number;
+}) {
   const yardPositions = useMemo(() => {
     const marks: number[] = [];
     for (let pos = 0; pos <= 100; pos += 5) marks.push(pos);
@@ -169,7 +178,7 @@ function FieldRuler({ trackWidth }: { trackWidth: number }) {
   }, []);
 
   return (
-    <View style={styles.fieldStrip}>
+    <View style={[styles.fieldStrip, { height }]}>
       <View style={styles.mowStripes} pointerEvents="none">
         {Array.from({ length: MOW_STRIPE_COUNT }, (_, i) => (
           <View
@@ -181,6 +190,18 @@ function FieldRuler({ trackWidth }: { trackWidth: number }) {
           />
         ))}
       </View>
+
+      <View
+        style={[styles.fieldEz, { width: TACKLE_STRIP_END_ZONE_PX }]}
+        pointerEvents="none"
+      />
+      <View
+        style={[
+          styles.fieldEz,
+          { right: 0, width: TACKLE_STRIP_END_ZONE_PX },
+        ]}
+        pointerEvents="none"
+      />
 
       <View
         style={[
@@ -250,6 +271,10 @@ export function TackleFieldSlider({
   end,
   onChange,
   allowTouchdown = true,
+  odk = ODK.Offense,
+  sectionLabel = "Tackled at",
+  showGain = true,
+  compact = false,
 }: TackleFieldSliderProps) {
   const trackRef = useRef<View>(null);
   const trackWidthRef = useRef(0);
@@ -257,29 +282,21 @@ export function TackleFieldSlider({
   const onChangeRef = useRef(onChange);
   const outcomeConfirmedRef = useRef(false);
   const [trackWidth, setTrackWidth] = useState(0);
-  const [dragRatio, setDragRatio] = useState<number | null>(null);
+  const [dragPos, setDragPos] = useState<number | null>(null);
 
-  const sliderYardLine = sliderYardLineForTackleEnd(end, ballSpot);
-  const gainLoss = computeTackleGainLoss(ballSpot, end);
-  const spotMoved =
-    end.kind !== "yardline" || gainLoss !== 0;
-  const gainLabel =
-    gainLoss > 0 ? `+${gainLoss}` : String(gainLoss);
+  const gainLoss = computeTackleGainLoss(ballSpot, end, odk);
+  const spotMoved = end.kind !== "yardline" || gainLoss !== 0;
+  const gainLabel = gainLoss > 0 ? `+${gainLoss}` : String(gainLoss);
   const spotLabel = formatTackleEndDisplay(end);
-  const atOwnGoalLine =
-    end.kind === "yardline" && isAtOwnGoalLine(end.yardLine);
-  const atOwnOne = end.kind === "yardline" && isAtOwnOne(end.yardLine);
-  const atOppOne =
-    end.kind === "yardline" && isTackleRightExtreme(end.yardLine);
-  const showConfirmSafety = atOwnGoalLine;
-  const showConfirmTd =
-    allowTouchdown && atOppOne && end.kind === "yardline";
+  const pendingConfirm = isPendingTackleConfirm(end);
+  const inOwnEz = isOwnEndZoneEnd(end);
+  const inOppEz = isOppEndZoneEnd(end);
+  const inEndZone = inOwnEz || inOppEz;
   const confirmedSafety = end.kind === "safety";
   const confirmedTouchdown = end.kind === "touchdown";
   const outcomeConfirmed = confirmedSafety || confirmedTouchdown;
   onChangeRef.current = onChange;
   outcomeConfirmedRef.current = outcomeConfirmed;
-  const showThumb = !showConfirmSafety && !showConfirmTd && !outcomeConfirmed;
 
   function clampLeft(center: number, halfWidth: number): number {
     if (trackWidth <= 0) return 0;
@@ -287,16 +304,6 @@ export function TackleFieldSlider({
       trackWidth - halfWidth * 2,
       Math.max(0, center - halfWidth),
     );
-  }
-
-  /** Place ± beside the actual clamped confirm box so edge clamping cannot overlap them. */
-  function endpointCompanionCenter(direction: 1 | -1): number {
-    const confirmLeft = clampLeft(thumbCenter, CONFIRM_BTN_WIDTH / 2);
-    const confirmRight = confirmLeft + CONFIRM_BTN_WIDTH;
-    if (direction > 0) {
-      return confirmRight + ENDPOINT_BTN_GAP + FINE_BTN_SIZE / 2;
-    }
-    return confirmLeft - ENDPOINT_BTN_GAP - FINE_BTN_SIZE / 2;
   }
 
   const syncTrackMetrics = useCallback(() => {
@@ -311,21 +318,17 @@ export function TackleFieldSlider({
     const width = trackWidthRef.current;
     if (width <= 2 * TACKLE_STRIP_END_ZONE_PX) return null;
     const localX = pageX - trackPageXRef.current;
-    const minX = TACKLE_STRIP_END_ZONE_PX;
-    const maxX = width - TACKLE_STRIP_END_ZONE_PX;
-    return Math.min(maxX, Math.max(minX, localX));
+    return Math.min(width, Math.max(0, localX));
   }, []);
 
   const commitCenterX = useCallback(
     (centerX: number) => {
       const width = trackWidthRef.current;
-      const ratio = tackleStripRatioFromCenterX(width, centerX);
-      onChangeRef.current({
-        kind: "yardline",
-        yardLine: tackleRatioToYardLine(ratio),
-      });
+      onChangeRef.current(
+        tackleEndFromCenterX(width, centerX, allowTouchdown),
+      );
     },
-    [],
+    [allowTouchdown],
   );
 
   const setFromPageX = useCallback(
@@ -333,10 +336,14 @@ export function TackleFieldSlider({
       const centerX = centerXFromPageX(pageX);
       if (centerX === null) return;
       const width = trackWidthRef.current;
-      setDragRatio(tackleStripRatioFromCenterX(width, centerX));
+      let pos = tackleSliderPosFromCenterX(width, centerX);
+      if (!allowTouchdown && pos >= TACKLE_SLIDER_TD_POS) {
+        pos = 99;
+      }
+      setDragPos(pos);
       if (commit) commitCenterX(centerX);
     },
-    [centerXFromPageX, commitCenterX],
+    [allowTouchdown, centerXFromPageX, commitCenterX],
   );
 
   const panResponder = useMemo(
@@ -356,27 +363,46 @@ export function TackleFieldSlider({
         onPanResponderMove: (evt) => {
           setFromPageX(evt.nativeEvent.pageX, true);
         },
-        onPanResponderRelease: () => setDragRatio(null),
-        onPanResponderTerminate: () => setDragRatio(null),
+        onPanResponderRelease: () => setDragPos(null),
+        onPanResponderTerminate: () => setDragPos(null),
       }),
     [setFromPageX],
   );
 
-  const activeFieldPos =
-    dragRatio !== null
-      ? tackleRatioToFieldPosition(dragRatio)
-      : tackleYardLineToFieldPos(sliderYardLine);
+  const activeSliderPos =
+    dragPos !== null ? dragPos : sliderPosForTackleEnd(end);
   const thumbCenter =
     trackWidth > 0
-      ? fieldPosCenterX(trackWidth, activeFieldPos)
-      : TACKLE_STRIP_END_ZONE_PX;
+      ? tackleThumbCenterX(trackWidth, activeSliderPos)
+      : TACKLE_STRIP_END_ZONE_PX / 2;
   const thumbLeft = thumbCenter - THUMB_SIZE / 2;
   const gainFontSize = Math.abs(gainLoss) >= 10 ? 34 : 44;
   const gainLineHeight = Math.abs(gainLoss) >= 10 ? 38 : 48;
-  const gainTop = Math.abs(gainLoss) >= 10 ? 4 : 10;
 
   function handleFineStep(delta: 1 | -1) {
+    if (inOwnEz) {
+      if (delta > 0) {
+        onChange({ kind: "yardline", yardLine: TACKLE_SLIDER_OWN_ONE });
+      }
+      return;
+    }
+    if (inOppEz) {
+      if (delta < 0) {
+        onChange({ kind: "yardline", yardLine: TACKLE_SLIDER_OPP_ONE });
+      }
+      return;
+    }
     if (end.kind !== "yardline") return;
+    if (isAtOwnOne(end.yardLine) && delta < 0) {
+      onChange({ kind: "endzone", side: "own" });
+      return;
+    }
+    if (isTackleRightExtreme(end.yardLine) && delta > 0) {
+      if (allowTouchdown) {
+        onChange({ kind: "endzone", side: "opponent" });
+      }
+      return;
+    }
     onChange({
       kind: "yardline",
       yardLine: tackleStepYardLine(end.yardLine, delta),
@@ -384,32 +410,24 @@ export function TackleFieldSlider({
   }
 
   function handleSafetyPress() {
-    Alert.alert(
-      "Confirm safety?",
-      "Mark this play as a safety?",
-      [
-        { text: "No", style: "cancel" },
-        {
-          text: "Yes",
-          style: "destructive",
-          onPress: () => onChange({ kind: "safety" }),
-        },
-      ],
-    );
+    Alert.alert("Confirm safety?", "Mark this play as a safety?", [
+      { text: "No", style: "cancel" },
+      {
+        text: "Yes",
+        style: "destructive",
+        onPress: () => onChange({ kind: "safety" }),
+      },
+    ]);
   }
 
   function handleTouchdownPress() {
-    Alert.alert(
-      "Confirm touchdown?",
-      "Mark this play as a touchdown?",
-      [
-        { text: "No", style: "cancel" },
-        {
-          text: "Yes",
-          onPress: () => onChange({ kind: "touchdown" }),
-        },
-      ],
-    );
+    Alert.alert("Confirm touchdown?", "Mark this play as a touchdown?", [
+      { text: "No", style: "cancel" },
+      {
+        text: "Yes",
+        onPress: () => onChange({ kind: "touchdown" }),
+      },
+    ]);
   }
 
   function OrbitButton({
@@ -417,243 +435,163 @@ export function TackleFieldSlider({
     label,
     onPress,
     disabled,
-    variant = "fine",
   }: {
     center: number;
     label: string;
     onPress: () => void;
     disabled?: boolean;
-    variant?: "fine" | "confirm";
   }) {
-    const half = variant === "confirm" ? CONFIRM_BTN_WIDTH / 2 : FINE_BTN_SIZE / 2;
     return (
       <Pressable
         style={[
-          variant === "confirm" ? styles.confirmBtn : styles.fineBtn,
-          { left: clampLeft(center, half) },
+          styles.fineBtn,
+          { left: clampLeft(center, FINE_BTN_SIZE / 2) },
           disabled && styles.btnDisabled,
         ]}
         onPress={onPress}
         disabled={disabled}
         hitSlop={8}
       >
-        <Text
-          style={
-            variant === "confirm" ? styles.confirmBtnText : styles.fineBtnText
-          }
-          numberOfLines={2}
-        >
-          {label}
-        </Text>
+        <Text style={styles.fineBtnText}>{label}</Text>
       </Pressable>
     );
   }
 
-  const showMinusToGoal = atOwnOne && spotMoved && end.kind === "yardline";
-  const showPlusFromGoal = atOwnGoalLine && end.kind === "yardline";
-  const showMinusFine =
-    end.kind === "yardline" &&
-    spotMoved &&
-    !atOwnGoalLine &&
-    !atOwnOne &&
-    !atOppOne;
-  const showPlusFine =
-    end.kind === "yardline" &&
-    spotMoved &&
-    !atOwnGoalLine &&
-    !atOppOne &&
-    !atOwnOne;
-
-  const showLeftOrbit =
-    showMinusToGoal ||
-    (atOppOne && showConfirmTd) ||
-    (showMinusFine && !showConfirmSafety);
-  const showRightOrbit =
-    showPlusFromGoal ||
-    (showPlusFine && !atOppOne && !showConfirmTd);
-  const showConfirmedLeftOrbit = confirmedTouchdown;
-  const showConfirmedRightOrbit = confirmedSafety;
-  const leftCompanionCenter =
-    showConfirmTd || confirmedTouchdown
-      ? endpointCompanionCenter(-1)
-      : thumbCenter - FINE_OFFSET;
-  const rightCompanionCenter =
-    showConfirmSafety || confirmedSafety
-      ? endpointCompanionCenter(1)
-      : thumbCenter + FINE_OFFSET;
+  const atOppOne =
+    end.kind === "yardline" && isTackleRightExtreme(end.yardLine);
+  const showMinus =
+    inOppEz || (end.kind === "yardline" && spotMoved && !inOwnEz);
+  const showPlus =
+    inOwnEz ||
+    (end.kind === "yardline" &&
+      spotMoved &&
+      !(atOppOne && !allowTouchdown));
+  const leftCompanionCenter = thumbCenter - FINE_OFFSET;
+  const rightCompanionCenter = thumbCenter + FINE_OFFSET;
+  const chromeTitle = confirmedSafety
+    ? "Safety"
+    : confirmedTouchdown
+      ? "Touchdown"
+      : inOwnEz
+        ? "Confirm Safety"
+        : "Confirm Touchdown";
+  const chromePressable = pendingConfirm;
+  const onChromePress = inOwnEz ? handleSafetyPress : handleTouchdownPress;
+  const chromeHeight = showGain ? CHROME_HEIGHT : ORBIT_SPOT_HEIGHT;
+  const rulerHeight = compact ? 36 : RULER_HEIGHT;
+  const showGainChrome = showGain && spotMoved;
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.sectionLabel}>Tackled at</Text>
+      <Text style={styles.sectionLabel}>{sectionLabel}</Text>
 
       <View
-        style={styles.orbitShell}
+        style={[
+          styles.orbitShell,
+          {
+            minHeight: chromeHeight + LAYOUT.minTapTarget + rulerHeight + 8,
+            paddingTop: chromeHeight,
+            paddingBottom: rulerHeight,
+          },
+        ]}
         onLayout={(e: LayoutChangeEvent) => {
           trackWidthRef.current = e.nativeEvent.layout.width;
           setTrackWidth(e.nativeEvent.layout.width);
           syncTrackMetrics();
         }}
       >
-        {spotMoved && trackWidth > 0 ? (
-          <Text
+        {inEndZone && trackWidth > 0 ? (
+          <Pressable
             style={[
-              styles.gainLabel,
-              {
-                left: clampLeft(thumbCenter, GAIN_LABEL_HALF),
-                top: gainTop,
-                fontSize: gainFontSize,
-                lineHeight: gainLineHeight,
-              },
+              styles.chromeConfirm,
+              { height: chromeHeight },
+              outcomeConfirmed && styles.chromeConfirmLocked,
             ]}
+            onPress={chromePressable ? onChromePress : undefined}
+            disabled={!chromePressable}
           >
-            {gainLabel}
-          </Text>
-        ) : null}
+            <Text
+              style={[
+                styles.chromeConfirmTitle,
+                outcomeConfirmed && styles.chromeConfirmTitleLocked,
+              ]}
+            >
+              {chromeTitle}
+            </Text>
+            {showGainChrome ? (
+              <Text
+                style={[
+                  styles.chromeConfirmGain,
+                  outcomeConfirmed && styles.chromeConfirmGainLocked,
+                ]}
+              >
+                {gainLabel}
+              </Text>
+            ) : null}
+          </Pressable>
+        ) : (
+          <>
+            {trackWidth > 0 ? (
+              <Text
+                style={[
+                  styles.spotLabel,
+                  { left: clampLeft(thumbCenter, SPOT_LABEL_HALF) },
+                ]}
+              >
+                {spotLabel}
+              </Text>
+            ) : null}
+
+            {showGainChrome && trackWidth > 0 ? (
+              <Text
+                style={[
+                  styles.gainLabel,
+                  {
+                    left: clampLeft(thumbCenter, GAIN_LABEL_HALF),
+                    fontSize: gainFontSize,
+                    lineHeight: gainLineHeight,
+                  },
+                ]}
+              >
+                {gainLabel}
+              </Text>
+            ) : null}
+          </>
+        )}
 
         <View
           ref={trackRef}
           style={styles.trackBand}
           {...panResponder.panHandlers}
         >
-          {trackWidth > 0 &&
-          (showLeftOrbit ||
-            showRightOrbit ||
-            showConfirmedLeftOrbit ||
-            showConfirmedRightOrbit) ? (
-            <>
-              {showLeftOrbit || showConfirmedLeftOrbit ? (
-                <View
-                  style={[
-                    styles.connectorDisc,
-                    {
-                      left:
-                        (thumbCenter + leftCompanionCenter) / 2 -
-                        CONNECTOR_SIZE / 2,
-                    },
-                  ]}
-                  pointerEvents="none"
-                />
-              ) : null}
-              {showRightOrbit || showConfirmedRightOrbit ? (
-                <View
-                  style={[
-                    styles.connectorDisc,
-                    {
-                      left:
-                        (thumbCenter + rightCompanionCenter) / 2 -
-                        CONNECTOR_SIZE / 2,
-                    },
-                  ]}
-                  pointerEvents="none"
-                />
-              ) : null}
-            </>
-          ) : null}
-
           <View style={styles.track} />
 
-          {showThumb ? (
+          {trackWidth > 0 ? (
             <View style={[styles.thumb, { left: thumbLeft }]} />
           ) : null}
 
-          {trackWidth > 0 && confirmedSafety ? (
-            <OrbitButton
-              center={thumbCenter}
-              label="Safety ✓"
-              onPress={() => undefined}
-              variant="confirm"
-            />
-          ) : trackWidth > 0 && confirmedTouchdown ? (
-            <OrbitButton
-              center={thumbCenter}
-              label="Touchdown ✓"
-              onPress={() => undefined}
-              variant="confirm"
-            />
-          ) : trackWidth > 0 && showConfirmSafety ? (
-            <OrbitButton
-              center={thumbCenter}
-              label="Confirm\nSafety"
-              onPress={handleSafetyPress}
-              variant="confirm"
-            />
-          ) : showMinusToGoal || (atOppOne && showConfirmTd) ? (
+          {trackWidth > 0 && showMinus ? (
             <OrbitButton
               center={leftCompanionCenter}
               label="−"
               onPress={() => handleFineStep(-1)}
-              disabled={
-                end.kind !== "yardline" ||
-                !canTackleStepYardLine(end.yardLine, -1)
-              }
-            />
-          ) : showMinusFine ? (
-            <OrbitButton
-              center={leftCompanionCenter}
-              label="−"
-              onPress={() => handleFineStep(-1)}
-              disabled={!canTackleStepYardLine(end.yardLine, -1)}
+              disabled={inOwnEz}
             />
           ) : null}
 
-          {confirmedTouchdown ? (
-            <OrbitButton
-              center={leftCompanionCenter}
-              label="−"
-              onPress={() =>
-                onChange({
-                  kind: "yardline",
-                  yardLine: TACKLE_SLIDER_OPP_ONE,
-                })
-              }
-            />
-          ) : trackWidth > 0 && showConfirmTd ? (
-            <OrbitButton
-              center={thumbCenter}
-              label="Confirm\nTD"
-              onPress={handleTouchdownPress}
-              variant="confirm"
-            />
-          ) : confirmedSafety ? (
-            <OrbitButton
-              center={rightCompanionCenter}
-              label="+"
-              onPress={() =>
-                onChange({
-                  kind: "yardline",
-                  yardLine: TACKLE_SLIDER_OWN_ONE,
-                })
-              }
-            />
-          ) : showPlusFromGoal ? (
+          {trackWidth > 0 && showPlus ? (
             <OrbitButton
               center={rightCompanionCenter}
               label="+"
               onPress={() => handleFineStep(1)}
-              disabled={!canTackleStepYardLine(end.yardLine, 1)}
-            />
-          ) : showPlusFine ? (
-            <OrbitButton
-              center={rightCompanionCenter}
-              label="+"
-              onPress={() => handleFineStep(1)}
-              disabled={!canTackleStepYardLine(end.yardLine, 1)}
+              disabled={inOppEz || (atOppOne && !allowTouchdown)}
             />
           ) : null}
         </View>
 
         {trackWidth > 0 ? (
-          <Text
-            style={[
-              styles.spotLabel,
-              { left: clampLeft(thumbCenter, SPOT_LABEL_HALF) },
-            ]}
-          >
-            {spotLabel}
-          </Text>
+          <FieldRuler trackWidth={trackWidth} height={rulerHeight} />
         ) : null}
-
-        {trackWidth > 0 ? <FieldRuler trackWidth={trackWidth} /> : null}
       </View>
 
       <Text style={styles.fromSpot}>From {formatFieldPosition(ballSpot)}</Text>
@@ -675,13 +613,13 @@ const styles = StyleSheet.create({
   orbitShell: {
     position: "relative",
     minHeight:
-      ORBIT_GAIN_HEIGHT + LAYOUT.minTapTarget + ORBIT_SPOT_HEIGHT + RULER_HEIGHT + 8,
-    paddingTop: ORBIT_GAIN_HEIGHT,
-    paddingBottom: ORBIT_SPOT_HEIGHT + RULER_HEIGHT,
+      CHROME_HEIGHT + LAYOUT.minTapTarget + RULER_HEIGHT + 8,
+    paddingTop: CHROME_HEIGHT,
+    paddingBottom: RULER_HEIGHT,
   },
   gainLabel: {
     position: "absolute",
-    top: 10,
+    top: ORBIT_SPOT_HEIGHT,
     width: GAIN_LABEL_HALF * 2,
     textAlign: "center",
     fontSize: 44,
@@ -703,17 +641,6 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     borderWidth: 1,
     borderColor: LAYOUT.colors.sectionBorder,
-  },
-  connectorDisc: {
-    position: "absolute",
-    top: (FINE_BTN_SIZE + 12 - CONNECTOR_SIZE) / 2,
-    width: CONNECTOR_SIZE,
-    height: CONNECTOR_SIZE,
-    borderRadius: CONNECTOR_SIZE / 2,
-    backgroundColor: "rgba(147, 197, 253, 0.35)",
-    borderWidth: 2,
-    borderColor: LAYOUT.colors.navyLight,
-    zIndex: 1,
   },
   thumb: {
     position: "absolute",
@@ -744,24 +671,43 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
-  confirmBtn: {
+  chromeConfirm: {
     position: "absolute",
-    top: (FINE_BTN_SIZE + 12 - LAYOUT.minTapTarget) / 2,
-    width: CONFIRM_BTN_WIDTH,
-    minHeight: LAYOUT.minTapTarget,
-    borderRadius: 10,
+    top: 0,
+    left: 0,
+    right: 0,
+    height: CHROME_HEIGHT,
+    borderRadius: 12,
     borderWidth: 2,
     borderColor: LAYOUT.colors.navy,
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 6,
-    zIndex: 3,
-    shadowColor: "#0f172a",
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    paddingHorizontal: 16,
+    zIndex: 4,
+  },
+  chromeConfirmLocked: {
+    backgroundColor: LAYOUT.colors.navy,
+    borderColor: LAYOUT.colors.navy,
+  },
+  chromeConfirmTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: LAYOUT.colors.navy,
+  },
+  chromeConfirmTitleLocked: {
+    color: "#fff",
+  },
+  chromeConfirmGain: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: LAYOUT.colors.navy,
+    fontVariant: ["tabular-nums"],
+    lineHeight: 32,
+    includeFontPadding: false,
+  },
+  chromeConfirmGainLocked: {
+    color: "#fff",
   },
   btnDisabled: {
     opacity: 0.35,
@@ -772,16 +718,9 @@ const styles = StyleSheet.create({
     color: LAYOUT.colors.navy,
     lineHeight: 34,
   },
-  confirmBtnText: {
-    fontSize: 11,
-    fontWeight: "800",
-    color: LAYOUT.colors.navy,
-    textAlign: "center",
-    lineHeight: 14,
-  },
   spotLabel: {
     position: "absolute",
-    bottom: RULER_HEIGHT + 4,
+    top: 4,
     width: SPOT_LABEL_HALF * 2,
     textAlign: "center",
     fontSize: 18,
@@ -805,6 +744,13 @@ const styles = StyleSheet.create({
   },
   mowStripe: {
     flex: 1,
+  },
+  fieldEz: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.22)",
+    zIndex: 1,
   },
   fieldGoalLine: {
     position: "absolute",

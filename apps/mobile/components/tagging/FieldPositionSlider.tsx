@@ -6,8 +6,6 @@ import {
   StyleSheet,
   Text,
   View,
-  type StyleProp,
-  type ViewStyle,
 } from "react-native";
 import { formatFieldPosition } from "@/lib/tagging/kickoffReturn";
 import type { YardLine } from "@huddlestat/shared";
@@ -43,7 +41,6 @@ type FieldPositionSliderProps = {
   } | null;
 };
 
-const END_BTN_WIDTH = 72;
 const THUMB_INSET = 8;
 const THUMB_TRAVEL_PAD = 16;
 const THUMB_SIZE = 32;
@@ -179,82 +176,76 @@ export function FieldPositionSlider({
         {label ? <Text style={styles.label}>{label}</Text> : <View />}
         <Text style={styles.value}>{valueLabel}</Text>
       </View>
-      <View style={styles.sliderRow}>
-        <EndButton action={leftAction} style={styles.endBtnLeft} />
-        {hideTrack ? (
-          <View style={styles.trackSpacer} />
-        ) : (
-          <View
-            style={[styles.trackColumn, showChrome && styles.trackColumnExpanded]}
-          >
-            <View style={styles.trackLineRow}>
-              {showChrome && fineAdjust ? (
-                <FineBtn delta={-1} disabled={!fineAdjust.canStepMinus} />
-              ) : null}
+      {hideTrack ? null : (
+        <View
+          style={[styles.trackColumn, showChrome && styles.trackColumnExpanded]}
+        >
+          <View style={styles.trackLineRow}>
+            {showChrome && fineAdjust ? (
+              <FineBtn delta={-1} disabled={!fineAdjust.canStepMinus} />
+            ) : null}
 
-              <View
-                ref={trackRef}
-                style={[
-                  styles.trackHitArea,
-                  showChrome && styles.trackHitAreaExpanded,
-                ]}
-                onLayout={(e: LayoutChangeEvent) => {
-                  trackWidthRef.current = e.nativeEvent.layout.width;
-                  setTrackWidth(e.nativeEvent.layout.width);
-                  syncTrackMetrics();
-                }}
-                {...panResponder.panHandlers}
-              >
-                {showChrome && thumbOverlay && trackWidth > 0 ? (
-                  <View style={styles.overlayBand} pointerEvents="none">
-                    <Text
-                      style={[
-                        styles.overlayValue,
-                        { left: thumbCenter - OVERLAY_VALUE_HALF },
-                      ]}
-                    >
-                      {thumbOverlay.value}
-                    </Text>
-                  </View>
-                ) : null}
-                <View style={styles.track}>
-                  <View style={[styles.midMark, { left: "50%" }]} />
-                  <View style={[styles.thumb, { left: thumbLeft }]} />
+            <View
+              ref={trackRef}
+              style={[
+                styles.trackHitArea,
+                showChrome && styles.trackHitAreaExpanded,
+              ]}
+              onLayout={(e: LayoutChangeEvent) => {
+                trackWidthRef.current = e.nativeEvent.layout.width;
+                setTrackWidth(e.nativeEvent.layout.width);
+                syncTrackMetrics();
+              }}
+              {...panResponder.panHandlers}
+            >
+              {showChrome && thumbOverlay && trackWidth > 0 ? (
+                <View style={styles.overlayBand} pointerEvents="none">
+                  <Text
+                    style={[
+                      styles.overlayValue,
+                      { left: thumbCenter - OVERLAY_VALUE_HALF },
+                    ]}
+                  >
+                    {thumbOverlay.value}
+                  </Text>
                 </View>
-                <View style={styles.tickRow}>
-                  <Text style={styles.tick}>{leftTick}</Text>
-                  <Text style={[styles.tick, styles.tickCenter]}>{centerTick}</Text>
-                  <Text style={styles.tick}>{rightTick}</Text>
-                </View>
+              ) : null}
+              <View style={styles.track}>
+                <View style={[styles.midMark, { left: "50%" }]} />
+                <View style={[styles.thumb, { left: thumbLeft }]} />
               </View>
-
-              {showChrome && fineAdjust ? (
-                <FineBtn delta={1} disabled={!fineAdjust.canStepPlus} />
-              ) : null}
+              <View style={styles.tickRow}>
+                <Text style={styles.tick}>{leftTick}</Text>
+                <Text style={[styles.tick, styles.tickCenter]}>{centerTick}</Text>
+                <Text style={styles.tick}>{rightTick}</Text>
+              </View>
             </View>
+
+            {showChrome && fineAdjust ? (
+              <FineBtn delta={1} disabled={!fineAdjust.canStepPlus} />
+            ) : null}
           </View>
-        )}
-        <EndButton action={rightAction} style={styles.endBtnRight} />
-      </View>
+        </View>
+      )}
+      {leftAction && rightAction ? (
+        <View style={styles.endActionRow}>
+          <EndButton action={leftAction} />
+          <EndButton action={rightAction} />
+        </View>
+      ) : leftAction || rightAction ? (
+        <View style={styles.endActionRow}>
+          <EndButton action={(leftAction ?? rightAction)!} />
+        </View>
+      ) : null}
     </View>
   );
 }
 
-function EndButton({
-  action,
-  style,
-}: {
-  action?: SliderEndAction;
-  style?: StyleProp<ViewStyle>;
-}) {
-  if (!action) {
-    return <View style={[styles.endBtnPlaceholder, style]} />;
-  }
+function EndButton({ action }: { action: SliderEndAction }) {
   return (
     <Pressable
       style={[
         styles.endBtn,
-        style,
         action.selected && styles.endBtnSelected,
         action.disabled && styles.endBtnDisabled,
       ]}
@@ -266,7 +257,9 @@ function EndButton({
           styles.endBtnText,
           action.selected && styles.endBtnTextSelected,
         ]}
-        numberOfLines={2}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}
       >
         {action.label}
       </Text>
@@ -275,7 +268,7 @@ function EndButton({
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 2 },
+  wrap: { gap: 6 },
   labelRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -292,21 +285,16 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: LAYOUT.colors.navy,
   },
-  sliderRow: {
+  endActionRow: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  endBtnLeft: {},
-  endBtnRight: {},
-  endBtnPlaceholder: {
-    width: END_BTN_WIDTH,
+    alignItems: "stretch",
+    gap: 8,
   },
   endBtn: {
-    width: END_BTN_WIDTH,
-    minHeight: LAYOUT.compactTapTarget,
-    paddingHorizontal: 4,
-    paddingVertical: 6,
+    flex: 1,
+    minHeight: LAYOUT.minTapTarget,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 2,
     borderColor: LAYOUT.colors.sectionBorder,
@@ -322,7 +310,7 @@ const styles = StyleSheet.create({
     opacity: 0.35,
   },
   endBtnText: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: "800",
     color: LAYOUT.colors.textPrimary,
     textAlign: "center",
@@ -390,10 +378,6 @@ const styles = StyleSheet.create({
   trackHitAreaExpanded: {
     paddingVertical: 14,
     minHeight: LAYOUT.minTapTarget,
-  },
-  trackSpacer: {
-    flex: 1,
-    minHeight: LAYOUT.compactTapTarget,
   },
   track: {
     height: 12,

@@ -53,7 +53,7 @@ import {
 import {
   applyTackleSpotToDraft,
   initTackleEndFromDraft,
-  isAtOwnGoalLine,
+  isPendingTackleConfirm,
   needsTackleSpot,
   type TackleEnd,
 } from "@/lib/tagging/tackleSpot";
@@ -91,7 +91,7 @@ import {
   type KickoffRole,
 } from "@/lib/tagging/kickoffRole";
 import type { CatchUpHint } from "@/lib/tagging/catchUpHint";
-import { applyPasserLeaderDefault } from "@/lib/tagging/jerseyGridRank";
+import { applyJerseyLeaderDefaults } from "@/lib/tagging/jerseyGridRank";
 import {
   defaultOtOpeningDraft,
   nextDraftAfterPlayForGame,
@@ -170,10 +170,17 @@ async function applyScoreAfterSave(
     };
   }
 
+  let status = currentGame.status;
+  if (status === "pregame" && allPlays.length > 0) {
+    await updateLocalGameStatus(localGameId, "live");
+    status = "live";
+  }
+
   return {
     ...currentGame,
     homeScore: score.us,
     awayScore: score.them,
+    status,
   };
 }
 
@@ -267,7 +274,7 @@ function finalizeTaggingDraft(
   blockedSpots: BlockedKickRecoverySpots,
   penaltyFoulSpot: number,
 ): PlaylistData {
-  return applyPasserLeaderDefault(
+  return applyJerseyLeaderDefaults(
     applySpotDraft(
       draft,
       kickoff,
@@ -287,13 +294,19 @@ function firstPlayerSlot(draft: PlaylistData): PlayerSlotKey | null {
   return slots[0] ?? null;
 }
 
-function canSaveDraft(draft: PlaylistData, tackleEnd: TackleEnd): boolean {
+function canSaveDraft(
+  draft: PlaylistData,
+  tackleEnd: TackleEnd,
+  fumbleSpots?: FumbleRecoverySpots,
+): boolean {
   if (!draft.playType || !draft.result) return false;
   if (
     needsTackleSpot(draft.playType, draft.result) &&
-    tackleEnd.kind === "yardline" &&
-    isAtOwnGoalLine(tackleEnd.yardLine)
+    isPendingTackleConfirm(tackleEnd)
   ) {
+    return false;
+  }
+  if (draft.result === Result.Fumble && fumbleSpots?.returnEnd.kind === "endzone") {
     return false;
   }
   // Gate 3: require jersey on each visible slot before save
@@ -362,13 +375,18 @@ export default function TaggingScreen() {
 
   const load = useCallback(async () => {
     if (!id) return;
-    const g = await getLocalGame(id);
-    if (!g) {
+    const g0 = await getLocalGame(id);
+    if (!g0) {
       router.replace("/");
       return;
     }
-    setGame(g);
     const existing = await listPlaysForGame(id);
+    let g = g0;
+    if (g.status === "pregame" && existing.length > 0) {
+      await updateLocalGameStatus(id, "live");
+      g = { ...g, status: "live" };
+    }
+    setGame(g);
     setPlays(existing);
     setUnsyncedCount(await countUnsyncedPlays(id));
     const nextNum = await getNextPlayNumber(id);
@@ -784,8 +802,14 @@ export default function TaggingScreen() {
     }
     if (!draft || !isKickoffDraft(draft)) return;
     const next = applyKickoffRole(draft, role);
-    setDraft(next);
-    setActivePlayerSlot(firstKickoffPlayerSlot(next));
+    const spots = defaultKickoffReturnSpots(role === "kick");
+    setKickoffSpots(spots);
+    const withResult =
+      next.result === Result.Return || next.result === Result.Touchback
+        ? next
+        : { ...next, result: Result.Return };
+    setDraft(applyKickoffSpotsToDraft(withResult, spots));
+    setActivePlayerSlot(firstKickoffPlayerSlot(withResult));
   }
 
   function handleKickoffSpotsChange(spots: KickoffReturnSpots) {
@@ -832,7 +856,9 @@ export default function TaggingScreen() {
     const isPunt = next.playType === PlayType.Punt;
 
     if (isKickoff && next.result === Result.Touchback) {
-      setKickoffSpots(defaultKickoffReturnSpots());
+      setKickoffSpots(
+        defaultKickoffReturnSpots(next.playType === PlayType.Kickoff),
+      );
       setDraft(touchbackDraftPatch(next));
       return;
     }
@@ -1012,7 +1038,7 @@ export default function TaggingScreen() {
   }
 
   async function handleSavePlay() {
-    if (!id || !draft || !game || !canSaveDraft(draft, tackleEnd)) return;
+    if (!id || !draft || !game || !canSaveDraft(draft, tackleEnd, fumbleSpots)) return;
     const phaseBefore = game.phase;
     const saveMode: QaSaveMode = editingPlayId
       ? "edit"
@@ -1263,7 +1289,7 @@ export default function TaggingScreen() {
           catchUpMode={catchUpMode}
           catchUpHint={catchUpHint}
           saving={saving}
-          saveDisabled={!canSaveDraft(draft, tackleEnd)}
+          saveDisabled={!canSaveDraft(draft, tackleEnd, fumbleSpots)}
           onCatchUp={handleCatchUp}
           onSelectPlay={handleSelectPlay}
           onResumeLive={resumeLiveTagging}

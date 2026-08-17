@@ -12,10 +12,10 @@ npm run test:pbp --workspace=@huddlestat/shared
 
 | `gameId` | Source | Notes |
 |----------|--------|-------|
-| `hudl-spec-2-4` | Hudl-shaped | Spec §2.4 canonical drive (7 plays) |
-| `cfbd-chaos-penalties` | CFBD-derived | Penalty replay down |
+| `hudl-spec-2-4` | Hudl-shaped | Spec §2.4 drive + we-kick return to Opp 25 + odk D +7 |
+| `cfbd-chaos-penalties` | CFBD-derived | Penalty replay down; we-kick then odk D scrimmage |
 | `cfbd-overtime-ncaa` | CFBD-derived | NCAA OT kickoff sequence |
-| `cfbd-normal-drives` | CFBD-derived | Touchback, punt ODK flip, FG |
+| `cfbd-normal-drives` | CFBD-derived | Touchback, punt, they snap 1st & 10 @ Opp 20 |
 
 ## Licenses
 
@@ -32,7 +32,8 @@ npm run test:pbp --workspace=@huddlestat/shared
 | `overtime-ncaa-drive.json` | NCAA | Kickoff/TB simplified college OT |
 | `overtime-nfl-drive.json` | NFL | Tagged NFL; chain touchback still HS @ 20 |
 | `package-h-edge-plays.json` | HS | Blocked punt, FG miss TB |
-| `punt-odk-flip.json` | HS | 4th-down punt → `odk: D`, `Punt Rec` |
+| `punt-odk-flip.json` | HS | 4th-down punt → `odk: D`, `Punt Rec` TB → 1st & 10 @ Opp 20 |
+| `odk-d-scrimmage.json` | HS | We-kick return Opp 25; D rush +7 → 2nd & 3; D loss −7 |
 | `kickoff-return-td-scoring.json` | HS | KO return TD → Extra Pt. scoring pad |
 | `defensive-special-td-catalog.json` | HS | INT return TD → scoring pad |
 | `onside-recovery.json` | HS | Onside kick recovery spot |

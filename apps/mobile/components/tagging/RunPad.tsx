@@ -6,10 +6,11 @@ import { FumbleRecoverySpotsPanel } from "@/components/tagging/FumbleRecoverySpo
 import { PenaltySpotPanel } from "@/components/tagging/PenaltySpotPanel";
 import { OffensePlayerSection } from "@/components/tagging/OffensePlayerSection";
 import type { LocalPlay } from "@/lib/db/types";
+import { applyJerseyLeaderDefaults } from "@/lib/tagging/jerseyGridRank";
 import {
   applyResultChange,
+  firstEmptyVisiblePlayerSlot,
   getAlternateResultsForPlayType,
-  getVisiblePlayerSlots,
   needsTackleSpot,
   type PlayerSlotKey,
 } from "@/lib/tagging/playConfig";
@@ -60,9 +61,12 @@ export function RunPad({
             tackleEnd.kind === "touchdown" || tackleEnd.kind === "safety"
           }
           onChange={(result) => {
-            onChange(applyResultChange(draft, result));
-            const slots = getVisiblePlayerSlots(draft.playType, result);
-            onActivePlayerSlotChange(slots[0] ?? null);
+            const next = applyJerseyLeaderDefaults(
+              applyResultChange(draft, result),
+              gamePlays,
+            );
+            onChange(next);
+            onActivePlayerSlotChange(firstEmptyVisiblePlayerSlot(next));
           }}
           columns={4}
           size="dense"
@@ -76,6 +80,7 @@ export function RunPad({
             end={tackleEnd}
             onChange={onTackleEndChange}
             touchdownMode={isTouchdownTackleResult(draft.result)}
+            odk={draft.odk}
           />
         </View>
       ) : draft.result === Result.Fumble ? (
@@ -83,6 +88,7 @@ export function RunPad({
           <FumbleRecoverySpotsPanel
             spots={fumbleSpots}
             onChange={onFumbleSpotsChange}
+            odk={draft.odk}
           />
         </View>
       ) : draft.result === Result.Penalty ? (

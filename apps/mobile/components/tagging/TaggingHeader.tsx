@@ -37,12 +37,15 @@ export function TaggingHeader({
       </Pressable>
 
       <View style={styles.center}>
-        <Text style={styles.playLine}>
-          <Text style={styles.playNum}>PLAY #{draft.playNumber}</Text>
+        <View style={styles.playLine}>
+          <Text style={styles.playLabel}>PLAY</Text>
+          <Text style={styles.playNum}>{draft.playNumber}</Text>
           <Text style={styles.phaseBadge}> · {phaseLabel}</Text>
-          {"  ·  "}
-          {formatSituationLine(draft)}
-        </Text>
+          <Text style={styles.situation} numberOfLines={1}>
+            {"  ·  "}
+            {formatSituationLine(draft)}
+          </Text>
+        </View>
         <Text style={styles.metaLine} numberOfLines={1}>
           {game.teamCode} vs {game.opponent}
           {unsyncedCount > 0
@@ -117,20 +120,38 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   playLine: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
+    flexDirection: "row",
+    alignItems: "baseline",
+    minWidth: 0,
+  },
+  playLabel: {
+    color: LAYOUT.colors.navyLight,
+    fontSize: 14,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    flexShrink: 0,
   },
   playNum: {
     color: LAYOUT.colors.navyLight,
     fontSize: 14,
     fontWeight: "600",
-    letterSpacing: 0.5,
+    fontVariant: ["tabular-nums"],
+    minWidth: 32,
+    marginLeft: 6,
+    textAlign: "right",
+    flexShrink: 0,
+  },
+  situation: {
+    flex: 1,
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
   },
   phaseBadge: {
     color: "#fde68a",
     fontSize: 14,
     fontWeight: "700",
+    flexShrink: 0,
   },
   phaseAdvanceBtn: {
     paddingHorizontal: 12,

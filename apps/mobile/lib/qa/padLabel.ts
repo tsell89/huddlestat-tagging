@@ -1,5 +1,6 @@
 import { ODK, PlayType, type PlaylistData } from "@huddlestat/shared";
 import { isKickoffDraft } from "../tagging/kickoffRoleResolve";
+import { defaultOffensePlayType } from "../tagging/playConfig";
 
 const SCORING_TYPES = new Set<string>([
   PlayType.ExtraPoint,
@@ -10,21 +11,21 @@ const SCORING_TYPES = new Set<string>([
 
 /** Human pad name shown in QA logs (matches manual QA script vocabulary). */
 export function padLabelForDraft(draft: PlaylistData): string {
-  if (isKickoffDraft(draft)) return "Kickoff";
-  if (SCORING_TYPES.has(draft.playType)) return "Scoring";
-  if (draft.playType === PlayType.Punt || draft.playType === PlayType.PuntReceive) {
-    return draft.playType === PlayType.PuntReceive ? "Punt Rec" : "Punt";
+  const playType =
+    !draft.playType &&
+    (draft.odk === ODK.Offense || draft.odk === ODK.Defense) &&
+    draft.down >= 1
+      ? defaultOffensePlayType(draft)
+      : draft.playType;
+
+  if (isKickoffDraft({ ...draft, playType })) return "Kickoff";
+  if (SCORING_TYPES.has(playType)) return "Scoring";
+  if (playType === PlayType.Punt || playType === PlayType.PuntReceive) {
+    return playType === PlayType.PuntReceive ? "Punt Rec" : "Punt";
   }
-  if (draft.playType === PlayType.FieldGoal) return "FG";
-  if (draft.playType === PlayType.Pass) return "Pass";
-  if (draft.playType === PlayType.Run) return "Run";
-  if (
-    draft.odk === ODK.Offense &&
-    draft.down >= 1 &&
-    !draft.playType
-  ) {
-    return "Run";
-  }
-  if (draft.playType) return draft.playType;
+  if (playType === PlayType.FieldGoal) return "FG";
+  if (playType === PlayType.Pass) return "Pass";
+  if (playType === PlayType.Run) return "Run";
+  if (playType) return playType;
   return "Unknown";
 }

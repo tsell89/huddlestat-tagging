@@ -7,7 +7,9 @@ import {
 } from "@huddlestat/shared";
 import type { LocalPlay } from "../db/types.js";
 import {
+  applyJerseyLeaderDefaults,
   applyPasserLeaderDefault,
+  applyRusherLeaderDefault,
   buildJerseyGridRankings,
   getGamePasserLeader,
 } from "./jerseyGridRank.js";
@@ -281,5 +283,102 @@ describe("passer leader default", () => {
     );
 
     assert.equal(draft.passer.jersey, "7");
+  });
+
+  test("applyPasserLeaderDefault does not fill passer on Sack", () => {
+    const plays: LocalPlay[] = [
+      mockPlay({
+        playNumber: 1,
+        playType: PlayType.Pass,
+        result: Result.Complete,
+        passer: { jersey: "7", name: "" },
+      }),
+    ];
+
+    const draft = applyPasserLeaderDefault(
+      {
+        ...defaultOffensivePlay(2, TEAM),
+        playType: PlayType.Pass,
+        result: Result.Sack,
+        passer: { jersey: "", name: "" },
+      },
+      plays,
+    );
+
+    assert.equal(draft.passer.jersey, "");
+  });
+});
+
+describe("applyRusherLeaderDefault", () => {
+  test("UX-05: new Run snap pre-fills rusher from usage", () => {
+    const plays: LocalPlay[] = [
+      mockPlay({
+        playNumber: 1,
+        playType: PlayType.Run,
+        result: Result.Rush,
+        rusher: { jersey: "22", name: "" },
+      }),
+    ];
+
+    const draft = applyRusherLeaderDefault(
+      {
+        ...defaultOffensivePlay(2, TEAM),
+        playType: PlayType.Run,
+        result: Result.Rush,
+        rusher: { jersey: "", name: "" },
+      },
+      plays,
+    );
+
+    assert.equal(draft.rusher.jersey, "22");
+  });
+
+  test("UX-05: no usage falls back to two-deep RB", () => {
+    const draft = applyRusherLeaderDefault(
+      {
+        ...defaultOffensivePlay(1, TEAM),
+        playType: PlayType.Run,
+        result: Result.Rush,
+        rusher: { jersey: "", name: "" },
+      },
+      [],
+    );
+
+    assert.equal(draft.rusher.jersey, "2");
+  });
+
+  test("UX-09: Sack rusher is the game passer leader", () => {
+    const plays: LocalPlay[] = [
+      mockPlay({
+        playNumber: 1,
+        playType: PlayType.Pass,
+        result: Result.Complete,
+        passer: { jersey: "7", name: "" },
+      }),
+    ];
+
+    const draft = applyRusherLeaderDefault(
+      {
+        ...defaultOffensivePlay(2, TEAM),
+        playType: PlayType.Pass,
+        result: Result.Sack,
+        rusher: { jersey: "", name: "" },
+      },
+      plays,
+    );
+
+    assert.equal(draft.rusher.jersey, "7");
+  });
+
+  test("applyJerseyLeaderDefaults fills rusher on Run", () => {
+    const draft = applyJerseyLeaderDefaults(
+      {
+        ...defaultOffensivePlay(1, TEAM),
+        playType: PlayType.Run,
+        result: Result.Rush,
+      },
+      [],
+    );
+    assert.equal(draft.rusher.jersey, "2");
   });
 });

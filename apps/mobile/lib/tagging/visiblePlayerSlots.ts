@@ -65,3 +65,14 @@ export function isPlayerSlotVisibleOnPlay(
 ): boolean {
   return getVisiblePlayerSlots(play.playType, play.result).includes(slot);
 }
+
+export function firstEmptyVisiblePlayerSlot(
+  draft: PlaylistData,
+): PlayerSlotKey | null {
+  const slots = getVisiblePlayerSlots(draft.playType, draft.result);
+  const empty = slots.find((slot) => {
+    const ref = draft[slot] as { jersey?: string } | undefined;
+    return !ref?.jersey?.trim();
+  });
+  return empty ?? slots[0] ?? null;
+}

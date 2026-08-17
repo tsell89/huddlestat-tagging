@@ -45,7 +45,8 @@ When automation finds unsupported or ambiguous state, the tagger must keep going
 | `overtime-ncaa-drive.json` | NCAA | OT kickoff / touchback anchor |
 | `overtime-nfl-drive.json` | NFL | NFL-tagged kickoff model |
 | `package-h-edge-plays.json` | HS | Blocked punt recovery, FG miss touchback |
-| `punt-odk-flip.json` | HS | 4th-down punt downed → next `odk: D`, `Punt Rec`, spot |
+| `punt-odk-flip.json` | HS | 4th-down punt downed → next `odk: D`, `Punt Rec` TB → Opp 20 D |
+| `odk-d-scrimmage.json` | HS | We kick to Opp 25; their rush to Opp 32 is +7 / 2nd & 3 / still D |
 | `kickoff-return-td-scoring.json` | HS | KO Rec `end:TD` → next snap scoring pad (Extra Pt.) |
 | `defensive-special-td-catalog.json` | HS | INT / special-teams return TD → scoring pad (skip replay after XP rows) |
 | `onside-recovery.json` | HS | Short kick + recovery spot (Package H live-ball path) |

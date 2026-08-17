@@ -116,6 +116,7 @@
       "distance": 10,
       "hash": "M",
       "gainLoss": 5,
+      "spotEncoding": "tackle:-10|end:-5",
       "passer": {
         "jersey": "",
         "name": ""
@@ -158,8 +159,8 @@
     },
     {
       "playNumber": 4,
-      "odk": "O",
-      "yardLine": -15,
+      "odk": "D",
+      "yardLine": -5,
       "down": 2,
       "distance": 5,
       "hash": "M",
@@ -206,8 +207,8 @@
     },
     {
       "playNumber": 5,
-      "odk": "O",
-      "yardLine": -15,
+      "odk": "D",
+      "yardLine": -5,
       "down": 3,
       "distance": 5,
       "hash": "M",
@@ -254,8 +255,8 @@
     },
     {
       "playNumber": 6,
-      "odk": "O",
-      "yardLine": -15,
+      "odk": "D",
+      "yardLine": -5,
       "down": 4,
       "distance": 5,
       "hash": "M",

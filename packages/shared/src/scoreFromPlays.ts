@@ -1,6 +1,6 @@
 import { ODK, PlayType, Result } from "./constants.js";
 import type { GamePhase, PlaylistData } from "./index.js";
-import { isFailedFourthDown } from "./playChain.js";
+import { isFailedFourthDown, scoringOdkForTouchdown } from "./playChain.js";
 
 export type ScoreFromPlays = {
   us: number;
@@ -33,19 +33,11 @@ function isScoringGood(play: Pick<PlaylistData, "playType" | "result">): boolean
   );
 }
 
-/** Opponent offensive TD while we are on defense (Run/Pass, odk D). */
-function isOpponentOffensiveTd(play: PlaylistData): boolean {
-  return (
-    play.odk === ODK.Defense &&
-    isTouchdownResult(play.result) &&
-    (play.playType === PlayType.Run || play.playType === PlayType.Pass)
-  );
-}
-
 function pointsForTouchdown(play: PlaylistData): ScoreFromPlays {
   if (!isTouchdownPlay(play)) return { us: 0, them: 0 };
-  if (play.odk === ODK.Offense) return { us: 6, them: 0 };
-  if (isOpponentOffensiveTd(play)) return { us: 0, them: 6 };
+  if (scoringOdkForTouchdown(play) === ODK.Defense) {
+    return { us: 0, them: 6 };
+  }
   return { us: 6, them: 0 };
 }
 

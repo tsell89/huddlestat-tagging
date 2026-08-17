@@ -18,6 +18,7 @@ import {
   RETURNED_MIN,
   clampToRange,
   computeReturnYards,
+  encodeReturnEndPart,
   fieldRatioToYardLine,
   fieldYardLineToRatio,
   returnEndHudlYardLine,
@@ -85,13 +86,7 @@ export {
 } from "@/lib/tagging/kickoffReturn";
 
 export function encodePuntReturnSpotEncoding(spots: PuntReturnSpots): string {
-  const end =
-    spots.returnEnd.kind === "yardline"
-      ? String(spots.returnEnd.yardLine)
-      : spots.returnEnd.kind === "touchdown"
-        ? "TD"
-        : "SA";
-  return `recv:${spots.receivedAt}|end:${end}`;
+  return `recv:${spots.receivedAt}|end:${encodeReturnEndPart(spots.returnEnd)}`;
 }
 
 export function encodePuntDownedSpotEncoding(downedAt: YardLine): string {

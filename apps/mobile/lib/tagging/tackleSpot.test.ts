@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import {
+  ODK,
   PlayType,
   Result,
   defaultOffensivePlay,
@@ -11,16 +12,23 @@ import {
   formatTackleEndDisplay,
   isAtOwnGoalLine,
   isAtOwnOne,
+  isPendingTackleConfirm,
   isTackleLeftExtreme,
   isTackleRightExtreme,
+  sliderPosForTackleEnd,
   sliderYardLineForTackleEnd,
+  tackleEndFromSliderPos,
   tackleFieldPositionToRatio,
   tackleRatioToYardLine,
+  tackleSliderPosFromCenterX,
   tackleStepYardLine,
   tackleStripCenterX,
+  tackleThumbCenterX,
   TACKLE_SLIDER_OWN_GOAL,
   TACKLE_SLIDER_OWN_ONE,
   TACKLE_SLIDER_OPP_ONE,
+  TACKLE_SLIDER_SAFETY_POS,
+  TACKLE_SLIDER_TD_POS,
   TACKLE_STRIP_END_ZONE_PX,
 } from "./tackleSpot";
 
@@ -42,6 +50,43 @@ describe("tackle slider axis", () => {
     );
   });
 
+  test("0 and 101 rest in the painted end zones", () => {
+    const w = 400;
+    assert.equal(
+      tackleThumbCenterX(w, TACKLE_SLIDER_SAFETY_POS),
+      TACKLE_STRIP_END_ZONE_PX / 2,
+    );
+    assert.equal(
+      tackleThumbCenterX(w, TACKLE_SLIDER_TD_POS),
+      w - TACKLE_STRIP_END_ZONE_PX / 2,
+    );
+    assert.equal(
+      tackleSliderPosFromCenterX(w, TACKLE_STRIP_END_ZONE_PX / 2),
+      TACKLE_SLIDER_SAFETY_POS,
+    );
+    assert.equal(
+      tackleSliderPosFromCenterX(w, w - TACKLE_STRIP_END_ZONE_PX / 2),
+      TACKLE_SLIDER_TD_POS,
+    );
+    assert.equal(tackleSliderPosFromCenterX(w, TACKLE_STRIP_END_ZONE_PX), 1);
+    assert.equal(
+      tackleSliderPosFromCenterX(w, w - TACKLE_STRIP_END_ZONE_PX),
+      99,
+    );
+    assert.deepEqual(tackleEndFromSliderPos(0, true), {
+      kind: "endzone",
+      side: "own",
+    });
+    assert.deepEqual(tackleEndFromSliderPos(101, true), {
+      kind: "endzone",
+      side: "opponent",
+    });
+    assert.deepEqual(tackleEndFromSliderPos(101, false), {
+      kind: "yardline",
+      yardLine: TACKLE_SLIDER_OPP_ONE,
+    });
+  });
+
   test("own goal is left extreme for confirm safety", () => {
     assert.equal(isTackleLeftExtreme(TACKLE_SLIDER_OWN_GOAL), true);
     assert.equal(isAtOwnGoalLine(TACKLE_SLIDER_OWN_GOAL), true);
@@ -52,8 +97,25 @@ describe("tackle slider axis", () => {
         kind: "yardline",
         yardLine: TACKLE_SLIDER_OWN_GOAL,
       }),
-      "Own goal line",
+      "Safety",
     );
+    assert.equal(
+      formatTackleEndDisplay({ kind: "endzone", side: "own" }),
+      "Safety",
+    );
+    assert.equal(
+      formatTackleEndDisplay({ kind: "endzone", side: "opponent" }),
+      "Touchdown",
+    );
+    assert.equal(
+      isPendingTackleConfirm({ kind: "endzone", side: "own" }),
+      true,
+    );
+    assert.equal(
+      isPendingTackleConfirm({ kind: "endzone", side: "opponent" }),
+      true,
+    );
+    assert.equal(isPendingTackleConfirm({ kind: "safety" }), false);
   });
 
   test("opp 1 is right extreme", () => {
@@ -82,6 +144,12 @@ describe("tackle slider axis", () => {
     assert.equal(
       sliderYardLineForTackleEnd({ kind: "safety" }, -25),
       TACKLE_SLIDER_OWN_GOAL,
+    );
+    assert.equal(sliderPosForTackleEnd({ kind: "touchdown" }), 101);
+    assert.equal(sliderPosForTackleEnd({ kind: "safety" }), 0);
+    assert.equal(
+      sliderPosForTackleEnd({ kind: "endzone", side: "opponent" }),
+      101,
     );
   });
 });
@@ -170,5 +238,44 @@ describe("tackle confirmation semantics", () => {
       }).result,
       Result.Complete,
     );
+  });
+
+  test("odk D Opp 25 → Opp 32 is +7 (their offense toward our goal)", () => {
+    const draft = {
+      ...defaultOffensivePlay(11, "SHS"),
+      playType: PlayType.Run,
+      result: Result.Rush,
+      odk: ODK.Defense,
+      yardLine: 25,
+    };
+    const next = applyTackleSpotToDraft(draft, {
+      kind: "yardline",
+      yardLine: 32,
+    });
+    assert.equal(next.gainLoss, 7);
+    assert.equal(next.spotEncoding, "tackle:25|end:32");
+  });
+
+  test("pending end zone does not confirm the score yet", () => {
+    const draft = {
+      ...defaultOffensivePlay(12, "SHS"),
+      playType: PlayType.Run,
+      result: Result.Rush,
+      yardLine: 32,
+    };
+    const pendingTd = applyTackleSpotToDraft(draft, {
+      kind: "endzone",
+      side: "opponent",
+    });
+    assert.equal(pendingTd.result, Result.Rush);
+    assert.equal(pendingTd.gainLoss, 32);
+    assert.equal(isPendingTackleConfirm({ kind: "endzone", side: "opponent" }), true);
+
+    const pendingSa = applyTackleSpotToDraft(draft, {
+      kind: "endzone",
+      side: "own",
+    });
+    assert.equal(pendingSa.result, Result.Rush);
+    assert.equal(pendingSa.gainLoss, -68);
   });
 });

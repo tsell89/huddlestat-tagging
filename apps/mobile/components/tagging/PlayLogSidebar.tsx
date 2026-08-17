@@ -53,7 +53,7 @@ export function PlayLogSidebar({
       {isOffLive ? (
         <Pressable style={styles.resumeBtn} onPress={onResumeLive}>
           <Text style={styles.resumeBtnText}>
-            Resume live · play #{nextPlayNumber}
+            Resume live · play {nextPlayNumber}
           </Text>
         </Pressable>
       ) : null}
@@ -94,7 +94,7 @@ export function PlayLogSidebar({
                 style={[styles.playRow, selected && styles.playRowSelected]}
                 onPress={() => onSelectPlay(p)}
               >
-                <Text style={styles.playNum}>#{p.playNumber}</Text>
+                <Text style={styles.playNum}>{p.playNumber}</Text>
                 <View style={styles.playBody}>
                   <Text style={styles.playMain} numberOfLines={1}>
                     {p.playType} · {p.result}
@@ -232,8 +232,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "700",
     color: LAYOUT.colors.navy,
-    fontFamily: "Menlo",
-    width: 36,
+    fontVariant: ["tabular-nums"],
+    minWidth: 32,
+    width: 32,
+    textAlign: "right",
   },
   playBody: {
     flex: 1,

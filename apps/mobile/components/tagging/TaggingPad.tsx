@@ -5,7 +5,6 @@ import { ScoringPad } from "@/components/tagging/ScoringPad";
 import type { LocalPlay } from "@/lib/db/types";
 import {
   isScoringPlayType,
-  shouldShowOffensePad,
   type PlayerSlotKey,
 } from "@/lib/tagging/playConfig";
 import type { KickoffReturnSpots } from "@/lib/tagging/kickoffReturn";
@@ -57,9 +56,5 @@ export function TaggingPad(props: TaggingPadProps) {
     return <ScoringPad {...props} />;
   }
 
-  if (shouldShowOffensePad(props.draft)) {
-    return <OffensePad {...props} />;
-  }
-
-  return null;
+  return <OffensePad {...props} />;
 }

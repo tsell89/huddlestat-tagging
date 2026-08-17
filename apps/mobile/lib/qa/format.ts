@@ -7,7 +7,7 @@ export function formatQaHeaderLine(
   draft: PlaylistData,
   phase: GamePhase,
 ): string {
-  return `PLAY #${draft.playNumber} · ${headerPhaseLabel(phase)} · ${formatSituationLine(draft)}`;
+  return `PLAY ${draft.playNumber} · ${headerPhaseLabel(phase)} · ${formatSituationLine(draft)}`;
 }
 
 /** Sidebar one-liner for a saved play. */

@@ -58,13 +58,7 @@ export function KickoffTaggingPad({
   onActivePlayerSlotChange,
   gamePlays,
 }: KickoffTaggingPadProps) {
-  const allAlternates = getAlternateResultsForPlayType(draft.playType);
-  const alternates =
-    draft.result === Result.Touchback
-      ? allAlternates.filter((r) => r !== Result.Touchback)
-      : allAlternates.filter(
-          (r) => r !== Result.Touchback && r !== Result.Return,
-        );
+  const alternates = getAlternateResultsForPlayType(draft.playType);
   const visibleSlots = getVisiblePlayerSlots(draft.playType, draft.result);
   const showReturnSpots = draft.result === Result.Return;
   const activeSlot =
@@ -118,6 +112,7 @@ export function KickoffTaggingPad({
         <View style={styles.section}>
           <KickoffReturnSpotsPanel
             spots={kickoffSpots}
+            weKicked={kickoffRole === "kick"}
             onChange={onKickoffSpotsChange}
             onTouchback={() => {
               onChange(applyResultChange(draft, Result.Touchback));

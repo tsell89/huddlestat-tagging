@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { FieldPositionSlider } from "@/components/tagging/FieldPositionSlider";
 import {
+  KICK_RETURNED_DEFAULT,
   RETURNED_DEFAULT,
   caughtRatioToYardLine,
   caughtYardLineToRatio,
@@ -16,21 +17,30 @@ type KickoffReturnSpotsProps = {
   spots: KickoffReturnSpots;
   onChange: (spots: KickoffReturnSpots) => void;
   onTouchback: () => void;
+  weKicked?: boolean;
 };
 
 export function KickoffReturnSpotsPanel({
   spots,
   onChange,
   onTouchback,
+  weKicked = false,
 }: KickoffReturnSpotsProps) {
   const isTd = spots.returnEnd.kind === "touchdown";
   const isSafety = spots.returnEnd.kind === "safety";
   const hideReturnTrack = isTd || isSafety;
+  const defaultReturned = weKicked
+    ? KICK_RETURNED_DEFAULT
+    : RETURNED_DEFAULT;
   const returnedYardLine =
     spots.returnEnd.kind === "yardline"
       ? spots.returnEnd.yardLine
-      : RETURNED_DEFAULT;
-  const returnYards = computeReturnYards(spots.caughtAt, spots.returnEnd);
+      : defaultReturned;
+  const returnYards = computeReturnYards(
+    spots.caughtAt,
+    spots.returnEnd,
+    weKicked,
+  );
 
   const safetyAction = {
     label: "Safety",
@@ -40,7 +50,7 @@ export function KickoffReturnSpotsPanel({
         isSafety
           ? {
               ...spots,
-              returnEnd: { kind: "yardline", yardLine: RETURNED_DEFAULT },
+              returnEnd: { kind: "yardline", yardLine: defaultReturned },
             }
           : { ...spots, returnEnd: { kind: "safety" } },
       ),
@@ -54,10 +64,15 @@ export function KickoffReturnSpotsPanel({
         isTd
           ? {
               ...spots,
-              returnEnd: { kind: "yardline", yardLine: RETURNED_DEFAULT },
+              returnEnd: { kind: "yardline", yardLine: defaultReturned },
             }
           : { ...spots, returnEnd: { kind: "touchdown" } },
       ),
+  };
+
+  const touchbackAction = {
+    label: "Touchback",
+    onPress: onTouchback,
   };
 
   return (
@@ -71,10 +86,8 @@ export function KickoffReturnSpotsPanel({
         leftTick="−1"
         centerTick="50"
         rightTick="+1"
-        leftAction={{
-          label: "Touchback",
-          onPress: onTouchback,
-        }}
+        leftAction={weKicked ? undefined : touchbackAction}
+        rightAction={weKicked ? touchbackAction : undefined}
       />
 
       <FieldPositionSlider
@@ -91,8 +104,8 @@ export function KickoffReturnSpotsPanel({
         leftTick="−1"
         centerTick="50"
         rightTick="+1"
-        leftAction={safetyAction}
-        rightAction={touchdownAction}
+        leftAction={weKicked ? touchdownAction : safetyAction}
+        rightAction={weKicked ? safetyAction : touchdownAction}
         hideTrack={hideReturnTrack}
         displayValue={formatReturnEndDisplay(spots.returnEnd)}
       />

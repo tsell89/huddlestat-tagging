@@ -49,8 +49,11 @@ export function OffensePlayerSection({
       : (visibleSlots[0] ?? null);
 
   const jerseyEntries = useMemo(
-    () => (activeSlot ? buildJerseyGridRankings(gamePlays, activeSlot) : []),
-    [activeSlot, gamePlays],
+    () =>
+      activeSlot
+        ? buildJerseyGridRankings(gamePlays, activeSlot, draft)
+        : [],
+    [activeSlot, gamePlays, draft],
   );
 
   if (visibleSlots.length === 0) return null;

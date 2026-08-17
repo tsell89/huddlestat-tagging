@@ -6,7 +6,7 @@ import { PassPad } from "@/components/tagging/PassPad";
 import { PuntPad } from "@/components/tagging/PuntPad";
 import { RunPad } from "@/components/tagging/RunPad";
 import type { LocalPlay } from "@/lib/db/types";
-import { applyPasserLeaderDefault } from "@/lib/tagging/jerseyGridRank";
+import { applyJerseyLeaderDefaults } from "@/lib/tagging/jerseyGridRank";
 import {
   applyPlayTypeChange,
   ensureOffensePadDraft,
@@ -62,7 +62,7 @@ export function OffensePad({
   onPenaltyFoulSpotChange,
 }: OffensePadProps) {
   function handlePlayTypeChange(playType: OffensePlayType) {
-    const next = applyPasserLeaderDefault(
+    const next = applyJerseyLeaderDefaults(
       applyPlayTypeChange(draft, playType),
       gamePlays,
     );
