@@ -534,21 +534,21 @@ export default function TaggingScreen() {
       setShowOtModal(true);
       return;
     }
-    const session = liveSession();
-    if (!session) return;
-    const reduced = reduceTaggingSession(session, { type: "phaseAdvance" });
     if (next === "FINAL") {
       if (game.phase === "Q4") {
         startQuarterReview("quarter-review-q4");
       }
       await finalizeLocalGame(id);
-      setGame({ ...game, phase: reduced.phase, status: reduced.status });
+      setGame({ ...game, phase: "FINAL", status: "final" });
       await recordPhase("FINAL", {
         banner: catchUpHintMessage("quarter-review-q4"),
       });
       triggerPublish(id, "final");
       return;
     }
+    const session = liveSession();
+    if (!session) return;
+    const reduced = reduceTaggingSession(session, { type: "phaseAdvance" });
     if (next === "HALFTIME" && game.phase === "Q2") {
       await updateLocalGamePhase(id, "HALFTIME");
       setGame({ ...game, phase: reduced.phase });
