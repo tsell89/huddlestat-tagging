@@ -24,7 +24,10 @@ import {
   returnEndZoneSide,
   type ReturnEnd,
 } from "@/lib/tagging/kickoffReturn";
-import type { TackleEnd } from "@/lib/tagging/tackleSpot";
+import {
+  isPendingTackleConfirm,
+  type TackleEnd,
+} from "@/lib/tagging/tackleSpot";
 
 export type FumbleRecoverySpots = {
   fumbleAt: YardLine;
@@ -45,6 +48,14 @@ export function tackleEndToFumbleReturnEnd(end: TackleEnd): ReturnEnd {
   if (end.kind === "safety") return { kind: "safety" };
   if (end.kind === "endzone") return { kind: "endzone", side: end.side };
   return { kind: "yardline", yardLine: end.yardLine };
+}
+
+/** Defense return dragged into an EZ but not yet confirmed as TD / safety. */
+export function isPendingFumbleReturnConfirm(
+  spots: FumbleRecoverySpots,
+): boolean {
+  if (spots.recoveredBy !== "defense") return false;
+  return isPendingTackleConfirm(fumbleReturnEndToTackleEnd(spots.returnEnd));
 }
 
 export function defaultFumbleRecoverySpots(

@@ -6,7 +6,10 @@ import {
   Result,
   defaultOffensivePlay,
 } from "@huddlestat/shared";
-import { applyFumbleSpotsToDraft } from "./fumbleRecovery";
+import {
+  applyFumbleSpotsToDraft,
+  isPendingFumbleReturnConfirm,
+} from "./fumbleRecovery";
 
 describe("applyFumbleSpotsToDraft", () => {
   test("odk D fumble recovered at Opp 32 is +7 (their offense)", () => {
@@ -43,5 +46,52 @@ describe("applyFumbleSpotsToDraft", () => {
     });
     assert.equal(next.returnYards, 29);
     assert.equal(next.spotEncoding, "fumble:29|end:TD|by:D");
+  });
+});
+
+describe("isPendingFumbleReturnConfirm", () => {
+  test("defense return at own goal (Hudl 0) is pending safety", () => {
+    assert.equal(
+      isPendingFumbleReturnConfirm({
+        fumbleAt: -5,
+        recoveredBy: "defense",
+        recoveredAt: -3,
+        returnEnd: { kind: "yardline", yardLine: 0 },
+      }),
+      true,
+    );
+  });
+
+  test("defense return in own end zone is pending until confirmed", () => {
+    assert.equal(
+      isPendingFumbleReturnConfirm({
+        fumbleAt: -5,
+        recoveredBy: "defense",
+        recoveredAt: -3,
+        returnEnd: { kind: "endzone", side: "own" },
+      }),
+      true,
+    );
+  });
+
+  test("confirmed safety and offense recovery are not pending", () => {
+    assert.equal(
+      isPendingFumbleReturnConfirm({
+        fumbleAt: -5,
+        recoveredBy: "defense",
+        recoveredAt: -3,
+        returnEnd: { kind: "safety" },
+      }),
+      false,
+    );
+    assert.equal(
+      isPendingFumbleReturnConfirm({
+        fumbleAt: 0,
+        recoveredBy: "offense",
+        recoveredAt: 0,
+        returnEnd: { kind: "yardline", yardLine: 0 },
+      }),
+      false,
+    );
   });
 });

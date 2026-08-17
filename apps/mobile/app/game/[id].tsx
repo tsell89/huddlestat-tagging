@@ -65,6 +65,7 @@ import {
 import {
   applyFumbleSpotsToDraft,
   initFumbleSpotsFromDraft,
+  isPendingFumbleReturnConfirm,
   type FumbleRecoverySpots,
 } from "@/lib/tagging/fumbleRecovery";
 import {
@@ -306,7 +307,11 @@ function canSaveDraft(
   ) {
     return false;
   }
-  if (draft.result === Result.Fumble && fumbleSpots?.returnEnd.kind === "endzone") {
+  if (
+    draft.result === Result.Fumble &&
+    fumbleSpots &&
+    isPendingFumbleReturnConfirm(fumbleSpots)
+  ) {
     return false;
   }
   // Gate 3: require jersey on each visible slot before save

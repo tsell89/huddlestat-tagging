@@ -58,6 +58,7 @@ export function RunPad({
           options={alternates}
           value={draft.result === Result.RushTd ? Result.Rush : draft.result}
           disabled={
+            // Step ± off the goal line to undo a confirmed TD / safety.
             tackleEnd.kind === "touchdown" || tackleEnd.kind === "safety"
           }
           onChange={(result) => {
