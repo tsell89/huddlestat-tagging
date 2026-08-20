@@ -31,7 +31,7 @@ export function padClassForPlay(play: PlaylistData): PadClass {
   if (playType === PlayType.Run || playType === PlayType.Pass) {
     return "offense";
   }
-  if (playType === "" && odk === ODK.Offense) {
+  if (playType === "" && (odk === ODK.Offense || odk === ODK.Defense)) {
     return "offense";
   }
   if (playType === "" && odk === ODK.Kicking) {

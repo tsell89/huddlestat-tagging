@@ -16,6 +16,7 @@ npm run test:pbp --workspace=@huddlestat/shared
 | `cfbd-chaos-penalties` | CFBD-derived | Penalty replay down; we-kick then odk D scrimmage |
 | `cfbd-overtime-ncaa` | CFBD-derived | NCAA OT kickoff sequence |
 | `cfbd-normal-drives` | CFBD-derived | Touchback, punt, they snap 1st & 10 @ Opp 20 |
+| `cfbd-multi-drive` | CFBD-derived | Fair Catch, D rush w/o tackle encoding, Timeout, kneel |
 
 ## Licenses
 
@@ -41,6 +42,8 @@ npm run test:pbp --workspace=@huddlestat/shared
 | `safety-free-kick.json` | HS | Run Safety → free kick KO @ Own 20 → we-kick TB → D @ Opp 20 |
 | `xp-no-good-kickoff.json` | HS | Rush TD → XP No Good → kickoff |
 | `opp-xp-block-outcomes.json` | HS | Opp TD → Extra Pt. Block Good / No Good → KO Rec |
+| `fair-catch-punt.json` | HS | Fair Catch punt → Punt Rec; Timeout keeps situation |
+| `kneel-spike-clock.json` | HS | Spike Incomplete · Timeout · kneel Rush −1 |
 
 ## QA script games (`games/qa-script-*`)
 

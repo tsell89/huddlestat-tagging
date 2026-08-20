@@ -254,7 +254,7 @@ export function getAlternateResultsForPlayType(
       return [Result.Return, Result.Touchback, Result.Penalty];
     case PlayType.Punt:
     case PlayType.PuntReceive:
-      return [Result.Downed, Result.Return, Result.Touchback, Result.Blocked, Result.Penalty];
+      return [Result.Downed, Result.FairCatch, Result.Return, Result.Touchback, Result.Blocked, Result.Penalty];
     case PlayType.FieldGoal:
       return [Result.Good, Result.NoGood, Result.Blocked, Result.Penalty];
     case PlayType.ExtraPoint:
@@ -411,7 +411,10 @@ function spotEncodingMatchesResult(
   if (playType === PlayType.Punt && result === Result.Return) {
     return spotEncoding.startsWith("recv:");
   }
-  if (playType === PlayType.Punt && result === Result.Downed) {
+  if (
+    playType === PlayType.Punt &&
+    (result === Result.Downed || result === Result.FairCatch)
+  ) {
     return (
       spotEncoding.startsWith("end:") &&
       !spotEncoding.startsWith("recv:") &&

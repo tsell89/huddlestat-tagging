@@ -1,0 +1,12 @@
+{
+  "gameId": "qa-script-f",
+  "rules": "HS",
+  "source": "hand",
+  "teamOffense": "TEAM_A",
+  "teamDefense": "OPP",
+  "periods": 4,
+  "overtime": true,
+  "redacted": true,
+  "description": "iPad QA Script F — Q1 drive + FG, Q3 2H KO Rec, HS OT TD+XP → opponent possession @ Own 10",
+  "skipReplayAfter": [2, 5]
+}

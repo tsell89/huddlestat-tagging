@@ -1010,3 +1010,149 @@ describe("failed 4th down", () => {
     assert.equal(next.yardLine, -28);
   });
 });
+
+describe("odk D rush without tackle encoding", () => {
+  test("possession +3 @ Opp 20 → next @ Opp 23 (not Opp 17)", () => {
+    const rush = basePlay({
+      playNumber: 5,
+      odk: ODK.Defense,
+      playType: PlayType.Run,
+      result: Result.Rush,
+      yardLine: 20,
+      down: 1,
+      distance: 10,
+      gainLoss: 3,
+      // intentionally no spotEncoding (CFBD / hand-authored)
+    });
+
+    assert.equal(yardLineAfterPlay(rush), 23);
+    const next = nextDraftAfterPlay(rush, 6, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.yardLine, 23);
+    assert.equal(next.down, 2);
+    assert.equal(next.distance, 7);
+  });
+
+  test("possession −7 @ Opp 32 → next @ Opp 25", () => {
+    const rush = basePlay({
+      playNumber: 5,
+      odk: ODK.Defense,
+      playType: PlayType.Run,
+      result: Result.Rush,
+      yardLine: 32,
+      down: 2,
+      distance: 3,
+      gainLoss: -7,
+    });
+
+    assert.equal(yardLineAfterPlay(rush), 25);
+    const next = nextDraftAfterPlay(rush, 6, TEAM);
+    assert.equal(next.yardLine, 25);
+    assert.equal(next.down, 3);
+    assert.equal(next.distance, 10);
+  });
+});
+
+describe("timeout / kneel / spike / fair catch", () => {
+  test("Timeout keeps down, distance, yard line, odk", () => {
+    const timeout = basePlay({
+      playNumber: 5,
+      playType: PlayType.Run,
+      result: Result.Timeout,
+      yardLine: -25,
+      down: 2,
+      distance: 7,
+      gainLoss: 0,
+      odk: ODK.Offense,
+    });
+
+    const next = nextDraftAfterPlay(timeout, 6, TEAM);
+    assert.equal(next.down, 2);
+    assert.equal(next.distance, 7);
+    assert.equal(next.yardLine, -25);
+    assert.equal(next.odk, ODK.Offense);
+  });
+
+  test("Timeout on 4th does not auto-COP", () => {
+    const timeout = basePlay({
+      playType: PlayType.Run,
+      result: Result.Timeout,
+      yardLine: 40,
+      down: 4,
+      distance: 2,
+      gainLoss: 0,
+    });
+    assert.equal(normalizePlayOnSave(timeout).result, Result.Timeout);
+    assert.equal(isFailedFourthDown(timeout), false);
+  });
+
+  test("kneel Rush −1 advances down and spot", () => {
+    const kneel = basePlay({
+      playType: PlayType.Run,
+      result: Result.Rush,
+      yardLine: -40,
+      down: 1,
+      distance: 10,
+      gainLoss: -1,
+    });
+    const next = nextDraftAfterPlay(kneel, 6, TEAM);
+    assert.equal(next.down, 2);
+    assert.equal(next.distance, 11);
+    assert.equal(next.yardLine, -39);
+  });
+
+  test("spike Incomplete advances down, keeps spot", () => {
+    const spike = basePlay({
+      playType: PlayType.Pass,
+      result: Result.Incomplete,
+      yardLine: 25,
+      down: 1,
+      distance: 10,
+      gainLoss: 0,
+    });
+    const next = nextDraftAfterPlay(spike, 6, TEAM);
+    assert.equal(next.down, 2);
+    assert.equal(next.distance, 10);
+    assert.equal(next.yardLine, 25);
+  });
+
+  test("Fair Catch punt → Punt Rec like Downed", () => {
+    const punt = basePlay({
+      playNumber: 4,
+      playType: PlayType.Punt,
+      result: Result.FairCatch,
+      yardLine: -28,
+      down: 4,
+      distance: 2,
+      gainLoss: -35,
+      kickYards: 35,
+      spotEncoding: "end:35",
+    });
+    const next = nextDraftAfterPlay(punt, 5, TEAM);
+    assert.equal(next.playType, PlayType.PuntReceive);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
+  });
+
+  test("opponent (odk D) Fair Catch/Downed punt → our O at end spot", () => {
+    const punt = basePlay({
+      playNumber: 11,
+      odk: ODK.Defense,
+      playType: PlayType.Punt,
+      result: Result.Downed,
+      yardLine: 23,
+      down: 4,
+      distance: 7,
+      gainLoss: -40,
+      kickYards: 40,
+      spotEncoding: "end:-17",
+    });
+    const next = nextDraftAfterPlay(punt, 12, TEAM);
+    assert.equal(next.playType, "");
+    assert.equal(next.odk, ODK.Offense);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
+    assert.equal(next.yardLine, -17);
+  });
+});

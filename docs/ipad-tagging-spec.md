@@ -316,17 +316,19 @@ API: `buildJerseyGridRankings()` in `lib/tagging/jerseyGridRank.ts`.
 | Pass | INT | PassPad | COP @ return end — pkg H |
 | Pass | Tipped Pass | PassPad | Incomplete + optional PBU |
 | Pass | Penalty | PassPad | pkg H |
-| Punt | Downed | PuntPad | Receive @ downed spot |
+| Punt | Downed | PuntPad | Receive @ downed spot (we punt) / O @ spot (they punt) |
+| Punt | Fair Catch | PuntPad | Same as Downed |
 | Punt | Return | PuntPad | Receive @ return end |
 | Punt | Touchback | PuntPad | Receive @ Own 20 |
 | Punt | Blocked | PuntPad | pkg H |
+| * | Timeout | same pad | Same down / distance / spot (clock only) |
 | FG | Good | FGPad | Kickoff |
 | FG | No Good (field) | FGPad | Opponent @ LOS |
 | FG | No Good (into EZ) | FGPad | Touchback @ Own 20 |
 | FG | Blocked | FGPad | pkg H |
 | Extra Pt. | Good | Scoring | Kickoff |
 | Extra Pt. | No Good | Scoring | Kickoff (missed try) |
-| Extra Pt. Block | Blocked | Scoring | Kickoff |
+| Extra Pt. Block | Good · No Good · Blocked | Scoring | Kickoff (We receive) |
 | 2 Pt. | Good | Scoring | Kickoff |
 | 2 Pt. | No Good | Scoring | Kickoff (missed try) |
 | 2 Pt. Block | Blocked | Scoring | Kickoff |

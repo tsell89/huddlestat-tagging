@@ -64,7 +64,7 @@ export function PuntPad({
             const slots = getVisiblePlayerSlots(draft.playType, result);
             onActivePlayerSlotChange(slots[0] ?? null);
           }}
-          columns={5}
+          columns={6}
           size="dense"
         />
       </View>
@@ -79,10 +79,13 @@ export function PuntPad({
             defendingEnd={defendingEnd}
           />
         </View>
-      ) : draft.result === Result.Downed ? (
+      ) : draft.result === Result.Downed ||
+        draft.result === Result.FairCatch ? (
         <View style={styles.section}>
           <FieldPositionSlider
-            label="Downed at"
+            label={
+              draft.result === Result.FairCatch ? "Fair catch at" : "Downed at"
+            }
             value={puntSpots.downedAt}
             onChange={(downedAt) =>
               onPuntSpotsChange({ ...puntSpots, downedAt })

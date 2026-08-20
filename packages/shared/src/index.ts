@@ -88,6 +88,7 @@ export const resultSchema = z.enum([
   "Blocked",
   "Timeout",
   "Tipped Pass",
+  "Fair Catch",
   "COP",
 ]);
 

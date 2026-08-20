@@ -78,7 +78,8 @@ Step-by-step tags for [ipad-qa-checklist.md](./ipad-qa-checklist.md). Report eac
 
 ## Script F — Phase bar, halftime, OT
 
-**Game:** New or use phase bar on existing test game.
+**Game:** New or use phase bar on existing test game.  
+**Corpus:** `games/qa-script-f` (`npm run qa:script-sim`) covers chain-checkable F5/F7/F8 with `skipReplayAfter` on phase jumps.
 
 | Step | Action | Expected |
 |------|--------|----------|

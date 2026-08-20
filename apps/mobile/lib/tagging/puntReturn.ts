@@ -165,7 +165,7 @@ export function initPuntSpotsFromDraft(
     return defaultPuntSpots(ballSpot);
   }
 
-  if (draft.result === Result.Downed) {
+  if (draft.result === Result.Downed || draft.result === Result.FairCatch) {
     const decoded = decodePuntDownedFromSpotEncoding(draft.spotEncoding);
     return {
       returnSpots: defaultPuntReturnSpots(),
@@ -192,7 +192,7 @@ export function applyPuntSpotsToDraft(
     };
   }
 
-  if (draft.result === Result.Downed) {
+  if (draft.result === Result.Downed || draft.result === Result.FairCatch) {
     const gainLoss = yardsAdvanced(draft.yardLine, spots.downedAt);
     return {
       ...draft,

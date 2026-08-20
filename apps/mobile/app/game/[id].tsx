@@ -872,7 +872,9 @@ export default function TaggingScreen() {
 
     if (
       isPunt &&
-      (next.result === Result.Return || next.result === Result.Downed)
+      (next.result === Result.Return ||
+        next.result === Result.Downed ||
+        next.result === Result.FairCatch)
     ) {
       const spotInputsChanged =
         draft?.playType !== next.playType ||

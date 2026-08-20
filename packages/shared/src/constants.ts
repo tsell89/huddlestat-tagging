@@ -53,6 +53,8 @@ export const Result = {
   Blocked: "Blocked",
   Timeout: "Timeout",
   TippedPass: "Tipped Pass",
+  /** Punt fair catch — same chain as Downed (ball dead at catch spot). */
+  FairCatch: "Fair Catch",
   /** Change of possession — failed 4th down conversion (not punt) */
   Cop: "COP",
 } as const;

@@ -118,6 +118,27 @@ export const QA_SCRIPT_CHECKPOINTS: Record<string, ScriptCheckpoint[]> = {
       },
     },
   ],
+  "qa-script-f": [
+    {
+      afterPlayNumber: 3,
+      expect: {
+        playType: "KO",
+        odk: "K",
+        yardLine: -40,
+        padClass: "kickoff",
+      },
+    },
+    {
+      afterPlayNumber: 7,
+      expect: {
+        odk: "D",
+        yardLine: -10,
+        down: 1,
+        distance: 10,
+        padClass: "offense",
+      },
+    },
+  ],
 };
 
 export function listQaScriptGameIds(): string[] {

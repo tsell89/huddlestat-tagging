@@ -285,6 +285,7 @@ function isSuccessfulPuntEnding(play: PlayChainInput): boolean {
   if (isLiveBallTurnover(play)) return false;
   return (
     play.result === Result.Downed ||
+    play.result === Result.FairCatch ||
     play.result === Result.Return ||
     play.result === Result.Touchback
   );
@@ -383,7 +384,7 @@ function isScoringComplete(
 export function yardLineAfterPlay(
   play: Pick<
     PlaylistData,
-    "playType" | "result" | "yardLine" | "gainLoss" | "spotEncoding"
+    "playType" | "result" | "yardLine" | "gainLoss" | "spotEncoding" | "odk"
   >,
 ): YardLine {
   if (isKickoffPlay(play.playType) && play.result === Result.Touchback) {
@@ -407,7 +408,10 @@ export function yardLineAfterPlay(
     if (end !== null) return end;
   }
 
-  if (isPuntPlay(play.playType) && play.result === Result.Downed) {
+  if (
+    isPuntPlay(play.playType) &&
+    (play.result === Result.Downed || play.result === Result.FairCatch)
+  ) {
     const end = decodePuntDownedEnd(play.spotEncoding);
     if (end !== null) return end;
   }
@@ -452,11 +456,14 @@ export function yardLineAfterPlay(
     return fieldPositionToHudl(newPos);
   }
 
-  if (isNoGainResult(play.result)) {
+  if (isNoGainResult(play.result) || play.result === Result.Timeout) {
     return play.yardLine;
   }
 
-  const endPos = hudlToFieldPosition(play.yardLine) + play.gainLoss;
+  // gainLoss is possession yards; tagged-axis advance flips on odk D.
+  const axisGain =
+    play.odk === ODK.Defense ? -play.gainLoss : play.gainLoss;
+  const endPos = hudlToFieldPosition(play.yardLine) + axisGain;
   return fieldPositionToHudl(endPos);
 }
 
@@ -470,6 +477,7 @@ export function isFailedFourthDown(
   if (play.down !== 4) return false;
   if (!isScrimmagePlay(play.playType)) return false;
   if (play.result === Result.Penalty) return false;
+  if (play.result === Result.Timeout) return false;
   if (isTouchdownResult(play.result)) return false;
   if (isNoGainResult(play.result)) return true;
   return play.gainLoss < play.distance;
@@ -503,6 +511,15 @@ function turnoverSituation(
 
 /** Advance down, distance, and ball spot after a play. */
 export function advanceSituation(play: PlayChainInput): SituationFields {
+  // Timeout does not change the snap situation.
+  if (play.result === Result.Timeout) {
+    return {
+      down: play.down,
+      distance: play.distance,
+      yardLine: play.yardLine,
+    };
+  }
+
   if (isKickoffPlay(play.playType)) {
     return {
       down: 1,
@@ -603,6 +620,18 @@ export function nextDraftAfterPlay(
 ): PlaylistData {
   const play = normalizePlayOnSave(savedPlay);
 
+  // Timeout: same series, same spot — clock only.
+  if (play.result === Result.Timeout) {
+    return {
+      ...defaultOffensivePlay(nextPlayNumber, team),
+      down: play.down,
+      distance: play.distance,
+      yardLine: play.yardLine,
+      odk: play.odk,
+      ...emptyPlayers,
+    };
+  }
+
   if (isScoringComplete(play)) {
     if (
       options?.rules === "HS" &&
@@ -646,6 +675,34 @@ export function nextDraftAfterPlay(
   }
 
   if (isSuccessfulFourthDownPunt(play)) {
+    // Opponent punt (we are on D): dead-ball endings → our O at the tagged end spot.
+    // (Return still goes through Punt Rec with odk O.)
+    if (play.odk === ODK.Defense) {
+      if (
+        play.result === Result.Downed ||
+        play.result === Result.FairCatch ||
+        play.result === Result.Touchback
+      ) {
+        const endHudl =
+          play.result === Result.Touchback
+            ? HS_TOUCHBACK_YARD_LINE
+            : yardLineAfterPlay(play);
+        return {
+          ...defaultOffensivePlay(nextPlayNumber, team),
+          down: 1,
+          distance: 10,
+          yardLine: endHudl,
+          odk: ODK.Offense,
+          ...emptyPlayers,
+        };
+      }
+      return {
+        ...defaultPuntReceivePlay(nextPlayNumber, team),
+        odk: ODK.Offense,
+        ...puntReceiveSituation(play),
+        ...emptyPlayers,
+      };
+    }
     return {
       ...defaultPuntReceivePlay(nextPlayNumber, team),
       ...puntReceiveSituation(play),
@@ -653,12 +710,23 @@ export function nextDraftAfterPlay(
     };
   }
 
-  // After tagging the receive ending, opponent (odk D) starts a scrimmage series.
+  // After tagging the receive ending: D series if we received our own punt;
+  // O series if we returned their punt (Punt Rec odk O).
   if (
     play.playType === PlayType.PuntReceive &&
     isSuccessfulPuntEnding(play)
   ) {
     const endHudl = yardLineAfterPlay(play);
+    if (play.odk === ODK.Offense) {
+      return {
+        ...defaultOffensivePlay(nextPlayNumber, team),
+        down: 1,
+        distance: 10,
+        yardLine: endHudl,
+        odk: ODK.Offense,
+        ...emptyPlayers,
+      };
+    }
     return {
       ...defaultOffensivePlay(nextPlayNumber, team),
       down: 1,
