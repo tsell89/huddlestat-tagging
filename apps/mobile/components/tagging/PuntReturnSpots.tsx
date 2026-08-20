@@ -10,16 +10,19 @@ import {
   returnedYardLineToRatio,
   type PuntReturnSpots,
 } from "@/lib/tagging/puntReturn";
+import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 type PuntReturnSpotsProps = {
   spots: PuntReturnSpots;
   onChange: (spots: PuntReturnSpots) => void;
+  defendingEnd?: DefendingEnd;
 };
 
 export function PuntReturnSpotsPanel({
   spots,
   onChange,
+  defendingEnd = "left",
 }: PuntReturnSpotsProps) {
   const isTd = spots.returnEnd.kind === "touchdown";
   const isSafety = spots.returnEnd.kind === "safety";
@@ -69,6 +72,7 @@ export function PuntReturnSpotsPanel({
         leftTick="−1"
         centerTick="50"
         rightTick="+1"
+        defendingEnd={defendingEnd}
       />
 
       <FieldPositionSlider
@@ -89,6 +93,7 @@ export function PuntReturnSpotsPanel({
         rightAction={touchdownAction}
         hideTrack={hideReturnTrack}
         displayValue={formatReturnEndDisplay(spots.returnEnd)}
+        defendingEnd={defendingEnd}
       />
 
       <View style={styles.computedRow}>

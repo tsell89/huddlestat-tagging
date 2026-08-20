@@ -18,6 +18,7 @@ import {
   type TackleEnd,
 } from "@/lib/tagging/tackleSpot";
 import type { FumbleRecoverySpots } from "@/lib/tagging/fumbleRecovery";
+import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 type RunPadProps = {
@@ -32,6 +33,7 @@ type RunPadProps = {
   onFumbleSpotsChange: (spots: FumbleRecoverySpots) => void;
   penaltyFoulSpot: YardLine;
   onPenaltyFoulSpotChange: (spot: YardLine) => void;
+  defendingEnd?: DefendingEnd;
 };
 
 export function RunPad({
@@ -46,6 +48,7 @@ export function RunPad({
   onFumbleSpotsChange,
   penaltyFoulSpot,
   onPenaltyFoulSpotChange,
+  defendingEnd = "left",
 }: RunPadProps) {
   const alternates = getAlternateResultsForPlayType(draft.playType);
   const showTackleSpot = needsTackleSpot(draft.playType, draft.result);
@@ -73,6 +76,7 @@ export function RunPad({
             end={tackleEnd}
             onChange={onTackleEndChange}
             touchdownMode={isTouchdownTackleResult(draft.result)}
+            defendingEnd={defendingEnd}
           />
         </View>
       ) : draft.result === Result.Fumble ? (
@@ -80,6 +84,7 @@ export function RunPad({
           <FumbleRecoverySpotsPanel
             spots={fumbleSpots}
             onChange={onFumbleSpotsChange}
+            defendingEnd={defendingEnd}
           />
         </View>
       ) : draft.result === Result.Penalty ? (
@@ -87,6 +92,7 @@ export function RunPad({
           <PenaltySpotPanel
             foulSpot={penaltyFoulSpot}
             onChange={onPenaltyFoulSpotChange}
+            defendingEnd={defendingEnd}
           />
         </View>
       ) : null}

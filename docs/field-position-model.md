@@ -97,6 +97,24 @@ See [overtime-rules.md](./overtime-rules.md).
 
 ---
 
+## UI orientation (defending end)
+
+Field-position **sliders may mirror** for the tagger’s device view. This is **not** the same as `EndZoneSide`.
+
+| Concept | Meaning |
+|---------|---------|
+| **`defendingEnd: "left" \| "right"`** | Which **device** end (iPad landscape) **our team** defends this period |
+| **`EndZoneSide`** | Disambiguates Hudl `0` (own safety vs opponent TD) for math/export |
+| **Slider flip** | Visual only: when we defend right, track ratio mirrors (`displayRatio = 1 − mathRatio`); Safety/TD/Touchback buttons and −1/+1 ticks swap sides |
+
+**Hudl CSV, `yardLine`, return yards, and play-chain math stay offense-relative** (own → opponent on 0–100). Flipping never remaps stored Hudl signs. Display labels stay “Own 5” / “Opp 25”.
+
+Code: [`apps/mobile/lib/tagging/defendingEnd.ts`](../apps/mobile/lib/tagging/defendingEnd.ts), [`FieldPositionSlider`](../apps/mobile/components/tagging/FieldPositionSlider.tsx).
+
+Declare moments: opening (with kick/receive), auto-flip Q1→Q2 and Q3→Q4, redeclare at HALFTIME→Q3 (default = opening end), OT start. See [game-phase-otux.md](./game-phase-otux.md).
+
+---
+
 ## Do NOT
 
 - Use **−50** for midfield (use **50**)

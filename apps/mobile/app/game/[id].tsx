@@ -1,6 +1,6 @@
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import {
   PlayType,
   Result,
@@ -90,6 +90,16 @@ import {
   setKickoffRole,
   type KickoffRole,
 } from "@/lib/tagging/kickoffRole";
+import {
+  getDefendingEnd,
+  persistOpeningDefendingEnd,
+  recordOpeningDefendingEnd,
+  secondHalfDefendingEnd,
+  setDefendingEnd,
+  type DefendingEnd,
+} from "@/lib/tagging/defendingEndPersist";
+import { defendingEndAfterQuarterBreak } from "@/lib/tagging/defendingEnd";
+import { isAdvancingTowardOpponent } from "@/lib/tagging/directionOfPlay";
 import type { CatchUpHint } from "@/lib/tagging/catchUpHint";
 import { applyPasserLeaderDefault } from "@/lib/tagging/jerseyGridRank";
 import {
@@ -110,6 +120,7 @@ import {
 } from "@/lib/qa/logger";
 import { QaLogExportButton } from "@/components/QaLogExportButton";
 import { catchUpHintMessage } from "@/lib/tagging/catchUpHint";
+import { DirectionOfPlayControl } from "@/components/tagging/DirectionOfPlayControl";
 
 function playToDraft(play: LocalPlay): PlaylistData {
   return {
@@ -331,6 +342,8 @@ export default function TaggingScreen() {
     initPuntSpotsFromDraft(null),
   );
   const [kickoffRole, setKickoffRoleState] = useState<KickoffRole>("kick");
+  const [defendingEnd, setDefendingEndState] = useState<DefendingEnd>("left");
+  const [showDirectionModal, setShowDirectionModal] = useState(false);
   const [tackleEnd, setTackleEnd] = useState<TackleEnd>(() =>
     initTackleEndFromDraft(defaultKickoffPlay(1, "WHS")),
   );
@@ -367,12 +380,18 @@ export default function TaggingScreen() {
     setNextPlayNumber(nextNum);
     const role = await getKickoffRole(id);
     setKickoffRoleState(role);
+    const endOrient = await getDefendingEnd(id);
+    setDefendingEndState(endOrient);
     if (existing.length > 0) {
       const first = existing[0];
       const openingFromPlay =
         first.playType === PlayType.KickoffReceive ? "receive" : "kick";
       if (first.playType === PlayType.Kickoff || first.playType === PlayType.KickoffReceive) {
         await recordOpeningKickoffRole(id, openingFromPlay);
+      }
+      // Only backfill opening from current end while still in Q1 (pre-flip).
+      if (g.phase === "Q1") {
+        await recordOpeningDefendingEnd(id, endOrient);
       }
     }
 
@@ -581,6 +600,9 @@ export default function TaggingScreen() {
     const role = await secondHalfKickoffRole(id);
     await setKickoffRole(id, role);
     setKickoffRoleState(role);
+    const endOrient = await secondHalfDefendingEnd(id);
+    await setDefendingEnd(id, endOrient);
+    setDefendingEndState(endOrient);
     const d = withKickoffRole(
       defaultKickoffPlay(nextPlayNumber, game.teamCode, {
         quarter: 3,
@@ -674,8 +696,24 @@ export default function TaggingScreen() {
     const updated = { ...game, phase: next };
     setGame(updated);
     if (game.phase === "Q1" && next === "Q2") {
+      // Lock opening from pre-flip end if the tagger never touched the control.
+      await recordOpeningDefendingEnd(id, defendingEnd);
+      const flipped = defendingEndAfterQuarterBreak(
+        game.phase,
+        next,
+        defendingEnd,
+      )!;
+      await setDefendingEnd(id, flipped);
+      setDefendingEndState(flipped);
       startQuarterReview("quarter-review-q1");
     } else if (game.phase === "Q3" && next === "Q4") {
+      const flipped = defendingEndAfterQuarterBreak(
+        game.phase,
+        next,
+        defendingEnd,
+      )!;
+      await setDefendingEnd(id, flipped);
+      setDefendingEndState(flipped);
       startQuarterReview("quarter-review-q3");
     }
     await recordPhase(next);
@@ -688,11 +726,17 @@ export default function TaggingScreen() {
     }
   }
 
-  async function handleStartOt(otPossession: "us" | "them") {
+  async function handleStartOt(choice: {
+    possession: "us" | "them";
+    defendingEnd: DefendingEnd;
+  }) {
     if (!id || !game) return;
+    const { possession: otPossession, defendingEnd: otEnd } = choice;
     setShowOtModal(false);
     await updateLocalGamePhase(id, "OT");
     await updateLocalOtPossession(id, otPossession);
+    await setDefendingEnd(id, otEnd);
+    setDefendingEndState(otEnd);
     if (game.status !== "live" && game.status !== "final") {
       await updateLocalGameStatus(id, "live");
     }
@@ -756,6 +800,14 @@ export default function TaggingScreen() {
     const next = applyKickoffRole(draft, role);
     setDraft(next);
     setActivePlayerSlot(firstKickoffPlayerSlot(next));
+  }
+
+  function handleDefendingEndChange(end: DefendingEnd) {
+    setDefendingEndState(end);
+    if (id) {
+      void persistOpeningDefendingEnd(id, end, plays.length, game?.phase);
+      void setDefendingEnd(id, end);
+    }
   }
 
   function handleKickoffSpotsChange(spots: KickoffReturnSpots) {
@@ -1069,6 +1121,12 @@ export default function TaggingScreen() {
             plays.length,
           );
         }
+        await persistOpeningDefendingEnd(
+          id,
+          defendingEnd,
+          plays.length,
+          game.phase,
+        );
         const saved = await saveLocalPlay(id, toSave);
         const newPlays = [...plays, saved];
         setPlays(newPlays);
@@ -1174,6 +1232,12 @@ export default function TaggingScreen() {
         draft={draft}
         unsyncedCount={unsyncedCount}
         undoEnabled={false}
+        defendingEnd={defendingEnd}
+        advancingTowardOpponent={isAdvancingTowardOpponent(
+          draft,
+          isKickoffDraft(draft) ? kickoffRoleFromDraft(draft) : kickoffRole,
+        )}
+        onDirectionPress={() => setShowDirectionModal(true)}
       />
 
       <GamePhaseBar phase={game.phase} onPhasePress={(p) => void applyPhaseChange(p)} />
@@ -1186,7 +1250,38 @@ export default function TaggingScreen() {
         visible={showOtModal}
         onClose={() => setShowOtModal(false)}
         onChoose={(choice) => void handleStartOt(choice)}
+        usLabel={game.teamCode}
+        themLabel={game.opponent}
       />
+
+      <Modal
+        visible={showDirectionModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDirectionModal(false)}
+      >
+        <View style={styles.directionBackdrop}>
+          <View style={styles.directionCard}>
+            <Text style={styles.directionTitle}>Direction of play</Text>
+            <DirectionOfPlayControl
+              defendingEnd={defendingEnd}
+              onChange={handleDefendingEndChange}
+              usLabel={game.teamCode}
+              themLabel={game.opponent}
+              advancingTowardOpponent={isAdvancingTowardOpponent(
+                draft,
+                isKickoffDraft(draft) ? kickoffRoleFromDraft(draft) : kickoffRole,
+              )}
+            />
+            <Pressable
+              style={styles.directionDone}
+              onPress={() => setShowDirectionModal(false)}
+            >
+              <Text style={styles.directionDoneText}>Done</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
 
       <View style={styles.main}>
         <View style={styles.taggingColumn}>
@@ -1202,6 +1297,10 @@ export default function TaggingScreen() {
               isKickoffDraft(draft) ? kickoffRoleFromDraft(draft) : kickoffRole
             }
             onKickoffRoleChange={handleKickoffRoleChange}
+            defendingEnd={defendingEnd}
+            onDefendingEndChange={handleDefendingEndChange}
+            usLabel={game.teamCode}
+            themLabel={game.opponent}
             puntSpots={puntSpots}
             onPuntSpotsChange={handlePuntSpotsChange}
             tackleEnd={tackleEnd}
@@ -1260,5 +1359,37 @@ const styles = StyleSheet.create({
   },
   taggingColumn: {
     flex: LAYOUT.taggingPadFlex,
+  },
+  directionBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.55)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  directionCard: {
+    width: "100%",
+    maxWidth: 420,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
+    gap: 14,
+  },
+  directionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: LAYOUT.colors.textPrimary,
+  },
+  directionDone: {
+    alignSelf: "stretch",
+    backgroundColor: LAYOUT.colors.navy,
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  directionDoneText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });

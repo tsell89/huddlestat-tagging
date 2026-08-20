@@ -19,6 +19,7 @@ import type { TackleEnd } from "@/lib/tagging/tackleSpot";
 import type { InterceptionReturnSpots } from "@/lib/tagging/interceptionReturn";
 import type { FumbleRecoverySpots } from "@/lib/tagging/fumbleRecovery";
 import type { BlockedKickRecoverySpots } from "@/lib/tagging/blockedKickRecovery";
+import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
 import type { YardLine } from "@huddlestat/shared";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
@@ -40,6 +41,7 @@ type OffensePadProps = {
   onBlockedSpotsChange: (spots: BlockedKickRecoverySpots) => void;
   penaltyFoulSpot: YardLine;
   onPenaltyFoulSpotChange: (spot: YardLine) => void;
+  defendingEnd?: DefendingEnd;
 };
 
 export function OffensePad({
@@ -60,6 +62,7 @@ export function OffensePad({
   onBlockedSpotsChange,
   penaltyFoulSpot,
   onPenaltyFoulSpotChange,
+  defendingEnd = "left",
 }: OffensePadProps) {
   function handlePlayTypeChange(playType: OffensePlayType) {
     const next = applyPasserLeaderDefault(
@@ -91,6 +94,7 @@ export function OffensePad({
           onFumbleSpotsChange={onFumbleSpotsChange}
           penaltyFoulSpot={penaltyFoulSpot}
           onPenaltyFoulSpotChange={onPenaltyFoulSpotChange}
+          defendingEnd={defendingEnd}
         />
       ) : bodyDraft.playType === PlayType.Pass ? (
         <PassPad
@@ -105,6 +109,7 @@ export function OffensePad({
           onIntSpotsChange={onIntSpotsChange}
           penaltyFoulSpot={penaltyFoulSpot}
           onPenaltyFoulSpotChange={onPenaltyFoulSpotChange}
+          defendingEnd={defendingEnd}
         />
       ) : bodyDraft.playType === PlayType.Punt ? (
         <PuntPad
@@ -119,6 +124,7 @@ export function OffensePad({
           onBlockedSpotsChange={onBlockedSpotsChange}
           penaltyFoulSpot={penaltyFoulSpot}
           onPenaltyFoulSpotChange={onPenaltyFoulSpotChange}
+          defendingEnd={defendingEnd}
         />
       ) : bodyDraft.playType === PlayType.FieldGoal ? (
         <FGPad
@@ -131,6 +137,7 @@ export function OffensePad({
           onBlockedSpotsChange={onBlockedSpotsChange}
           penaltyFoulSpot={penaltyFoulSpot}
           onPenaltyFoulSpotChange={onPenaltyFoulSpotChange}
+          defendingEnd={defendingEnd}
         />
       ) : null}
     </View>

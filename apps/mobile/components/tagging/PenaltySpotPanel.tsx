@@ -6,14 +6,20 @@ import {
   foulYardLineToRatio,
 } from "@/lib/tagging/penaltySpot";
 import type { YardLine } from "@huddlestat/shared";
+import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 type PenaltySpotPanelProps = {
   foulSpot: YardLine;
   onChange: (foulSpot: YardLine) => void;
+  defendingEnd?: DefendingEnd;
 };
 
-export function PenaltySpotPanel({ foulSpot, onChange }: PenaltySpotPanelProps) {
+export function PenaltySpotPanel({
+  foulSpot,
+  onChange,
+  defendingEnd = "left",
+}: PenaltySpotPanelProps) {
   return (
     <View style={styles.panel}>
       <FieldPositionSlider
@@ -25,6 +31,7 @@ export function PenaltySpotPanel({ foulSpot, onChange }: PenaltySpotPanelProps) 
         leftTick="−1"
         centerTick="50"
         rightTick="+1"
+        defendingEnd={defendingEnd}
       />
       <Text style={styles.note}>
         Holding — replay same down, −{HOLDING_YARDS} yd from foul spot

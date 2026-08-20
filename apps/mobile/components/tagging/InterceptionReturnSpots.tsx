@@ -12,16 +12,19 @@ import {
   receivedRatioToYardLine,
   receivedYardLineToRatio,
 } from "@/lib/tagging/puntReturn";
+import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 type InterceptionReturnSpotsProps = {
   spots: KickoffReturnSpots;
   onChange: (spots: KickoffReturnSpots) => void;
+  defendingEnd?: DefendingEnd;
 };
 
 export function InterceptionReturnSpotsPanel({
   spots,
   onChange,
+  defendingEnd = "left",
 }: InterceptionReturnSpotsProps) {
   const isTd = spots.returnEnd.kind === "touchdown";
   const isSafety = spots.returnEnd.kind === "safety";
@@ -43,6 +46,7 @@ export function InterceptionReturnSpotsPanel({
         leftTick="−1"
         centerTick="50"
         rightTick="+1"
+        defendingEnd={defendingEnd}
       />
 
       <FieldPositionSlider
@@ -87,6 +91,7 @@ export function InterceptionReturnSpotsPanel({
         }}
         hideTrack={hideReturnTrack}
         displayValue={formatReturnEndDisplay(spots.returnEnd)}
+        defendingEnd={defendingEnd}
       />
 
       <View style={styles.computedRow}>

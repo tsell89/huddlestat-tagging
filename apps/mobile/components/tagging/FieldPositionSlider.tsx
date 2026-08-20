@@ -10,6 +10,11 @@ import {
   type ViewStyle,
 } from "react-native";
 import { formatFieldPosition } from "@/lib/tagging/kickoffReturn";
+import {
+  mathRatioFromOriented,
+  orientedRatio,
+  type DefendingEnd,
+} from "@/lib/tagging/defendingEnd";
 import type { YardLine } from "@huddlestat/shared";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
@@ -24,15 +29,24 @@ type FieldPositionSliderProps = {
   label: string;
   value: YardLine;
   onChange: (value: YardLine) => void;
+  /** Offense-axis math ratio (0 = Own/−1, 1 = Opp/+1). */
   ratioForValue: (y: YardLine) => number;
+  /** Offense-axis math ratio → Hudl yard line. */
   valueForRatio: (r: number) => YardLine;
   leftTick?: string;
   rightTick?: string;
   centerTick?: string;
+  /** Own-side end action when defending left (e.g. Safety / Touchback). */
   leftAction?: SliderEndAction;
+  /** Opp-side end action when defending left (e.g. Touchdown). */
   rightAction?: SliderEndAction;
   hideTrack?: boolean;
   displayValue?: string;
+  /**
+   * Device-relative end our team defends. When `"right"`, track and end
+   * buttons mirror so Own sits on the device right.
+   */
+  defendingEnd?: DefendingEnd;
 };
 
 const END_BTN_WIDTH = 72;
@@ -52,6 +66,7 @@ export function FieldPositionSlider({
   rightAction,
   hideTrack = false,
   displayValue,
+  defendingEnd = "left",
 }: FieldPositionSliderProps) {
   const trackRef = useRef<View>(null);
   const trackWidthRef = useRef(0);
@@ -59,13 +74,22 @@ export function FieldPositionSlider({
   const onChangeRef = useRef(onChange);
   const valueForRatioRef = useRef(valueForRatio);
   const hideTrackRef = useRef(hideTrack);
+  const defendingEndRef = useRef(defendingEnd);
   const draggingRef = useRef(false);
   const [trackWidth, setTrackWidth] = useState(0);
-  const [dragRatio, setDragRatio] = useState<number | null>(null);
+  /** Display-space ratio while dragging (device left = 0). */
+  const [dragDisplayRatio, setDragDisplayRatio] = useState<number | null>(null);
+
+  const mirrored = defendingEnd === "right";
+  const displayLeftTick = mirrored ? rightTick : leftTick;
+  const displayRightTick = mirrored ? leftTick : rightTick;
+  const displayLeftAction = mirrored ? rightAction : leftAction;
+  const displayRightAction = mirrored ? leftAction : rightAction;
 
   onChangeRef.current = onChange;
   valueForRatioRef.current = valueForRatio;
   hideTrackRef.current = hideTrack;
+  defendingEndRef.current = defendingEnd;
 
   const syncTrackMetrics = useCallback(() => {
     trackRef.current?.measureInWindow((pageX, _pageY, width) => {
@@ -83,10 +107,14 @@ export function FieldPositionSlider({
     return Math.min(1, Math.max(0, (localX - THUMB_INSET) / usable));
   }, []);
 
-  const applyRatio = useCallback((ratio: number, commit: boolean) => {
-    setDragRatio(ratio);
+  const applyDisplayRatio = useCallback((displayRatio: number, commit: boolean) => {
+    setDragDisplayRatio(displayRatio);
     if (commit) {
-      onChangeRef.current(valueForRatioRef.current(ratio));
+      const mathRatio = mathRatioFromOriented(
+        displayRatio,
+        defendingEndRef.current,
+      );
+      onChangeRef.current(valueForRatioRef.current(mathRatio));
     }
   }, []);
 
@@ -94,9 +122,9 @@ export function FieldPositionSlider({
     (pageX: number, commit: boolean) => {
       const ratio = ratioFromPageX(pageX);
       if (ratio === null) return;
-      applyRatio(ratio, commit);
+      applyDisplayRatio(ratio, commit);
     },
-    [applyRatio, ratioFromPageX],
+    [applyDisplayRatio, ratioFromPageX],
   );
 
   const panResponder = useMemo(
@@ -119,23 +147,28 @@ export function FieldPositionSlider({
         },
         onPanResponderRelease: () => {
           draggingRef.current = false;
-          setDragRatio(null);
+          setDragDisplayRatio(null);
         },
         onPanResponderTerminate: () => {
           draggingRef.current = false;
-          setDragRatio(null);
+          setDragDisplayRatio(null);
         },
       }),
-    [setFromPageX, syncTrackMetrics],
+    [setFromPageX],
   );
 
-  const activeRatio = dragRatio ?? ratioForValue(value);
+  const activeDisplayRatio =
+    dragDisplayRatio ?? orientedRatio(ratioForValue(value), defendingEnd);
   const thumbTravel = Math.max(0, trackWidth - THUMB_TRAVEL_PAD);
-  const thumbLeft = trackWidth > 0 ? activeRatio * thumbTravel : 0;
+  const thumbLeft = trackWidth > 0 ? activeDisplayRatio * thumbTravel : 0;
   const valueLabel =
     displayValue ??
-    (dragRatio !== null
-      ? formatFieldPosition(valueForRatio(dragRatio))
+    (dragDisplayRatio !== null
+      ? formatFieldPosition(
+          valueForRatio(
+            mathRatioFromOriented(dragDisplayRatio, defendingEnd),
+          ),
+        )
       : formatFieldPosition(value));
 
   return (
@@ -145,7 +178,7 @@ export function FieldPositionSlider({
         <Text style={styles.value}>{valueLabel}</Text>
       </View>
       <View style={styles.sliderRow}>
-        <EndButton action={leftAction} style={styles.endBtnLeft} />
+        <EndButton action={displayLeftAction} style={styles.endBtnLeft} />
         {hideTrack ? (
           <View style={styles.trackSpacer} />
         ) : (
@@ -164,13 +197,13 @@ export function FieldPositionSlider({
               <View style={[styles.thumb, { left: thumbLeft }]} />
             </View>
             <View style={styles.tickRow}>
-              <Text style={styles.tick}>{leftTick}</Text>
+              <Text style={styles.tick}>{displayLeftTick}</Text>
               <Text style={[styles.tick, styles.tickCenter]}>{centerTick}</Text>
-              <Text style={styles.tick}>{rightTick}</Text>
+              <Text style={styles.tick}>{displayRightTick}</Text>
             </View>
           </View>
         )}
-        <EndButton action={rightAction} style={styles.endBtnRight} />
+        <EndButton action={displayRightAction} style={styles.endBtnRight} />
       </View>
     </View>
   );
