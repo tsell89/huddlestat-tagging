@@ -46,12 +46,11 @@ export function formatDefendingEndLabel(end: DefendingEnd): string {
   return end === "left" ? "Defend left" : "Defend right";
 }
 
-/** 2H default: opposite of opening (after Q1→Q2 flip, same as opposite of opening). */
+/** 2H default: same as opening (Q1→Q2 already flipped once; Q3 returns to opening end). */
 export function secondHalfDefendingEndFromOpening(
   opening: DefendingEnd | null,
 ): DefendingEnd {
-  if (opening === null) return "left";
-  return oppositeDefendingEnd(opening);
+  return opening ?? "left";
 }
 
 /**

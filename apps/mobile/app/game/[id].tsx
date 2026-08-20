@@ -389,7 +389,10 @@ export default function TaggingScreen() {
       if (first.playType === PlayType.Kickoff || first.playType === PlayType.KickoffReceive) {
         await recordOpeningKickoffRole(id, openingFromPlay);
       }
-      await recordOpeningDefendingEnd(id, endOrient);
+      // Only backfill opening from current end while still in Q1 (pre-flip).
+      if (g.phase === "Q1") {
+        await recordOpeningDefendingEnd(id, endOrient);
+      }
     }
 
     if (!offLiveRef.current) {
@@ -693,6 +696,8 @@ export default function TaggingScreen() {
     const updated = { ...game, phase: next };
     setGame(updated);
     if (game.phase === "Q1" && next === "Q2") {
+      // Lock opening from pre-flip end if the tagger never touched the control.
+      await recordOpeningDefendingEnd(id, defendingEnd);
       const flipped = defendingEndAfterQuarterBreak(
         game.phase,
         next,
@@ -1116,6 +1121,7 @@ export default function TaggingScreen() {
             plays.length,
           );
         }
+        await persistOpeningDefendingEnd(id, defendingEnd, plays.length);
         const saved = await saveLocalPlay(id, toSave);
         const newPlays = [...plays, saved];
         setPlays(newPlays);

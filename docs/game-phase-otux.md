@@ -35,10 +35,11 @@ These are fixed for this session — do not revisit without explicit product sig
 - **`defendingEnd: "left" | "right"`** — device-relative end our team defends (meta `defending_end:` + `opening_defending_end:`). Does **not** change Hudl export.
 - **Opening:** declare with kick/receive on kickoff pad (`DirectionOfPlayControl`: both teams + LOS + ball arrow).
 - **Q1→Q2 / Q3→Q4:** auto-flip to opposite end; quarter-review banner confirms (header chip opens override).
-- **HALFTIME→Q3:** redeclare with 2H kickoff; default = opposite of opening.
+- **HALFTIME→Q3:** redeclare with 2H kickoff; default = **same as opening** (Q1→Q2 already flipped once; Q3 returns to the opening end).
 - **After scores:** kickoff role may flip (UX-14); defending end unchanged until quarter/half.
 - **OT:** Start OT modal asks ball-first **and** defending end (set once for v1; no auto-flip between OT possessions).
 - **Sliders:** when `defendingEnd === "right"`, `FieldPositionSlider` mirrors track and end actions.
+- **Opening persistence:** locked on first play save, on Q1→Q2 (pre-flip), or when the tagger changes direction before the first save. Never backfilled from a post-flip current end.
 
 ### Quarter-break catch-up
 
@@ -48,7 +49,7 @@ Catch-up at every quarter transition — review/fill missing stats (tacklers, PB
 |------------|----------|
 | Q1 → Q2 | Ends switch (auto-flip defending end) + quarter review banner |
 | Q2 → HALFTIME | 1H review banner |
-| HALFTIME → Q3 | 2H kickoff catch-up @ Own 40 + opposite opening kickoff role + redeclare defending end |
+| HALFTIME → Q3 | 2H kickoff catch-up @ Own 40 + opposite opening kickoff role + redeclare defending end (default = opening end) |
 | Q3 → Q4 | Ends switch (auto-flip defending end) + quarter review banner |
 | Q4 → FINAL | Q4 review banner before/at lock |
 

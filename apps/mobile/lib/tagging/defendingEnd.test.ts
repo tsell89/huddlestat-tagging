@@ -64,9 +64,9 @@ describe("ballGoingEnd", () => {
 });
 
 describe("secondHalfDefendingEndFromOpening", () => {
-  test("opposite of opening", () => {
-    assert.equal(secondHalfDefendingEndFromOpening("left"), "right");
-    assert.equal(secondHalfDefendingEndFromOpening("right"), "left");
+  test("same as opening (Q3 after one quarter flip)", () => {
+    assert.equal(secondHalfDefendingEndFromOpening("left"), "left");
+    assert.equal(secondHalfDefendingEndFromOpening("right"), "right");
   });
 
   test("defaults to left when opening unknown", () => {

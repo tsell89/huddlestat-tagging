@@ -111,7 +111,7 @@ Field-position **sliders may mirror** for the tagger’s device view. This is **
 
 Code: [`apps/mobile/lib/tagging/defendingEnd.ts`](../apps/mobile/lib/tagging/defendingEnd.ts), [`FieldPositionSlider`](../apps/mobile/components/tagging/FieldPositionSlider.tsx).
 
-Declare moments: opening (with kick/receive), auto-flip Q1→Q2 and Q3→Q4, redeclare at HALFTIME→Q3, OT start. See [game-phase-otux.md](./game-phase-otux.md).
+Declare moments: opening (with kick/receive), auto-flip Q1→Q2 and Q3→Q4, redeclare at HALFTIME→Q3 (default = opening end), OT start. See [game-phase-otux.md](./game-phase-otux.md).
 
 ---
 

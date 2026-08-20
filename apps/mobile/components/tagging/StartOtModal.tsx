@@ -72,7 +72,7 @@ export function StartOtModal({
             onChange={setDefendingEnd}
             usLabel={usLabel}
             themLabel={themLabel}
-            advancingTowardOpponent={possession !== "them"}
+            advancingTowardOpponent={possession === "us"}
           />
           <Pressable
             style={[styles.startBtn, !possession && styles.startBtnDisabled]}

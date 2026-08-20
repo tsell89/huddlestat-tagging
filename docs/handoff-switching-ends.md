@@ -21,4 +21,6 @@
 
 ## Declare moments
 
-Opening (kick pad) → Q1/Q2 & Q3/Q4 auto-flip → HALFTIME redeclare → OT modal (ball + end).
+Opening (kick pad) → Q1/Q2 & Q3/Q4 auto-flip → HALFTIME redeclare (default = opening end) → OT modal (ball + end).
+
+**Quarter geometry:** Q1 opening → Q2 opposite → Q3 opening → Q4 opposite.
