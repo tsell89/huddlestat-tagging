@@ -35,6 +35,7 @@ npm run test:pbp --workspace=@huddlestat/shared
 | `punt-odk-flip.json` | HS | 4th-down punt → `odk: D`, `Punt Rec` |
 | `kickoff-return-td-scoring.json` | HS | KO return TD → Extra Pt. scoring pad |
 | `defensive-special-td-catalog.json` | HS | INT return TD → scoring pad |
-| `onside-recovery.json` | HS | Onside kick recovery spot |
+| `onside-recovery.json` | HS | Onside kick recovery spot (replay asserts end spot) |
+| `kickoff-return-midfield-spot.json` | HS | KO Rec Own 5→Own 25 → next @ −25 |
 
 See [docs/overtime-rules.md](../../../docs/overtime-rules.md).
