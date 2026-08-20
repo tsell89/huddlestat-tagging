@@ -66,7 +66,7 @@ We do **not** tag “caught at X, carried to Y” on complete passes today. Tota
 | **Incomplete** / **Tipped pass** | Down+1, distance **unchanged** | **Unchanged** | **0 always** |
 | **Failed 4th** (go for it, short) | Turnover — see §2.3 | End spot | auto **`result: COP`** on save |
 
-**Penalties (most flags):** replay **same down**; yardage from **spot of foul** (Package H). Example: 2nd & 10 @ Own 40, holding at Own 42 → **2nd & 18 @ Own 32**.
+**Penalties:** replay **same down** (unless auto first down); yardage from **spot of foul**. Encoding: `foul:Y` (holding 10 vs O) or `foul:Y|yd:5|vs:D|afd:1`. Half-distance near the goal. Example: 2nd & 10 @ Own 40, holding at Own 42 → **2nd & 18 @ Own 32**.
 
 ### 2.3 Touchback vs turnover
 
@@ -259,12 +259,14 @@ IF Blocked: recovery spots (pkg H)
 
 ### 4.7 ScoringPad *(implemented — Package G)*
 
-After TD: pre-load **Extra Pt.** (O) or **Extra Pt. Block** (D); hide generic play-type grid. XP ↔ 2pt toggle only (no redundant result row when default is fixed).
+After TD: pre-load **Extra Pt.** (O) or **Extra Pt. Block** (D); hide generic play-type grid. XP ↔ 2pt toggle.
 
-| Type | Default | Next after save |
+| Type | Results | Next after save |
 |------|---------|-----------------|
-| Extra Pt. / 2 Pt. | Good | Kickoff |
-| Extra Pt. Block / 2 Pt. Block | Blocked | Kickoff |
+| Extra Pt. / 2 Pt. | Good · No Good | Kickoff (We kick) |
+| Extra Pt. Block / 2 Pt. Block | Good · No Good · Blocked | Kickoff (We receive) |
+
+Opponent made PAT = **Good** on Extra Pt. Block (score +1 them). Miss = **No Good** (no points, still kickoff).
 
 ### 4.8 Defense tagging
 
@@ -314,20 +316,25 @@ API: `buildJerseyGridRankings()` in `lib/tagging/jerseyGridRank.ts`.
 | Pass | INT | PassPad | COP @ return end — pkg H |
 | Pass | Tipped Pass | PassPad | Incomplete + optional PBU |
 | Pass | Penalty | PassPad | pkg H |
-| Punt | Downed | PuntPad | Receive @ downed spot |
+| Punt | Downed | PuntPad | Receive @ downed spot (we punt) / O @ spot (they punt) |
+| Punt | Fair Catch | PuntPad | Same as Downed |
 | Punt | Return | PuntPad | Receive @ return end |
 | Punt | Touchback | PuntPad | Receive @ Own 20 |
 | Punt | Blocked | PuntPad | pkg H |
+| * | Timeout | same pad | Same down / distance / spot (clock only) |
 | FG | Good | FGPad | Kickoff |
 | FG | No Good (field) | FGPad | Opponent @ LOS |
 | FG | No Good (into EZ) | FGPad | Touchback @ Own 20 |
 | FG | Blocked | FGPad | pkg H |
 | Extra Pt. | Good | Scoring | Kickoff |
-| Extra Pt. Block | Blocked | Scoring | Kickoff |
+| Extra Pt. | No Good | Scoring | Kickoff (missed try) |
+| Extra Pt. Block | Good · No Good · Blocked | Scoring | Kickoff (We receive) |
 | 2 Pt. | Good | Scoring | Kickoff |
+| 2 Pt. | No Good | Scoring | Kickoff (missed try) |
 | 2 Pt. Block | Blocked | Scoring | Kickoff |
+| Run / Pass / Return | Safety / `end:SA` | any | Free kick — scored-upon @ Own 20 (`KO` if we were O; `KO Rec` if we were D) |
 
-**Remaining code gaps:** XP/2pt no-good on offense, kickoff return TD → scoring, post-block kickoff edge cases (§10).
+**Remaining code gaps:** post-block kickoff edge cases (§10).
 
 ---
 
@@ -398,7 +405,7 @@ API: `buildJerseyGridRankings()` in `lib/tagging/jerseyGridRank.ts`.
 | **H** | **Live ball: fumble, INT, blocked kicks, penalties** ✓ |
 | **I** | **iPad QA** — automated ✓; manual **§2.4 ✓** 2026-05-27; A–I manual + UX items open ([report](./package-i-qa-report.md)) |
 
-**Deferred:** stats revisit UX (quarter/halftime), fake punt/FG, full penalty library, KO penalty edge cases.
+**Deferred:** stats revisit UX (quarter/halftime), fake punt/FG (tag as Run/Pass from 4th — no special result yet), KO penalty edge cases. Penalty library: 5/10/15 + against O/D + auto-1st + half-distance shipped; offsetting / decline / special-teams enforcement still open.
 
 ---
 

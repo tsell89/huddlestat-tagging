@@ -16,6 +16,7 @@ import type { InterceptionReturnSpots } from "@/lib/tagging/interceptionReturn";
 import type { FumbleRecoverySpots } from "@/lib/tagging/fumbleRecovery";
 import type { BlockedKickRecoverySpots } from "@/lib/tagging/blockedKickRecovery";
 import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
+import type { PenaltyDraftFields } from "@/lib/tagging/penaltySpot";
 import type { YardLine } from "@huddlestat/shared";
 
 type TaggingPadProps = {
@@ -42,8 +43,8 @@ type TaggingPadProps = {
   onFumbleSpotsChange: (spots: FumbleRecoverySpots) => void;
   blockedSpots: BlockedKickRecoverySpots;
   onBlockedSpotsChange: (spots: BlockedKickRecoverySpots) => void;
-  penaltyFoulSpot: YardLine;
-  onPenaltyFoulSpotChange: (spot: YardLine) => void;
+  penalty: PenaltyDraftFields;
+  onPenaltyChange: (penalty: PenaltyDraftFields) => void;
 };
 
 function isKickoffPlay(draft: PlaylistData): boolean {

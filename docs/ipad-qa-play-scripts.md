@@ -46,7 +46,7 @@ Step-by-step tags for [ipad-qa-checklist.md](./ipad-qa-checklist.md). Report eac
 |------|-----|---------------------|
 | **1** | Set odk **D** · opponent FG attempt · **Good** (odk D on FG row) · SAVE | **Kickoff pad** · toggle **We receive** |
 | **2** | Kickoff · Return or Touchback · SAVE | Offense chain continues |
-| **3** | (alt) Opponent TD (odk D Run TD) → Extra Pt Block · Blocked · SAVE | Kickoff · **We receive** |
+| **3** | (alt) Opponent TD (odk D Run TD) → Extra Pt Block · **Good** / No Good / Blocked · SAVE | Kickoff · **We receive**; score +1 them only on Good |
 
 ---
 
@@ -78,7 +78,8 @@ Step-by-step tags for [ipad-qa-checklist.md](./ipad-qa-checklist.md). Report eac
 
 ## Script F — Phase bar, halftime, OT
 
-**Game:** New or use phase bar on existing test game.
+**Game:** New or use phase bar on existing test game.  
+**Corpus:** `games/qa-script-f` (`npm run qa:script-sim`) covers chain-checkable F5/F7/F8 with `skipReplayAfter` on phase jumps.
 
 | Step | Action | Expected |
 |------|--------|----------|
@@ -141,8 +142,10 @@ Step-by-step tags for [ipad-qa-checklist.md](./ipad-qa-checklist.md). Report eac
 | Saved play | Next is kickoff? | Toggle default |
 |------------|------------------|----------------|
 | Our FG / XP / 2pt **Good** (odk O) | yes | **We kick** |
+| Our XP / 2pt **No Good** (odk O) | yes | **We kick** |
 | Opponent FG / XP / 2pt **Good** (odk D) | yes | **We receive** |
-| Our PAT **block** after opp TD (odk D) | yes | **We receive** |
+| Opponent XP / 2pt **No Good** (Extra Pt. Block) | yes | **We receive** |
+| Our PAT **block** after opp TD (odk D · Blocked) | yes | **We receive** |
 | OT XP Good | no (OT possession) | unchanged |
 | Rush TD row | no (ScoringPad) | unchanged |
 

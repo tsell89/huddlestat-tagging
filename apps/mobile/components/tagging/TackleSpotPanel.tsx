@@ -11,6 +11,7 @@ import {
   type TackleEnd,
 } from "@/lib/tagging/tackleSpot";
 import type { YardLine } from "@huddlestat/shared";
+import { ODK, type PlaylistData } from "@huddlestat/shared";
 import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
@@ -21,6 +22,8 @@ type TackleSpotPanelProps = {
   /** Rush TD / Complete TD — Touchdown end button on the right */
   touchdownMode: boolean;
   defendingEnd?: DefendingEnd;
+  /** Possession ODK — D negates axis gain for display + chain. */
+  odk?: PlaylistData["odk"];
 };
 
 export function TackleSpotPanel({
@@ -29,13 +32,14 @@ export function TackleSpotPanel({
   onChange,
   touchdownMode,
   defendingEnd = "left",
+  odk = ODK.Offense,
 }: TackleSpotPanelProps) {
   const isTd = end.kind === "touchdown";
   const isSafety = end.kind === "safety";
   const hideTrack = isTd || isSafety;
   const sliderYardLine =
     end.kind === "yardline" ? end.yardLine : ballSpot;
-  const gainLoss = computeTackleGainLoss(ballSpot, end);
+  const gainLoss = computeTackleGainLoss(ballSpot, end, odk);
 
   const safetyAction = {
     label: "Safety",

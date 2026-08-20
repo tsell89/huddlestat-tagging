@@ -20,6 +20,7 @@ import {
 } from "@/lib/tagging/puntReturn";
 import type { BlockedKickRecoverySpots } from "@/lib/tagging/blockedKickRecovery";
 import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
+import type { PenaltyDraftFields } from "@/lib/tagging/penaltySpot";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 type PuntPadProps = {
@@ -32,8 +33,8 @@ type PuntPadProps = {
   onPuntSpotsChange: (spots: PuntSpots) => void;
   blockedSpots: BlockedKickRecoverySpots;
   onBlockedSpotsChange: (spots: BlockedKickRecoverySpots) => void;
-  penaltyFoulSpot: YardLine;
-  onPenaltyFoulSpotChange: (spot: YardLine) => void;
+  penalty: PenaltyDraftFields;
+  onPenaltyChange: (penalty: PenaltyDraftFields) => void;
   defendingEnd?: DefendingEnd;
 };
 
@@ -47,8 +48,8 @@ export function PuntPad({
   onPuntSpotsChange,
   blockedSpots,
   onBlockedSpotsChange,
-  penaltyFoulSpot,
-  onPenaltyFoulSpotChange,
+  penalty,
+  onPenaltyChange,
   defendingEnd = "left",
 }: PuntPadProps) {
   const alternates = getAlternateResultsForPlayType(draft.playType);
@@ -64,7 +65,7 @@ export function PuntPad({
             const slots = getVisiblePlayerSlots(draft.playType, result);
             onActivePlayerSlotChange(slots[0] ?? null);
           }}
-          columns={5}
+          columns={6}
           size="dense"
         />
       </View>
@@ -79,10 +80,13 @@ export function PuntPad({
             defendingEnd={defendingEnd}
           />
         </View>
-      ) : draft.result === Result.Downed ? (
+      ) : draft.result === Result.Downed ||
+        draft.result === Result.FairCatch ? (
         <View style={styles.section}>
           <FieldPositionSlider
-            label="Downed at"
+            label={
+              draft.result === Result.FairCatch ? "Fair catch at" : "Downed at"
+            }
             value={puntSpots.downedAt}
             onChange={(downedAt) =>
               onPuntSpotsChange({ ...puntSpots, downedAt })
@@ -112,8 +116,8 @@ export function PuntPad({
       ) : draft.result === Result.Penalty ? (
         <View style={styles.section}>
           <PenaltySpotPanel
-            foulSpot={penaltyFoulSpot}
-            onChange={onPenaltyFoulSpotChange}
+            penalty={penalty}
+            onChange={onPenaltyChange}
             defendingEnd={defendingEnd}
           />
         </View>

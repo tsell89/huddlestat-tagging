@@ -1,0 +1,11 @@
+{
+  "gameId": "qa-full-regulation",
+  "rules": "HS",
+  "source": "hand",
+  "teamOffense": "TEAM_A",
+  "teamDefense": "OPP",
+  "periods": 4,
+  "overtime": false,
+  "redacted": true,
+  "description": "Expanded regulation narrative: drive+FG, D series COP, TD+XP miss, INT, punt"
+}

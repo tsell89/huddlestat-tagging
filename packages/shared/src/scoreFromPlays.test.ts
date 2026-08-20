@@ -50,6 +50,42 @@ describe("deriveScoreFromPlays", () => {
     assert.deepEqual(score, { us: 1, them: 0 });
   });
 
+  test("opponent Extra Pt. Block Good → them +1", () => {
+    const score = deriveScoreFromPlays([
+      play({
+        playNumber: 8,
+        odk: ODK.Defense,
+        playType: PlayType.ExtraPointBlock,
+        result: Result.Good,
+      }),
+    ]);
+    assert.deepEqual(score, { us: 0, them: 1 });
+  });
+
+  test("opponent Extra Pt. Block No Good → no points", () => {
+    const score = deriveScoreFromPlays([
+      play({
+        playNumber: 9,
+        odk: ODK.Defense,
+        playType: PlayType.ExtraPointBlock,
+        result: Result.NoGood,
+      }),
+    ]);
+    assert.deepEqual(score, { us: 0, them: 0 });
+  });
+
+  test("opponent FG Good (odk D)", () => {
+    const score = deriveScoreFromPlays([
+      play({
+        playNumber: 10,
+        odk: ODK.Defense,
+        playType: PlayType.FieldGoal,
+        result: Result.Good,
+      }),
+    ]);
+    assert.deepEqual(score, { us: 0, them: 3 });
+  });
+
   test("safety on offense (odk O) — 2 them", () => {
     const score = deriveScoreFromPlays([
       play({

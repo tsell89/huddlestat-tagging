@@ -20,6 +20,7 @@ import type { InterceptionReturnSpots } from "@/lib/tagging/interceptionReturn";
 import type { FumbleRecoverySpots } from "@/lib/tagging/fumbleRecovery";
 import type { BlockedKickRecoverySpots } from "@/lib/tagging/blockedKickRecovery";
 import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
+import type { PenaltyDraftFields } from "@/lib/tagging/penaltySpot";
 import type { YardLine } from "@huddlestat/shared";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
@@ -39,8 +40,8 @@ type OffensePadProps = {
   onFumbleSpotsChange: (spots: FumbleRecoverySpots) => void;
   blockedSpots: BlockedKickRecoverySpots;
   onBlockedSpotsChange: (spots: BlockedKickRecoverySpots) => void;
-  penaltyFoulSpot: YardLine;
-  onPenaltyFoulSpotChange: (spot: YardLine) => void;
+  penalty: PenaltyDraftFields;
+  onPenaltyChange: (penalty: PenaltyDraftFields) => void;
   defendingEnd?: DefendingEnd;
 };
 
@@ -60,8 +61,8 @@ export function OffensePad({
   onFumbleSpotsChange,
   blockedSpots,
   onBlockedSpotsChange,
-  penaltyFoulSpot,
-  onPenaltyFoulSpotChange,
+  penalty,
+  onPenaltyChange,
   defendingEnd = "left",
 }: OffensePadProps) {
   function handlePlayTypeChange(playType: OffensePlayType) {
@@ -76,6 +77,9 @@ export function OffensePad({
   }
 
   const bodyDraft = ensureOffensePadDraft(draft);
+  const isPuntBody =
+    bodyDraft.playType === PlayType.Punt ||
+    bodyDraft.playType === PlayType.PuntReceive;
 
   return (
     <View style={styles.shell}>
@@ -92,8 +96,8 @@ export function OffensePad({
           onTackleEndChange={onTackleEndChange}
           fumbleSpots={fumbleSpots}
           onFumbleSpotsChange={onFumbleSpotsChange}
-          penaltyFoulSpot={penaltyFoulSpot}
-          onPenaltyFoulSpotChange={onPenaltyFoulSpotChange}
+          penalty={penalty}
+          onPenaltyChange={onPenaltyChange}
           defendingEnd={defendingEnd}
         />
       ) : bodyDraft.playType === PlayType.Pass ? (
@@ -107,11 +111,11 @@ export function OffensePad({
           onTackleEndChange={onTackleEndChange}
           intSpots={intSpots}
           onIntSpotsChange={onIntSpotsChange}
-          penaltyFoulSpot={penaltyFoulSpot}
-          onPenaltyFoulSpotChange={onPenaltyFoulSpotChange}
+          penalty={penalty}
+          onPenaltyChange={onPenaltyChange}
           defendingEnd={defendingEnd}
         />
-      ) : bodyDraft.playType === PlayType.Punt ? (
+      ) : isPuntBody ? (
         <PuntPad
           draft={bodyDraft}
           onChange={onChange}
@@ -122,8 +126,8 @@ export function OffensePad({
           onPuntSpotsChange={onPuntSpotsChange}
           blockedSpots={blockedSpots}
           onBlockedSpotsChange={onBlockedSpotsChange}
-          penaltyFoulSpot={penaltyFoulSpot}
-          onPenaltyFoulSpotChange={onPenaltyFoulSpotChange}
+          penalty={penalty}
+          onPenaltyChange={onPenaltyChange}
           defendingEnd={defendingEnd}
         />
       ) : bodyDraft.playType === PlayType.FieldGoal ? (
@@ -135,8 +139,8 @@ export function OffensePad({
           gamePlays={gamePlays}
           blockedSpots={blockedSpots}
           onBlockedSpotsChange={onBlockedSpotsChange}
-          penaltyFoulSpot={penaltyFoulSpot}
-          onPenaltyFoulSpotChange={onPenaltyFoulSpotChange}
+          penalty={penalty}
+          onPenaltyChange={onPenaltyChange}
           defendingEnd={defendingEnd}
         />
       ) : null}

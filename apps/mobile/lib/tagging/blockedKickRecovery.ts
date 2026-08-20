@@ -70,15 +70,21 @@ export function decodeBlockedKickFromSpotEncoding(
   };
 }
 
+function isBlockedKickPlayType(
+  playType: PlaylistData["playType"] | undefined,
+): boolean {
+  return (
+    playType === PlayType.Punt ||
+    playType === PlayType.PuntReceive ||
+    playType === PlayType.FieldGoal
+  );
+}
+
 export function initBlockedKickSpotsFromDraft(
   draft: PlaylistData | null,
 ): BlockedKickRecoverySpots {
   const ballSpot = draft?.yardLine ?? RECEIVED_DEFAULT;
-  if (
-    !draft ||
-    (draft.playType !== PlayType.Punt && draft.playType !== PlayType.FieldGoal) ||
-    draft.result !== Result.Blocked
-  ) {
+  if (!draft || !isBlockedKickPlayType(draft.playType) || draft.result !== Result.Blocked) {
     return defaultBlockedKickRecoverySpots(ballSpot);
   }
   const decoded = decodeBlockedKickFromSpotEncoding(draft.spotEncoding);
@@ -90,10 +96,7 @@ export function applyBlockedKickSpotsToDraft(
   draft: PlaylistData,
   spots: BlockedKickRecoverySpots,
 ): PlaylistData {
-  if (
-    (draft.playType !== PlayType.Punt && draft.playType !== PlayType.FieldGoal) ||
-    draft.result !== Result.Blocked
-  ) {
+  if (!isBlockedKickPlayType(draft.playType) || draft.result !== Result.Blocked) {
     return draft;
   }
   const returnYards = computeReturnYards(spots.recoveredAt, spots.returnEnd);

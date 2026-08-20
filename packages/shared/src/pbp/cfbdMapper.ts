@@ -97,6 +97,34 @@ function classifyCfbdPlay(
   if (t.includes("sack")) {
     return { playType: PlayType.Pass, result: Result.Sack };
   }
+  if (t.includes("timeout")) {
+    return { playType: PlayType.Run, result: Result.Timeout };
+  }
+  if (t.includes("kneel") || text.includes("kneels")) {
+    return { playType: PlayType.Run, result: Result.Rush };
+  }
+  if (t.includes("spike") || text.includes("spikes the ball")) {
+    return { playType: PlayType.Pass, result: Result.Incomplete };
+  }
+  if (t.includes("interception") || text.includes("intercepted")) {
+    return {
+      playType: PlayType.Pass,
+      result: Result.Interception,
+    };
+  }
+  if (
+    (t.includes("pass touchdown") || t.includes("passing touchdown")) ||
+    (t.includes("pass") && play.scoring === true && text.includes("touchdown"))
+  ) {
+    return { playType: PlayType.Pass, result: Result.CompleteTd };
+  }
+  if (
+    t.includes("rushing touchdown") ||
+    (t.includes("rush") && play.scoring === true) ||
+    (t.includes("run") && text.includes("touchdown"))
+  ) {
+    return { playType: PlayType.Run, result: Result.RushTd };
+  }
   if (t.includes("incompletion") || t.includes("incomplete")) {
     return { playType: PlayType.Pass, result: Result.Incomplete };
   }
@@ -120,6 +148,13 @@ function classifyCfbdPlay(
   if (t.includes("punt")) {
     if (text.includes("touchback")) {
       return { playType: PlayType.PuntReceive, result: Result.Touchback };
+    }
+    if (text.includes("fair catch")) {
+      return {
+        playType: PlayType.Punt,
+        result: Result.FairCatch,
+        spotEncoding: "end:35",
+      };
     }
     return { playType: PlayType.Punt, result: Result.Downed, spotEncoding: "end:-35" };
   }

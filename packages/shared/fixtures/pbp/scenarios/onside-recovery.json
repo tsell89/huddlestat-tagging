@@ -8,8 +8,7 @@
     "teamDefense": "OPP",
     "periods": 4,
     "redacted": true,
-    "description": "Short kick recovery — Package H live-ball path; chain spot at recovery end",
-    "skipReplayAfter": [1]
+    "description": "Short kick recovery — Package H live-ball path; chain spot at recovery end"
   },
   "plays": [
     {

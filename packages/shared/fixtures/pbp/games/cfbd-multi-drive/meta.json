@@ -1,0 +1,11 @@
+{
+  "gameId": "cfbd-multi-drive",
+  "rules": "NCAA",
+  "source": "cfbd-derived",
+  "teamOffense": "TEAM_A",
+  "teamDefense": "OPP",
+  "periods": 4,
+  "overtime": false,
+  "redacted": true,
+  "description": "CFBD-shaped multi-drive: KO TB, O drive, Fair Catch punt, D rushes without tackle encoding, Timeout, kneel"
+}

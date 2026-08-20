@@ -1,4 +1,4 @@
-import { PlayType, Result, type PlaylistData, type YardLine } from "@huddlestat/shared";
+import { ODK, PlayType, Result, type PlaylistData, type YardLine } from "@huddlestat/shared";
 import {
   FIELD_MIN,
   FIELD_OPP_GOAL,
@@ -49,10 +49,8 @@ export function defaultTackleEnd(
   return { kind: "yardline", yardLine: ballSpot };
 }
 
-export function computeTackleGainLoss(
-  ballSpot: YardLine,
-  end: TackleEnd,
-): number {
+/** Axis (tagged-team) yards from snap to tackle end. */
+function taggedTeamTackleGain(ballSpot: YardLine, end: TackleEnd): number {
   if (end.kind === "touchdown") {
     return yardsToOpponentGoal(ballSpot);
   }
@@ -60,6 +58,23 @@ export function computeTackleGainLoss(
     return yardsToOwnGoal(ballSpot);
   }
   return yardsAdvanced(ballSpot, end.yardLine);
+}
+
+/**
+ * Possession-team gain/loss for the chain.
+ * odk D yard-line tackles: opponent advances toward our goal — negate tagged-team axis delta.
+ * TD/SA ends stay positive possession yards (Hudl/MaxPreps: D TD gainLoss > 0).
+ */
+export function computeTackleGainLoss(
+  ballSpot: YardLine,
+  end: TackleEnd,
+  odk: PlaylistData["odk"] = ODK.Offense,
+): number {
+  const tagged = taggedTeamTackleGain(ballSpot, end);
+  if (end.kind === "touchdown" || end.kind === "safety") {
+    return tagged;
+  }
+  return odk === ODK.Defense ? -tagged : tagged;
 }
 
 export function formatTackleEndDisplay(end: TackleEnd): string {
@@ -109,7 +124,9 @@ export function initTackleEndFromDraft(draft: PlaylistData): TackleEnd {
   }
 
   if (draft.gainLoss !== 0) {
-    const endPos = hudlToFieldPosition(draft.yardLine) + draft.gainLoss;
+    const axisGain =
+      draft.odk === ODK.Defense ? -draft.gainLoss : draft.gainLoss;
+    const endPos = hudlToFieldPosition(draft.yardLine) + axisGain;
     if (endPos >= FIELD_OPP_GOAL) return { kind: "touchdown" };
     if (endPos <= FIELD_OWN_GOAL) return { kind: "safety" };
     return {
@@ -131,7 +148,7 @@ export function applyTackleSpotToDraft(
     return draft;
   }
 
-  const gainLoss = computeTackleGainLoss(draft.yardLine, end);
+  const gainLoss = computeTackleGainLoss(draft.yardLine, end, draft.odk);
   return {
     ...draft,
     gainLoss,

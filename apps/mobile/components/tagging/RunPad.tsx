@@ -19,6 +19,7 @@ import {
 } from "@/lib/tagging/tackleSpot";
 import type { FumbleRecoverySpots } from "@/lib/tagging/fumbleRecovery";
 import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
+import type { PenaltyDraftFields } from "@/lib/tagging/penaltySpot";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 type RunPadProps = {
@@ -31,8 +32,8 @@ type RunPadProps = {
   onTackleEndChange: (end: TackleEnd) => void;
   fumbleSpots: FumbleRecoverySpots;
   onFumbleSpotsChange: (spots: FumbleRecoverySpots) => void;
-  penaltyFoulSpot: YardLine;
-  onPenaltyFoulSpotChange: (spot: YardLine) => void;
+  penalty: PenaltyDraftFields;
+  onPenaltyChange: (penalty: PenaltyDraftFields) => void;
   defendingEnd?: DefendingEnd;
 };
 
@@ -46,8 +47,8 @@ export function RunPad({
   onTackleEndChange,
   fumbleSpots,
   onFumbleSpotsChange,
-  penaltyFoulSpot,
-  onPenaltyFoulSpotChange,
+  penalty,
+  onPenaltyChange,
   defendingEnd = "left",
 }: RunPadProps) {
   const alternates = getAlternateResultsForPlayType(draft.playType);
@@ -77,6 +78,7 @@ export function RunPad({
             onChange={onTackleEndChange}
             touchdownMode={isTouchdownTackleResult(draft.result)}
             defendingEnd={defendingEnd}
+            odk={draft.odk}
           />
         </View>
       ) : draft.result === Result.Fumble ? (
@@ -90,8 +92,8 @@ export function RunPad({
       ) : draft.result === Result.Penalty ? (
         <View style={styles.section}>
           <PenaltySpotPanel
-            foulSpot={penaltyFoulSpot}
-            onChange={onPenaltyFoulSpotChange}
+            penalty={penalty}
+            onChange={onPenaltyChange}
             defendingEnd={defendingEnd}
           />
         </View>

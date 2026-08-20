@@ -1,0 +1,11 @@
+{
+  "gameId": "qa-script-e",
+  "rules": "HS",
+  "source": "hand",
+  "teamOffense": "TEAM_A",
+  "teamDefense": "OPP",
+  "periods": 4,
+  "overtime": false,
+  "redacted": true,
+  "description": "iPad QA Script E \u2014 4th punt \u2192 Punt Rec TB \u2192 D series"
+}

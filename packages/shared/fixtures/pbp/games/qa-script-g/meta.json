@@ -1,0 +1,18 @@
+{
+  "gameId": "qa-script-g",
+  "rules": "HS",
+  "source": "hand",
+  "teamOffense": "TEAM_A",
+  "teamDefense": "OPP",
+  "periods": 4,
+  "overtime": false,
+  "redacted": true,
+  "description": "iPad QA Script G \u2014 INT/fumble/FG miss/blocked/failed 4th pairs",
+  "skipReplayAfter": [
+    2,
+    4,
+    6,
+    8,
+    10
+  ]
+}

@@ -77,6 +77,19 @@ describe("resolveKickoffRoleAfterSave", () => {
     );
   });
 
+  test("our XP No Good → kick (missed PAT still our kickoff)", () => {
+    const saved = {
+      ...defaultOffensivePlay(6, TEAM),
+      playType: PlayType.ExtraPoint,
+      result: Result.NoGood,
+      odk: ODK.Offense,
+    };
+    assert.equal(
+      resolveKickoffRoleAfterSave(saved, kickoffDraft, "receive"),
+      "kick",
+    );
+  });
+
   test("blocked PAT after opponent TD → receive", () => {
     const saved = {
       ...defaultOffensivePlay(6, TEAM),
@@ -86,6 +99,63 @@ describe("resolveKickoffRoleAfterSave", () => {
     };
     assert.equal(
       resolveKickoffRoleAfterSave(saved, kickoffDraft, "kick"),
+      "receive",
+    );
+  });
+
+  test("opponent XP Good (Extra Pt. Block) → receive", () => {
+    const saved = {
+      ...defaultOffensivePlay(6, TEAM),
+      playType: PlayType.ExtraPointBlock,
+      result: Result.Good,
+      odk: ODK.Defense,
+    };
+    assert.equal(
+      resolveKickoffRoleAfterSave(saved, kickoffDraft, "kick"),
+      "receive",
+    );
+  });
+
+  test("opponent XP No Good (Extra Pt. Block) → receive", () => {
+    const saved = {
+      ...defaultOffensivePlay(6, TEAM),
+      playType: PlayType.ExtraPointBlock,
+      result: Result.NoGood,
+      odk: ODK.Defense,
+    };
+    assert.equal(
+      resolveKickoffRoleAfterSave(saved, kickoffDraft, "kick"),
+      "receive",
+    );
+  });
+
+  test("our Safety → we free-kick", () => {
+    const saved = {
+      ...defaultOffensivePlay(6, TEAM),
+      playType: PlayType.Run,
+      result: Result.Safety,
+      odk: ODK.Offense,
+    };
+    assert.equal(
+      resolveKickoffRoleAfterSave(saved, kickoffDraft, "receive"),
+      "kick",
+    );
+  });
+
+  test("we safety them → we receive their free kick", () => {
+    const receiveDraft = {
+      ...defaultKickoffPlay(7, TEAM),
+      playType: PlayType.KickoffReceive,
+      yardLine: 20,
+    };
+    const saved = {
+      ...defaultOffensivePlay(6, TEAM),
+      playType: PlayType.Run,
+      result: Result.Safety,
+      odk: ODK.Defense,
+    };
+    assert.equal(
+      resolveKickoffRoleAfterSave(saved, receiveDraft, "kick"),
       "receive",
     );
   });

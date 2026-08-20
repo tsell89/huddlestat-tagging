@@ -1,0 +1,62 @@
+{
+  "meta": {
+    "scenarioId": "kickoff-return-midfield-spot",
+    "gameId": "scenario-kickoff-return-midfield-spot",
+    "rules": "HS",
+    "source": "hand",
+    "teamOffense": "TEAM_A",
+    "teamDefense": "OPP",
+    "periods": 4,
+    "redacted": true,
+    "description": "KO Rec return Own 5 → Own 25 — next ball spot is return end, not kick+gainLoss"
+  },
+  "plays": [
+    {
+      "playNumber": 1,
+      "quarter": 1,
+      "odk": "K",
+      "yardLine": -40,
+      "down": 0,
+      "distance": 0,
+      "hash": "M",
+      "gainLoss": 20,
+      "passer": { "jersey": "", "name": "" },
+      "receiver": { "jersey": "", "name": "" },
+      "rusher": { "jersey": "", "name": "" },
+      "result": "Return",
+      "team": "TEAM_A",
+      "tackler1": { "jersey": "", "name": "" },
+      "tackler2": { "jersey": "", "name": "" },
+      "recoveredBy": { "jersey": "", "name": "" },
+      "returner": { "jersey": "21", "name": "" },
+      "playType": "KO Rec",
+      "kicker": { "jersey": "", "name": "" },
+      "kickYards": 55,
+      "returnYards": 20,
+      "interceptedBy": { "jersey": "", "name": "" },
+      "spotEncoding": "catch:-5|end:-25"
+    },
+    {
+      "playNumber": 2,
+      "quarter": 1,
+      "odk": "O",
+      "yardLine": -25,
+      "down": 1,
+      "distance": 10,
+      "hash": "M",
+      "gainLoss": 0,
+      "passer": { "jersey": "", "name": "" },
+      "receiver": { "jersey": "", "name": "" },
+      "rusher": { "jersey": "", "name": "" },
+      "result": "Rush",
+      "team": "TEAM_A",
+      "tackler1": { "jersey": "", "name": "" },
+      "tackler2": { "jersey": "", "name": "" },
+      "recoveredBy": { "jersey": "", "name": "" },
+      "returner": { "jersey": "", "name": "" },
+      "playType": "Run",
+      "kicker": { "jersey": "", "name": "" },
+      "interceptedBy": { "jersey": "", "name": "" }
+    }
+  ]
+}

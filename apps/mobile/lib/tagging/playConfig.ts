@@ -96,18 +96,28 @@ export function isOffensePadPlayType(
   );
 }
 
+/** Scrimmage series — our offense or theirs (we tag Run/Pass with odk D). */
+function isOpenScrimmageDraft(draft: PlaylistData): boolean {
+  return (
+    (draft.odk === ODK.Offense || draft.odk === ODK.Defense) &&
+    draft.down >= 1 &&
+    !draft.playType
+  );
+}
+
 export function shouldShowOffensePad(draft: PlaylistData): boolean {
   if (isScoringPlayType(draft.playType)) return false;
   return (
     isOffensePadPlayType(draft.playType) ||
-    (draft.odk === ODK.Offense && draft.down >= 1 && !draft.playType)
+    draft.playType === PlayType.PuntReceive ||
+    isOpenScrimmageDraft(draft)
   );
 }
 
 /** New offensive series defaults to RunPad with Rush selected. */
 export function ensureOffensePadDraft(draft: PlaylistData): PlaylistData {
   if (isScoringPlayType(draft.playType)) return draft;
-  if (draft.odk === ODK.Offense && draft.down >= 1 && !draft.playType) {
+  if (isOpenScrimmageDraft(draft)) {
     return applyPlayTypeChange(draft, PlayType.Run);
   }
   return draft;
@@ -244,15 +254,16 @@ export function getAlternateResultsForPlayType(
       return [Result.Return, Result.Touchback, Result.Penalty];
     case PlayType.Punt:
     case PlayType.PuntReceive:
-      return [Result.Downed, Result.Return, Result.Touchback, Result.Blocked, Result.Penalty];
+      return [Result.Downed, Result.FairCatch, Result.Return, Result.Touchback, Result.Blocked, Result.Penalty];
     case PlayType.FieldGoal:
       return [Result.Good, Result.NoGood, Result.Blocked, Result.Penalty];
     case PlayType.ExtraPoint:
     case PlayType.TwoPoint:
-      return [Result.Good];
+      return [Result.Good, Result.NoGood];
     case PlayType.ExtraPointBlock:
     case PlayType.TwoPointBlock:
-      return [Result.Blocked];
+      // Opponent try from our D perspective: made / miss / we blocked.
+      return [Result.Good, Result.NoGood, Result.Blocked];
     default:
       return [];
   }
@@ -310,6 +321,20 @@ export function yardsSliderRange(yardLine: YardLine): { min: number; max: number
     min: -maxLoss,
     max: maxGain,
   };
+}
+
+/**
+ * Map a PlayTypeRow tap to the play type to apply, or null to keep the draft.
+ * Punt Rec shares the Punt cell highlight — re-tapping must not rewrite to Punt.
+ */
+export function playTypeTapTarget(
+  draftPlayType: PlaylistData["playType"],
+  tapped: OffensePlayType,
+): OffensePlayType | null {
+  if (tapped === PlayType.Punt && draftPlayType === PlayType.PuntReceive) {
+    return null;
+  }
+  return tapped;
 }
 
 /**
@@ -390,17 +415,25 @@ function spotEncodingMatchesResult(
   if (result === Result.Penalty) return spotEncoding.startsWith("foul:");
   if (
     result === Result.Blocked &&
-    (playType === PlayType.Punt || playType === PlayType.FieldGoal)
+    (playType === PlayType.Punt ||
+      playType === PlayType.PuntReceive ||
+      playType === PlayType.FieldGoal)
   ) {
     return spotEncoding.startsWith("recover:");
   }
   if (needsTackleSpot(playType, result)) {
     return spotEncoding.startsWith("tackle:");
   }
-  if (playType === PlayType.Punt && result === Result.Return) {
+  if (
+    (playType === PlayType.Punt || playType === PlayType.PuntReceive) &&
+    result === Result.Return
+  ) {
     return spotEncoding.startsWith("recv:");
   }
-  if (playType === PlayType.Punt && result === Result.Downed) {
+  if (
+    (playType === PlayType.Punt || playType === PlayType.PuntReceive) &&
+    (result === Result.Downed || result === Result.FairCatch)
+  ) {
     return (
       spotEncoding.startsWith("end:") &&
       !spotEncoding.startsWith("recv:") &&

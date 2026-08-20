@@ -1,0 +1,11 @@
+{
+  "gameId": "qa-script-a",
+  "rules": "HS",
+  "source": "hand",
+  "teamOffense": "TEAM_A",
+  "teamDefense": "OPP",
+  "periods": 4,
+  "overtime": false,
+  "redacted": true,
+  "description": "iPad QA Script A \u2014 canonical drive + FG \u2192 we-kick TB \u2192 D @ Opp 20"
+}

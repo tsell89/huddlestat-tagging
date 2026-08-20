@@ -56,6 +56,29 @@
       "playType": "Punt Rec",
       "kicker": { "jersey": "", "name": "" },
       "interceptedBy": { "jersey": "", "name": "" }
+    },
+    {
+      "playNumber": 3,
+      "quarter": 1,
+      "odk": "D",
+      "yardLine": 20,
+      "down": 1,
+      "distance": 10,
+      "hash": "M",
+      "gainLoss": 7,
+      "passer": { "jersey": "", "name": "" },
+      "receiver": { "jersey": "", "name": "" },
+      "rusher": { "jersey": "", "name": "" },
+      "result": "Rush",
+      "team": "TEAM_A",
+      "tackler1": { "jersey": "", "name": "" },
+      "tackler2": { "jersey": "", "name": "" },
+      "recoveredBy": { "jersey": "", "name": "" },
+      "returner": { "jersey": "", "name": "" },
+      "playType": "Run",
+      "kicker": { "jersey": "", "name": "" },
+      "interceptedBy": { "jersey": "", "name": "" },
+      "spotEncoding": "tackle:20|end:27"
     }
   ]
 }

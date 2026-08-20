@@ -49,6 +49,34 @@ When automation finds unsupported or ambiguous state, the tagger must keep going
 | `kickoff-return-td-scoring.json` | HS | KO Rec `end:TD` → next snap scoring pad (Extra Pt.) |
 | `defensive-special-td-catalog.json` | HS | INT / special-teams return TD → scoring pad (skip replay after XP rows) |
 | `onside-recovery.json` | HS | Short kick + recovery spot (Package H live-ball path) |
+| `kickoff-return-midfield-spot.json` | HS | KO Rec Own 5→Own 25 → next snap @ −25 (return end) |
+| `odk-d-scrimmage.json` | HS | We-kick → odk D series preserves ODK across snaps |
+| `safety-free-kick.json` | HS | Run Safety → free kick from Own 20 |
+| `xp-no-good-kickoff.json` | HS | Rush TD → XP No Good → kickoff |
+| `opp-xp-block-outcomes.json` | HS | Opp TD → Extra Pt. Block Good/No Good → KO Rec |
+| `fair-catch-punt.json` | HS | Fair Catch punt → Punt Rec; Timeout keeps down/distance |
+| `kneel-spike-clock.json` | HS | Spike · Timeout · kneel |
+| `penalty-library.json` | HS | Holding, false start, defensive holding auto-1st, half-distance |
+
+### QA script games (`games/qa-script-*`, `qa-full-regulation`)
+
+| gameId | Maps to |
+|--------|---------|
+| `qa-script-a` | Script A canonical drive + we-kick TB |
+| `qa-script-b` | Script B TD → XP Good → KO |
+| `qa-script-b-xp-miss` | Script B with XP miss |
+| `qa-script-c` | Script C opp FG Good → receive; opp XP Block Good |
+| `qa-script-d` | Script D KO Rec TD → XP |
+| `qa-script-e` | Script E punt → Punt Rec |
+| `qa-script-f` | Script F Q1 FG → Q3 KO → HS OT |
+| `qa-script-g` | Script G live-ball pairs |
+| `qa-full-regulation` | Expanded multi-drive regulation narrative |
+| `cfbd-multi-drive` | CFBD-shaped multi-drive (D rush w/o tackle encoding) |
+| `cfbd-multi-drive` | CFBD-shaped: Fair Catch, D rush w/o tackle, Timeout, kneel |
+
+```bash
+npm run qa:script-sim
+```
 
 **Overtime:** HS uses alternating possessions from the **opponent 10** (`+10` / `−10`), not college/NFL kickoff periods. See [overtime-rules.md](./overtime-rules.md).
 

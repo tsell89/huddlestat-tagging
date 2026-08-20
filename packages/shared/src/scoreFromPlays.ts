@@ -29,7 +29,9 @@ function isScoringGood(play: Pick<PlaylistData, "playType" | "result">): boolean
   return (
     play.playType === PlayType.FieldGoal ||
     play.playType === PlayType.ExtraPoint ||
-    play.playType === PlayType.TwoPoint
+    play.playType === PlayType.TwoPoint ||
+    play.playType === PlayType.ExtraPointBlock ||
+    play.playType === PlayType.TwoPointBlock
   );
 }
 
@@ -58,8 +60,18 @@ function pointsForScoringAttempt(play: PlaylistData): ScoreFromPlays {
   }
   if (play.odk === ODK.Defense) {
     if (play.playType === PlayType.FieldGoal) return { us: 0, them: 3 };
-    if (play.playType === PlayType.ExtraPoint) return { us: 0, them: 1 };
-    if (play.playType === PlayType.TwoPoint) return { us: 0, them: 2 };
+    if (
+      play.playType === PlayType.ExtraPoint ||
+      play.playType === PlayType.ExtraPointBlock
+    ) {
+      return { us: 0, them: 1 };
+    }
+    if (
+      play.playType === PlayType.TwoPoint ||
+      play.playType === PlayType.TwoPointBlock
+    ) {
+      return { us: 0, them: 2 };
+    }
   }
   return { us: 0, them: 0 };
 }
@@ -93,7 +105,14 @@ export function deriveScoreFromPlays(plays: PlaylistData[]): ScoreFromPlays {
 function endsOtPossession(play: PlaylistData): boolean {
   if (play.quarter !== 5) return false;
   if (isScoringGood(play)) return true;
-  if (play.playType === PlayType.FieldGoal && play.result === Result.NoGood) {
+  if (
+    play.result === Result.NoGood &&
+    (play.playType === PlayType.FieldGoal ||
+      play.playType === PlayType.ExtraPoint ||
+      play.playType === PlayType.TwoPoint ||
+      play.playType === PlayType.ExtraPointBlock ||
+      play.playType === PlayType.TwoPointBlock)
+  ) {
     return true;
   }
   if (isFailedFourthDown(play)) return true;

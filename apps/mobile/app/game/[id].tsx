@@ -73,8 +73,9 @@ import {
   type BlockedKickRecoverySpots,
 } from "@/lib/tagging/blockedKickRecovery";
 import {
-  applyPenaltySpotToDraft,
-  initPenaltyFoulSpotFromDraft,
+  applyPenaltyDraftToPlay,
+  initPenaltyDraftFromPlay,
+  type PenaltyDraftFields,
 } from "@/lib/tagging/penaltySpot";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 import {
@@ -231,7 +232,7 @@ function initLiveBallSpotsFromDraft(draft: PlaylistData | null) {
     intSpots: initInterceptionSpotsFromDraft(draft),
     fumbleSpots: initFumbleSpotsFromDraft(draft),
     blockedSpots: initBlockedKickSpotsFromDraft(draft),
-    penaltyFoulSpot: initPenaltyFoulSpotFromDraft(draft),
+    penalty: initPenaltyDraftFromPlay(draft),
   };
 }
 
@@ -243,9 +244,9 @@ function applySpotDraft(
   intSpots: InterceptionReturnSpots,
   fumbleSpots: FumbleRecoverySpots,
   blockedSpots: BlockedKickRecoverySpots,
-  penaltyFoulSpot: number,
+  penalty: PenaltyDraftFields,
 ) {
-  return applyPenaltySpotToDraft(
+  return applyPenaltyDraftToPlay(
     applyBlockedKickSpotsToDraft(
       applyFumbleSpotsToDraft(
         applyInterceptionSpotsToDraft(
@@ -262,7 +263,7 @@ function applySpotDraft(
       ),
       blockedSpots,
     ),
-    penaltyFoulSpot as PlaylistData["yardLine"],
+    penalty,
   );
 }
 
@@ -275,7 +276,7 @@ function finalizeTaggingDraft(
   intSpots: InterceptionReturnSpots,
   fumbleSpots: FumbleRecoverySpots,
   blockedSpots: BlockedKickRecoverySpots,
-  penaltyFoulSpot: number,
+  penalty: PenaltyDraftFields,
 ): PlaylistData {
   return applyPasserLeaderDefault(
     applySpotDraft(
@@ -286,7 +287,7 @@ function finalizeTaggingDraft(
       intSpots,
       fumbleSpots,
       blockedSpots,
-      penaltyFoulSpot,
+      penalty,
     ),
     gamePlays,
   );
@@ -356,8 +357,8 @@ export default function TaggingScreen() {
   const [blockedSpots, setBlockedSpots] = useState<BlockedKickRecoverySpots>(() =>
     initBlockedKickSpotsFromDraft(null),
   );
-  const [penaltyFoulSpot, setPenaltyFoulSpot] = useState<number>(() =>
-    initPenaltyFoulSpotFromDraft(null),
+  const [penalty, setPenalty] = useState<PenaltyDraftFields>(() =>
+    initPenaltyDraftFromPlay(null),
   );
   const offLiveRef = useRef(false);
 
@@ -413,7 +414,7 @@ export default function TaggingScreen() {
       setIntSpots(liveBall.intSpots);
       setFumbleSpots(liveBall.fumbleSpots);
       setBlockedSpots(liveBall.blockedSpots);
-      setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
+      setPenalty(liveBall.penalty);
       setDraft(
         finalizeTaggingDraft(
           liveDraft,
@@ -424,7 +425,7 @@ export default function TaggingScreen() {
           liveBall.intSpots,
           liveBall.fumbleSpots,
           liveBall.blockedSpots,
-          liveBall.penaltyFoulSpot,
+          liveBall.penalty,
         ),
       );
       setActivePlayerSlot(firstPlayerSlot(liveDraft));
@@ -475,7 +476,7 @@ export default function TaggingScreen() {
     setIntSpots(liveBall.intSpots);
     setFumbleSpots(liveBall.fumbleSpots);
     setBlockedSpots(liveBall.blockedSpots);
-    setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
+    setPenalty(liveBall.penalty);
     setDraft(
       finalizeTaggingDraft(
         liveDraft,
@@ -486,7 +487,7 @@ export default function TaggingScreen() {
         liveBall.intSpots,
         liveBall.fumbleSpots,
         liveBall.blockedSpots,
-        liveBall.penaltyFoulSpot,
+        liveBall.penalty,
       ),
     );
     setActivePlayerSlot(firstPlayerSlot(liveDraft));
@@ -514,7 +515,7 @@ export default function TaggingScreen() {
     setIntSpots(liveBall.intSpots);
     setFumbleSpots(liveBall.fumbleSpots);
     setBlockedSpots(liveBall.blockedSpots);
-    setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
+    setPenalty(liveBall.penalty);
     setDraft(
       finalizeTaggingDraft(
         d,
@@ -525,7 +526,7 @@ export default function TaggingScreen() {
         liveBall.intSpots,
         liveBall.fumbleSpots,
         liveBall.blockedSpots,
-        liveBall.penaltyFoulSpot,
+        liveBall.penalty,
       ),
     );
     setActivePlayerSlot(firstPlayerSlot(d));
@@ -561,7 +562,7 @@ export default function TaggingScreen() {
     setIntSpots(liveBall.intSpots);
     setFumbleSpots(liveBall.fumbleSpots);
     setBlockedSpots(liveBall.blockedSpots);
-    setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
+    setPenalty(liveBall.penalty);
     setDraft(
       finalizeTaggingDraft(
         withNum,
@@ -572,7 +573,7 @@ export default function TaggingScreen() {
         liveBall.intSpots,
         liveBall.fumbleSpots,
         liveBall.blockedSpots,
-        liveBall.penaltyFoulSpot,
+        liveBall.penalty,
       ),
     );
     setActivePlayerSlot(firstPlayerSlot(withNum));
@@ -622,7 +623,7 @@ export default function TaggingScreen() {
     setIntSpots(liveBall.intSpots);
     setFumbleSpots(liveBall.fumbleSpots);
     setBlockedSpots(liveBall.blockedSpots);
-    setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
+    setPenalty(liveBall.penalty);
     setDraft(
       finalizeTaggingDraft(
         withNum,
@@ -633,7 +634,7 @@ export default function TaggingScreen() {
         liveBall.intSpots,
         liveBall.fumbleSpots,
         liveBall.blockedSpots,
-        liveBall.penaltyFoulSpot,
+        liveBall.penalty,
       ),
     );
     setActivePlayerSlot(firstPlayerSlot(withNum));
@@ -755,7 +756,7 @@ export default function TaggingScreen() {
     setIntSpots(liveBall.intSpots);
     setFumbleSpots(liveBall.fumbleSpots);
     setBlockedSpots(liveBall.blockedSpots);
-    setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
+    setPenalty(liveBall.penalty);
     setDraft(
       finalizeTaggingDraft(
         ensureOffensePadDraft(otDraft),
@@ -766,7 +767,7 @@ export default function TaggingScreen() {
         liveBall.intSpots,
         liveBall.fumbleSpots,
         liveBall.blockedSpots,
-        liveBall.penaltyFoulSpot,
+        liveBall.penalty,
       ),
     );
     setActivePlayerSlot(firstPlayerSlot(otDraft));
@@ -840,18 +841,18 @@ export default function TaggingScreen() {
     setDraft((d) => (d ? applyBlockedKickSpotsToDraft(d, spots) : d));
   }
 
-  function handlePenaltyFoulSpotChange(spot: number) {
-    setPenaltyFoulSpot(spot);
-    setDraft((d) =>
-      d ? applyPenaltySpotToDraft(d, spot as PlaylistData["yardLine"]) : d,
-    );
+  function handlePenaltyChange(next: PenaltyDraftFields) {
+    setPenalty(next);
+    setDraft((d) => (d ? applyPenaltyDraftToPlay(d, next) : d));
   }
 
   function handleDraftChange(next: PlaylistData) {
     const isKickoff =
       next.playType === PlayType.Kickoff ||
       next.playType === PlayType.KickoffReceive;
-    const isPunt = next.playType === PlayType.Punt;
+    const isPunt =
+      next.playType === PlayType.Punt ||
+      next.playType === PlayType.PuntReceive;
 
     if (isKickoff && next.result === Result.Touchback) {
       setKickoffSpots(defaultKickoffReturnSpots());
@@ -872,7 +873,9 @@ export default function TaggingScreen() {
 
     if (
       isPunt &&
-      (next.result === Result.Return || next.result === Result.Downed)
+      (next.result === Result.Return ||
+        next.result === Result.Downed ||
+        next.result === Result.FairCatch)
     ) {
       const spotInputsChanged =
         draft?.playType !== next.playType ||
@@ -889,7 +892,11 @@ export default function TaggingScreen() {
       return;
     }
 
-    if (isPunt && next.result === Result.Blocked) {
+    if (
+      (next.playType === PlayType.Punt ||
+        next.playType === PlayType.PuntReceive) &&
+      next.result === Result.Blocked
+    ) {
       const spotInputsChanged =
         draft?.playType !== next.playType ||
         draft?.result !== next.result ||
@@ -912,16 +919,11 @@ export default function TaggingScreen() {
         draft?.yardLine !== next.yardLine;
 
       if (spotInputsChanged) {
-        const foul = initPenaltyFoulSpotFromDraft(next);
-        setPenaltyFoulSpot(foul);
-        setDraft(applyPenaltySpotToDraft(next, foul));
+        const foul = initPenaltyDraftFromPlay(next);
+        setPenalty(foul);
+        setDraft(applyPenaltyDraftToPlay(next, foul));
       } else {
-        setDraft(
-          applyPenaltySpotToDraft(
-            next,
-            penaltyFoulSpot as PlaylistData["yardLine"],
-          ),
-        );
+        setDraft(applyPenaltyDraftToPlay(next, penalty));
       }
       return;
     }
@@ -981,16 +983,11 @@ export default function TaggingScreen() {
         draft?.yardLine !== next.yardLine;
 
       if (spotInputsChanged) {
-        const foul = initPenaltyFoulSpotFromDraft(next);
-        setPenaltyFoulSpot(foul);
-        setDraft(applyPenaltySpotToDraft(next, foul));
+        const foul = initPenaltyDraftFromPlay(next);
+        setPenalty(foul);
+        setDraft(applyPenaltyDraftToPlay(next, foul));
       } else {
-        setDraft(
-          applyPenaltySpotToDraft(
-            next,
-            penaltyFoulSpot as PlaylistData["yardLine"],
-          ),
-        );
+        setDraft(applyPenaltyDraftToPlay(next, penalty));
       }
       return;
     }
@@ -1096,7 +1093,7 @@ export default function TaggingScreen() {
         setIntSpots(liveBall.intSpots);
         setFumbleSpots(liveBall.fumbleSpots);
         setBlockedSpots(liveBall.blockedSpots);
-        setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
+        setPenalty(liveBall.penalty);
         setDraft(
           finalizeTaggingDraft(
             liveDraft,
@@ -1107,7 +1104,7 @@ export default function TaggingScreen() {
             liveBall.intSpots,
             liveBall.fumbleSpots,
             liveBall.blockedSpots,
-            liveBall.penaltyFoulSpot,
+            liveBall.penalty,
           ),
         );
         setActivePlayerSlot(firstPlayerSlot(liveDraft));
@@ -1163,7 +1160,7 @@ export default function TaggingScreen() {
         setIntSpots(liveBall.intSpots);
         setFumbleSpots(liveBall.fumbleSpots);
         setBlockedSpots(liveBall.blockedSpots);
-        setPenaltyFoulSpot(liveBall.penaltyFoulSpot);
+        setPenalty(liveBall.penalty);
         setDraft(
           finalizeTaggingDraft(
             next,
@@ -1174,7 +1171,7 @@ export default function TaggingScreen() {
             liveBall.intSpots,
             liveBall.fumbleSpots,
             liveBall.blockedSpots,
-            liveBall.penaltyFoulSpot,
+            liveBall.penalty,
           ),
         );
         setActivePlayerSlot(firstPlayerSlot(next));
@@ -1311,8 +1308,8 @@ export default function TaggingScreen() {
             onFumbleSpotsChange={handleFumbleSpotsChange}
             blockedSpots={blockedSpots}
             onBlockedSpotsChange={handleBlockedSpotsChange}
-            penaltyFoulSpot={penaltyFoulSpot}
-            onPenaltyFoulSpotChange={handlePenaltyFoulSpotChange}
+            penalty={penalty}
+            onPenaltyChange={handlePenaltyChange}
           />
         </View>
 

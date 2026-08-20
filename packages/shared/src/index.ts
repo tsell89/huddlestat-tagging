@@ -36,15 +36,25 @@ export {
 } from "./fieldPosition100.js";
 export {
   advanceSituation,
+  advancePenaltySituation,
   decodeFumbleSpotEncoding,
+  decodePenalty,
   decodePenaltyFoulSpot,
+  encodePenaltySpotEncoding,
+  enforcePenaltyFieldPosition,
   HOLDING_PENALTY_YARDS,
+  PENALTY_YARD_OPTIONS,
   isFailedFourthDown,
   liveDraftFromLastPlay,
   nextDraftAfterPlay,
   normalizePlayOnSave,
+  penaltyTaggedDelta,
+  scoringOdkForTouchdown,
   yardLineAfterPlay,
+  type DecodedPenalty,
   type FumbleRecoverySide,
+  type PenaltyAgainst,
+  type PenaltyYards,
   type PlayChainInput,
   type PlayChainOptions,
   type SituationFields,
@@ -87,6 +97,7 @@ export const resultSchema = z.enum([
   "Blocked",
   "Timeout",
   "Tipped Pass",
+  "Fair Catch",
   "COP",
 ]);
 

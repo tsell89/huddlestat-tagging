@@ -12,8 +12,8 @@ import {
   defaultScoringPlayAfterTd,
 } from "./defaults.js";
 import type { PlaylistData, YardLine } from "./index.js";
+import { advancePenaltySituation, decodePenalty, enforcePenaltyFieldPosition, penaltyTaggedDelta } from "./penalty.js";
 import {
-  FIELD_OWN_GOAL,
   HS_TOUCHBACK_YARD_LINE,
   fieldPositionToHudl,
   flipHudlYardLinePerspective,
@@ -21,6 +21,20 @@ import {
   hudlToFieldPosition,
   yardsAdvanced,
 } from "./fieldPosition100.js";
+
+export {
+  HOLDING_PENALTY_YARDS,
+  decodePenalty,
+  decodePenaltyFoulSpot,
+  encodePenaltySpotEncoding,
+  advancePenaltySituation,
+  enforcePenaltyFieldPosition,
+  penaltyTaggedDelta,
+  PENALTY_YARD_OPTIONS,
+  type DecodedPenalty,
+  type PenaltyAgainst,
+  type PenaltyYards,
+} from "./penalty.js";
 
 export type SituationFields = Pick<
   PlaylistData,
@@ -67,6 +81,13 @@ const emptyPlayers: Pick<
   kickYards: undefined,
   spotEncoding: undefined,
 };
+
+function decodeTackleYardLineEnd(spotEncoding?: string): YardLine | null {
+  if (!spotEncoding?.startsWith("tackle:")) return null;
+  const match = /^tackle:(-?\d+)\|end:(-?\d+)$/.exec(spotEncoding);
+  if (!match) return null;
+  return Number(match[2]) as YardLine;
+}
 
 function decodeKickoffReturnEnd(spotEncoding?: string): YardLine | null {
   if (!spotEncoding?.startsWith("catch:")) return null;
@@ -147,16 +168,6 @@ export function decodeFumbleSpotEncoding(
   };
 }
 
-/** Holding penalty — foul:-42 (MVP: 10 yards from spot of foul). */
-export function decodePenaltyFoulSpot(spotEncoding?: string): YardLine | null {
-  if (!spotEncoding?.startsWith("foul:")) return null;
-  const match = /^foul:(-?\d+)$/.exec(spotEncoding);
-  if (!match) return null;
-  return Number(match[1]) as YardLine;
-}
-
-export const HOLDING_PENALTY_YARDS = 10;
-
 function isFgPlay(playType: PlaylistData["playType"]): boolean {
   return playType === PlayType.FieldGoal;
 }
@@ -197,21 +208,7 @@ function isLiveBallTurnover(play: PlayChainInput): boolean {
 }
 
 function penaltySituation(play: PlayChainInput): SituationFields {
-  const foulSpot = decodePenaltyFoulSpot(play.spotEncoding) ?? play.yardLine;
-  const foulPos = hudlToFieldPosition(foulSpot);
-  const newPos = Math.max(
-    FIELD_OWN_GOAL,
-    foulPos - HOLDING_PENALTY_YARDS,
-  );
-  const newYardLine = fieldPositionToHudl(newPos);
-  const firstDownMarker =
-    hudlToFieldPosition(play.yardLine) + play.distance;
-  const newDistance = Math.max(1, firstDownMarker - newPos);
-  return {
-    down: play.down,
-    distance: newDistance,
-    yardLine: newYardLine,
-  };
+  return advancePenaltySituation(play);
 }
 
 function isNoGainResult(result: PlaylistData["result"]): boolean {
@@ -235,20 +232,40 @@ function isPuntPlay(playType: PlaylistData["playType"]): boolean {
 function isReturnTouchdown(play: Pick<PlaylistData, "spotEncoding">): boolean {
   const c = play.spotEncoding;
   if (!c) return false;
+  // Scrimmage TDs may use tackle:LOS|end:TD — not a return.
+  if (c.startsWith("tackle:")) return false;
   return /end:TD/.test(c);
 }
 
 /** ODK for XP/2pt after a return TD (tagged-team perspective). */
 function scoringOdkAfterReturnTd(
-  play: Pick<PlaylistData, "playType" | "odk">,
+  play: Pick<PlaylistData, "playType" | "odk" | "spotEncoding">,
 ): (typeof ODK)[keyof typeof ODK] {
-  if (play.playType === PlayType.KickoffReceive) {
-    return play.odk === ODK.Offense ? ODK.Offense : ODK.Defense;
+  if (
+    play.playType === PlayType.KickoffReceive ||
+    play.playType === PlayType.PuntReceive
+  ) {
+    return ODK.Offense;
   }
-  if (play.playType === PlayType.PuntReceive) {
-    return play.odk === ODK.Defense ? ODK.Offense : ODK.Defense;
+  // Our KO/Punt returned or blocked for their TD → we defend the PAT.
+  if (
+    play.playType === PlayType.Kickoff ||
+    play.playType === PlayType.Punt
+  ) {
+    return ODK.Defense;
   }
-  return ODK.Offense;
+  if (play.spotEncoding?.includes("|by:O")) {
+    return play.odk === ODK.Defense ? ODK.Defense : ODK.Offense;
+  }
+  return play.odk === ODK.Defense ? ODK.Offense : ODK.Defense;
+}
+
+/** Who gets the XP/2pt snap after a TD (O = Extra Pt. Good, D = Extra Pt. Block). */
+export function scoringOdkForTouchdown(
+  play: Pick<PlaylistData, "playType" | "odk" | "result" | "spotEncoding">,
+): (typeof ODK)[keyof typeof ODK] {
+  if (isReturnTouchdown(play)) return scoringOdkAfterReturnTd(play);
+  return play.odk === ODK.Defense ? ODK.Defense : ODK.Offense;
 }
 
 function isSuccessfulPuntEnding(play: PlayChainInput): boolean {
@@ -258,6 +275,7 @@ function isSuccessfulPuntEnding(play: PlayChainInput): boolean {
   if (isLiveBallTurnover(play)) return false;
   return (
     play.result === Result.Downed ||
+    play.result === Result.FairCatch ||
     play.result === Result.Return ||
     play.result === Result.Touchback
   );
@@ -295,12 +313,22 @@ function isTouchdownResult(result: PlaylistData["result"]): boolean {
   return result === Result.RushTd || result === Result.CompleteTd;
 }
 
+/** Safety via explicit result or live-ball end:SA (not a TD). */
+function isSafetyOutcome(
+  play: Pick<PlaylistData, "result" | "spotEncoding">,
+): boolean {
+  if (play.result === Result.Safety) return true;
+  return play.spotEncoding?.includes("end:SA") === true;
+}
+
 function isScoringGood(play: Pick<PlaylistData, "playType" | "result">): boolean {
   if (play.result !== Result.Good) return false;
   return (
     play.playType === PlayType.FieldGoal ||
     play.playType === PlayType.ExtraPoint ||
-    play.playType === PlayType.TwoPoint
+    play.playType === PlayType.TwoPoint ||
+    play.playType === PlayType.ExtraPointBlock ||
+    play.playType === PlayType.TwoPointBlock
   );
 }
 
@@ -320,11 +348,21 @@ export type PlayChainOptions = {
   overtime?: boolean;
 };
 
-/** Completed scoring snap that advances to kickoff (Good XP/2pt/FG or blocked attempt). */
+/** Completed scoring snap that advances to kickoff (or OT possession). */
 function isScoringComplete(
   play: Pick<PlaylistData, "playType" | "result">,
 ): boolean {
   if (isScoringGood(play)) return true;
+  // Missed XP / 2pt still ends the try — kickoff (or OT flip).
+  if (
+    play.result === Result.NoGood &&
+    (play.playType === PlayType.ExtraPoint ||
+      play.playType === PlayType.TwoPoint ||
+      play.playType === PlayType.ExtraPointBlock ||
+      play.playType === PlayType.TwoPointBlock)
+  ) {
+    return true;
+  }
   if (play.result !== Result.Blocked) return false;
   return (
     play.playType === PlayType.ExtraPointBlock ||
@@ -336,7 +374,7 @@ function isScoringComplete(
 export function yardLineAfterPlay(
   play: Pick<
     PlaylistData,
-    "playType" | "result" | "yardLine" | "gainLoss" | "spotEncoding"
+    "playType" | "result" | "yardLine" | "gainLoss" | "spotEncoding" | "odk"
   >,
 ): YardLine {
   if (isKickoffPlay(play.playType) && play.result === Result.Touchback) {
@@ -360,10 +398,16 @@ export function yardLineAfterPlay(
     if (end !== null) return end;
   }
 
-  if (isPuntPlay(play.playType) && play.result === Result.Downed) {
+  if (
+    isPuntPlay(play.playType) &&
+    (play.result === Result.Downed || play.result === Result.FairCatch)
+  ) {
     const end = decodePuntDownedEnd(play.spotEncoding);
     if (end !== null) return end;
   }
+
+  const tackleEnd = decodeTackleYardLineEnd(play.spotEncoding);
+  if (tackleEnd !== null) return tackleEnd;
 
   if (play.result === Result.Interception) {
     const end = decodeCatchReturnEnd(play.spotEncoding);
@@ -393,20 +437,31 @@ export function yardLineAfterPlay(
   }
 
   if (play.result === Result.Penalty) {
-    const foulSpot = decodePenaltyFoulSpot(play.spotEncoding) ?? play.yardLine;
-    const foulPos = hudlToFieldPosition(foulSpot);
-    const newPos = Math.max(
-      FIELD_OWN_GOAL,
-      foulPos - HOLDING_PENALTY_YARDS,
+    const decoded = decodePenalty(play.spotEncoding) ?? {
+      foulSpot: play.yardLine,
+      yards: 10 as const,
+      against: "O" as const,
+      autoFirstDown: false,
+    };
+    const foulPos = hudlToFieldPosition(decoded.foulSpot);
+    const taggedDelta = penaltyTaggedDelta(
+      decoded.yards,
+      decoded.against,
+      play.odk,
     );
-    return fieldPositionToHudl(newPos);
+    return fieldPositionToHudl(
+      enforcePenaltyFieldPosition(foulPos, taggedDelta),
+    );
   }
 
-  if (isNoGainResult(play.result)) {
+  if (isNoGainResult(play.result) || play.result === Result.Timeout) {
     return play.yardLine;
   }
 
-  const endPos = hudlToFieldPosition(play.yardLine) + play.gainLoss;
+  // gainLoss is possession yards; tagged-axis advance flips on odk D.
+  const axisGain =
+    play.odk === ODK.Defense ? -play.gainLoss : play.gainLoss;
+  const endPos = hudlToFieldPosition(play.yardLine) + axisGain;
   return fieldPositionToHudl(endPos);
 }
 
@@ -419,6 +474,9 @@ export function isFailedFourthDown(
 ): boolean {
   if (play.down !== 4) return false;
   if (!isScrimmagePlay(play.playType)) return false;
+  if (play.result === Result.Penalty) return false;
+  if (play.result === Result.Timeout) return false;
+  if (isTouchdownResult(play.result)) return false;
   if (isNoGainResult(play.result)) return true;
   return play.gainLoss < play.distance;
 }
@@ -451,6 +509,15 @@ function turnoverSituation(
 
 /** Advance down, distance, and ball spot after a play. */
 export function advanceSituation(play: PlayChainInput): SituationFields {
+  // Timeout does not change the snap situation.
+  if (play.result === Result.Timeout) {
+    return {
+      down: play.down,
+      distance: play.distance,
+      yardLine: play.yardLine,
+    };
+  }
+
   if (isKickoffPlay(play.playType)) {
     return {
       down: 1,
@@ -474,7 +541,8 @@ export function advanceSituation(play: PlayChainInput): SituationFields {
     }
     if (fumble) {
       const endYardLine = fumble.endYardLine;
-      const gain = yardsAdvanced(play.yardLine, endYardLine);
+      const taggedGain = yardsAdvanced(play.yardLine, endYardLine);
+      const gain = play.odk === ODK.Defense ? -taggedGain : taggedGain;
       const firstDown = gain >= play.distance;
       if (firstDown) {
         return { down: 1, distance: 10, yardLine: endYardLine };
@@ -550,6 +618,18 @@ export function nextDraftAfterPlay(
 ): PlaylistData {
   const play = normalizePlayOnSave(savedPlay);
 
+  // Timeout: same series, same spot — clock only.
+  if (play.result === Result.Timeout) {
+    return {
+      ...defaultOffensivePlay(nextPlayNumber, team),
+      down: play.down,
+      distance: play.distance,
+      yardLine: play.yardLine,
+      odk: play.odk,
+      ...emptyPlayers,
+    };
+  }
+
   if (isScoringComplete(play)) {
     if (
       options?.rules === "HS" &&
@@ -563,19 +643,64 @@ export function nextDraftAfterPlay(
     return defaultKickoffPlay(nextPlayNumber, team);
   }
 
-  if (isReturnTouchdown(play)) {
+  // Safety → free kick (NFHS: scored-upon team kicks from their 20).
+  if (isSafetyOutcome(play)) {
+    if (play.odk === ODK.Offense) {
+      // We were scored upon → we free-kick from Own 20.
+      return {
+        ...defaultKickoffPlay(nextPlayNumber, team),
+        playType: PlayType.Kickoff,
+        yardLine: -20,
+      };
+    }
+    // We scored the safety → they free-kick; we receive from Opp 20.
+    return {
+      ...defaultKickoffPlay(nextPlayNumber, team),
+      playType: PlayType.KickoffReceive,
+      yardLine: 20,
+    };
+  }
+
+  if (
+    isReturnTouchdown(play) ||
+    (isTouchdownResult(play.result) && isScrimmagePlay(play.playType))
+  ) {
     return defaultScoringPlayAfterTd(
       nextPlayNumber,
       team,
-      scoringOdkAfterReturnTd(play),
+      scoringOdkForTouchdown(play),
     );
   }
 
-  if (isTouchdownResult(play.result) && isScrimmagePlay(play.playType)) {
-    return defaultScoringPlayAfterTd(nextPlayNumber, team, play.odk);
-  }
-
   if (isSuccessfulFourthDownPunt(play)) {
+    // Opponent punt (we are on D): dead-ball endings → our O at the tagged end spot.
+    // (Return still goes through Punt Rec with odk O.)
+    if (play.odk === ODK.Defense) {
+      if (
+        play.result === Result.Downed ||
+        play.result === Result.FairCatch ||
+        play.result === Result.Touchback
+      ) {
+        const endHudl =
+          play.result === Result.Touchback
+            ? HS_TOUCHBACK_YARD_LINE
+            : yardLineAfterPlay(play);
+        return {
+          ...defaultOffensivePlay(nextPlayNumber, team),
+          down: 1,
+          distance: 10,
+          yardLine: endHudl,
+          odk: ODK.Offense,
+          ...emptyPlayers,
+        };
+      }
+      return {
+        ...defaultPuntReceivePlay(nextPlayNumber, team),
+        odk: ODK.Offense,
+        ...puntReceiveSituation(play),
+        ...emptyPlayers,
+      };
+    }
     return {
       ...defaultPuntReceivePlay(nextPlayNumber, team),
       ...puntReceiveSituation(play),
@@ -583,11 +708,39 @@ export function nextDraftAfterPlay(
     };
   }
 
+  // After tagging the receive ending: D series if we received our own punt;
+  // O series if we returned their punt (Punt Rec odk O).
+  if (
+    play.playType === PlayType.PuntReceive &&
+    isSuccessfulPuntEnding(play)
+  ) {
+    const endHudl = yardLineAfterPlay(play);
+    if (play.odk === ODK.Offense) {
+      return {
+        ...defaultOffensivePlay(nextPlayNumber, team),
+        down: 1,
+        distance: 10,
+        yardLine: endHudl,
+        odk: ODK.Offense,
+        ...emptyPlayers,
+      };
+    }
+    return {
+      ...defaultOffensivePlay(nextPlayNumber, team),
+      down: 1,
+      distance: 10,
+      yardLine:
+        endHudl < 0 ? flipHudlYardLinePerspective(endHudl) : endHudl,
+      odk: ODK.Defense,
+      ...emptyPlayers,
+    };
+  }
+
   const situation = advanceSituation(play);
   const afterKickoff = isKickoffPlay(play.playType);
-  const afterTurnover =
-    isLiveBallTurnover(play) ||
-    (play.down === 4 && isScrimmagePlay(play.playType) && !afterKickoff);
+  // Failed 4th is already COP via normalizePlayOnSave → isLiveBallTurnover.
+  // Do not treat converted 4th (gain >= distance) as a turnover.
+  const afterTurnover = isLiveBallTurnover(play);
 
   const afterFgNoGoodTouchback =
     isFgPlay(play.playType) &&
@@ -595,9 +748,23 @@ export function nextDraftAfterPlay(
     isFgNoGoodTouchback(play.spotEncoding);
 
   if (afterKickoff) {
+    const weKicked = play.playType === PlayType.Kickoff;
+    // Onside / short kick recovered by kicking team — keep offense + spot as tagged.
+    const weRecovered =
+      weKicked && play.recoveredBy?.jersey?.trim() !== "";
     return {
       ...defaultOffensivePlay(nextPlayNumber, team),
       ...situation,
+      // Receiving-team Own N → our Opp N when we kicked (their 20, not ours).
+      yardLine:
+        weKicked && !weRecovered && situation.yardLine < 0
+          ? flipHudlYardLinePerspective(situation.yardLine)
+          : situation.yardLine,
+      odk: weRecovered
+        ? ODK.Offense
+        : weKicked
+          ? ODK.Defense
+          : ODK.Offense,
       ...emptyPlayers,
     };
   }
@@ -619,6 +786,7 @@ export function nextDraftAfterPlay(
   return {
     ...defaultOffensivePlay(nextPlayNumber, team),
     ...situation,
+    odk: isScrimmagePlay(play.playType) ? play.odk : ODK.Offense,
     ...emptyPlayers,
   };
 }
