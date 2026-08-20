@@ -26,18 +26,22 @@ function isScoringGood(play: Pick<PlaylistData, "playType" | "result">): boolean
     play.result === Result.Good &&
     (play.playType === PlayType.FieldGoal ||
       play.playType === PlayType.ExtraPoint ||
-      play.playType === PlayType.TwoPoint)
+      play.playType === PlayType.TwoPoint ||
+      play.playType === PlayType.ExtraPointBlock ||
+      play.playType === PlayType.TwoPointBlock)
   );
 }
 
-function isPatBlockComplete(
+function isPatTryComplete(
   play: Pick<PlaylistData, "playType" | "result" | "odk">,
 ): boolean {
   return (
     play.odk === ODK.Defense &&
-    play.result === Result.Blocked &&
     (play.playType === PlayType.ExtraPointBlock ||
-      play.playType === PlayType.TwoPointBlock)
+      play.playType === PlayType.TwoPointBlock) &&
+    (play.result === Result.Blocked ||
+      play.result === Result.Good ||
+      play.result === Result.NoGood)
   );
 }
 
@@ -87,7 +91,8 @@ export function resolveKickoffRoleAfterSave(
     return "receive";
   }
 
-  if (isPatBlockComplete(savedPlay)) {
+  // Opponent PAT complete (made / miss / blocked) → they kick; we receive.
+  if (isPatTryComplete(savedPlay)) {
     return "receive";
   }
 

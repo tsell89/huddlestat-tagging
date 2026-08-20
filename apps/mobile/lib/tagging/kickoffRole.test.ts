@@ -103,6 +103,32 @@ describe("resolveKickoffRoleAfterSave", () => {
     );
   });
 
+  test("opponent XP Good (Extra Pt. Block) → receive", () => {
+    const saved = {
+      ...defaultOffensivePlay(6, TEAM),
+      playType: PlayType.ExtraPointBlock,
+      result: Result.Good,
+      odk: ODK.Defense,
+    };
+    assert.equal(
+      resolveKickoffRoleAfterSave(saved, kickoffDraft, "kick"),
+      "receive",
+    );
+  });
+
+  test("opponent XP No Good (Extra Pt. Block) → receive", () => {
+    const saved = {
+      ...defaultOffensivePlay(6, TEAM),
+      playType: PlayType.ExtraPointBlock,
+      result: Result.NoGood,
+      odk: ODK.Defense,
+    };
+    assert.equal(
+      resolveKickoffRoleAfterSave(saved, kickoffDraft, "kick"),
+      "receive",
+    );
+  });
+
   test("our Safety → we free-kick", () => {
     const saved = {
       ...defaultOffensivePlay(6, TEAM),

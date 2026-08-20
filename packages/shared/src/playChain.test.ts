@@ -165,6 +165,41 @@ describe("TD → scoring → kickoff chain", () => {
     assert.equal(scoring.odk, ODK.Defense);
   });
 
+  test("Extra Pt. Block Good → kickoff (opponent made PAT)", () => {
+    const xp = basePlay({
+      playNumber: 12,
+      playType: PlayType.ExtraPointBlock,
+      result: Result.Good,
+      yardLine: 3,
+      down: 1,
+      distance: 1,
+      gainLoss: 0,
+      odk: ODK.Defense,
+    });
+
+    const ko = nextDraftAfterPlay(xp, 13, TEAM);
+    assert.equal(ko.playType, PlayType.Kickoff);
+    assert.equal(ko.odk, ODK.Kicking);
+    assert.equal(ko.yardLine, -40);
+  });
+
+  test("Extra Pt. Block No Good → kickoff (opponent missed PAT)", () => {
+    const xp = basePlay({
+      playNumber: 12,
+      playType: PlayType.ExtraPointBlock,
+      result: Result.NoGood,
+      yardLine: 3,
+      down: 1,
+      distance: 1,
+      gainLoss: 0,
+      odk: ODK.Defense,
+    });
+
+    const ko = nextDraftAfterPlay(xp, 13, TEAM);
+    assert.equal(ko.playType, PlayType.Kickoff);
+    assert.equal(ko.odk, ODK.Kicking);
+  });
+
   test("XP Good → kickoff", () => {
     const xp = basePlay({
       playNumber: 4,

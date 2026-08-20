@@ -90,6 +90,34 @@ export const QA_SCRIPT_CHECKPOINTS: Record<string, ScriptCheckpoint[]> = {
       },
     },
   ],
+  "qa-script-c": [
+    {
+      afterPlayNumber: 1,
+      expect: {
+        playType: "KO",
+        odk: "K",
+        yardLine: -40,
+        padClass: "kickoff",
+      },
+    },
+    {
+      afterPlayNumber: 6,
+      expect: {
+        playType: "Extra Pt. Block",
+        odk: "D",
+        padClass: "scoring",
+      },
+    },
+    {
+      afterPlayNumber: 7,
+      expect: {
+        playType: "KO",
+        odk: "K",
+        yardLine: -40,
+        padClass: "kickoff",
+      },
+    },
+  ],
 };
 
 export function listQaScriptGameIds(): string[] {

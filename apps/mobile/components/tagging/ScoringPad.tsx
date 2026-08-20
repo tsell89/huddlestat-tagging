@@ -84,7 +84,7 @@ export function ScoringPad({
                 const slots = getVisiblePlayerSlots(draft.playType, result);
                 onActivePlayerSlotChange(slots[0] ?? null);
               }}
-              columns={1}
+              columns={resultOptions.length >= 3 ? 3 : 1}
               size="dense"
             />
           </View>
@@ -134,5 +134,6 @@ const styles = StyleSheet.create({
   },
   resultWrap: {
     minWidth: 72,
+    maxWidth: 220,
   },
 });

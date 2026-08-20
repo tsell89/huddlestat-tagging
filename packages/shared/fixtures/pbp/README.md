@@ -40,6 +40,7 @@ npm run test:pbp --workspace=@huddlestat/shared
 | `onside-recovery.json` | HS | Onside kick recovery spot (replay asserts end spot) |
 | `safety-free-kick.json` | HS | Run Safety → free kick KO @ Own 20 → we-kick TB → D @ Opp 20 |
 | `xp-no-good-kickoff.json` | HS | Rush TD → XP No Good → kickoff |
+| `opp-xp-block-outcomes.json` | HS | Opp TD → Extra Pt. Block Good / No Good → KO Rec |
 
 ## QA script games (`games/qa-script-*`)
 

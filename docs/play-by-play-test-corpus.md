@@ -53,6 +53,7 @@ When automation finds unsupported or ambiguous state, the tagger must keep going
 | `odk-d-scrimmage.json` | HS | We-kick → odk D series preserves ODK across snaps |
 | `safety-free-kick.json` | HS | Run Safety → free kick from Own 20 |
 | `xp-no-good-kickoff.json` | HS | Rush TD → XP No Good → kickoff |
+| `opp-xp-block-outcomes.json` | HS | Opp TD → Extra Pt. Block Good/No Good → KO Rec |
 
 ### QA script games (`games/qa-script-*`, `qa-full-regulation`)
 
@@ -61,6 +62,7 @@ When automation finds unsupported or ambiguous state, the tagger must keep going
 | `qa-script-a` | Script A canonical drive + we-kick TB |
 | `qa-script-b` | Script B TD → XP Good → KO |
 | `qa-script-b-xp-miss` | Script B with XP miss |
+| `qa-script-c` | Script C opp FG Good → receive; opp XP Block Good |
 | `qa-script-d` | Script D KO Rec TD → XP |
 | `qa-script-e` | Script E punt → Punt Rec |
 | `qa-script-g` | Script G live-ball pairs |

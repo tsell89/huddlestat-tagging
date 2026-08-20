@@ -1,0 +1,11 @@
+{
+  "gameId": "qa-script-c",
+  "rules": "HS",
+  "source": "hand",
+  "teamOffense": "TEAM_A",
+  "teamDefense": "OPP",
+  "periods": 4,
+  "overtime": false,
+  "redacted": true,
+  "description": "iPad QA Script C — opp FG Good → We receive KO TB → O @ Own 20; alt opp TD → XP Block Good → receive"
+}

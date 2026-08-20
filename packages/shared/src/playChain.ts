@@ -335,7 +335,9 @@ function isScoringGood(play: Pick<PlaylistData, "playType" | "result">): boolean
   return (
     play.playType === PlayType.FieldGoal ||
     play.playType === PlayType.ExtraPoint ||
-    play.playType === PlayType.TwoPoint
+    play.playType === PlayType.TwoPoint ||
+    play.playType === PlayType.ExtraPointBlock ||
+    play.playType === PlayType.TwoPointBlock
   );
 }
 
@@ -364,7 +366,9 @@ function isScoringComplete(
   if (
     play.result === Result.NoGood &&
     (play.playType === PlayType.ExtraPoint ||
-      play.playType === PlayType.TwoPoint)
+      play.playType === PlayType.TwoPoint ||
+      play.playType === PlayType.ExtraPointBlock ||
+      play.playType === PlayType.TwoPointBlock)
   ) {
     return true;
   }

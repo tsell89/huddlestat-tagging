@@ -262,7 +262,8 @@ export function getAlternateResultsForPlayType(
       return [Result.Good, Result.NoGood];
     case PlayType.ExtraPointBlock:
     case PlayType.TwoPointBlock:
-      return [Result.Blocked];
+      // Opponent try from our D perspective: made / miss / we blocked.
+      return [Result.Good, Result.NoGood, Result.Blocked];
     default:
       return [];
   }

@@ -259,12 +259,14 @@ IF Blocked: recovery spots (pkg H)
 
 ### 4.7 ScoringPad *(implemented — Package G)*
 
-After TD: pre-load **Extra Pt.** (O) or **Extra Pt. Block** (D); hide generic play-type grid. XP ↔ 2pt toggle only (no redundant result row when default is fixed).
+After TD: pre-load **Extra Pt.** (O) or **Extra Pt. Block** (D); hide generic play-type grid. XP ↔ 2pt toggle.
 
-| Type | Default | Next after save |
+| Type | Results | Next after save |
 |------|---------|-----------------|
-| Extra Pt. / 2 Pt. | Good | Kickoff |
-| Extra Pt. Block / 2 Pt. Block | Blocked | Kickoff |
+| Extra Pt. / 2 Pt. | Good · No Good | Kickoff (We kick) |
+| Extra Pt. Block / 2 Pt. Block | Good · No Good · Blocked | Kickoff (We receive) |
+
+Opponent made PAT = **Good** on Extra Pt. Block (score +1 them). Miss = **No Good** (no points, still kickoff).
 
 ### 4.8 Defense tagging
 

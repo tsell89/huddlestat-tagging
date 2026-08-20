@@ -77,6 +77,7 @@ export function RunPad({
             onChange={onTackleEndChange}
             touchdownMode={isTouchdownTackleResult(draft.result)}
             defendingEnd={defendingEnd}
+            odk={draft.odk}
           />
         </View>
       ) : draft.result === Result.Fumble ? (
