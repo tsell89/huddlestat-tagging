@@ -56,7 +56,11 @@ export function PlayTypeRow({ draft, onChange, compact = false }: PlayTypeRowPro
   return (
     <View style={[styles.row, rowCompact && styles.rowCompact]}>
       {OFFENSE_PLAY_TYPES.map((playType) => {
-        const selected = activeType === playType;
+        // Chain lands on Punt Rec after our 4th-down punt (Script E); highlight Punt.
+        const selected =
+          activeType === playType ||
+          (playType === PlayType.Punt &&
+            draft.playType === PlayType.PuntReceive);
         const size = scaledSize(sizes[playType], rowCompact);
         const height = TAP_HEIGHT[size];
         const fontSize = TAP_FONT[size];

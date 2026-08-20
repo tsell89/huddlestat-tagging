@@ -100,6 +100,7 @@ export function shouldShowOffensePad(draft: PlaylistData): boolean {
   if (isScoringPlayType(draft.playType)) return false;
   return (
     isOffensePadPlayType(draft.playType) ||
+    draft.playType === PlayType.PuntReceive ||
     (draft.odk === ODK.Offense && draft.down >= 1 && !draft.playType)
   );
 }

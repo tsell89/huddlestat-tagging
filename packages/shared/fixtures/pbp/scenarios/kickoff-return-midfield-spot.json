@@ -1,14 +1,14 @@
 {
   "meta": {
-    "scenarioId": "onside-recovery",
-    "gameId": "scenario-onside-recovery",
+    "scenarioId": "kickoff-return-midfield-spot",
+    "gameId": "scenario-kickoff-return-midfield-spot",
     "rules": "HS",
     "source": "hand",
     "teamOffense": "TEAM_A",
     "teamDefense": "OPP",
     "periods": 4,
     "redacted": true,
-    "description": "Short kick recovery — Package H live-ball path; chain spot at recovery end"
+    "description": "KO Rec return Own 5 → Own 25 — next ball spot is return end, not kick+gainLoss"
   },
   "plays": [
     {
@@ -19,7 +19,7 @@
       "down": 0,
       "distance": 0,
       "hash": "M",
-      "gainLoss": 10,
+      "gainLoss": 20,
       "passer": { "jersey": "", "name": "" },
       "receiver": { "jersey": "", "name": "" },
       "rusher": { "jersey": "", "name": "" },
@@ -27,19 +27,20 @@
       "team": "TEAM_A",
       "tackler1": { "jersey": "", "name": "" },
       "tackler2": { "jersey": "", "name": "" },
-      "recoveredBy": { "jersey": "88", "name": "" },
-      "returner": { "jersey": "", "name": "" },
-      "playType": "KO",
-      "kicker": { "jersey": "5", "name": "" },
-      "kickYards": 12,
+      "recoveredBy": { "jersey": "", "name": "" },
+      "returner": { "jersey": "21", "name": "" },
+      "playType": "KO Rec",
+      "kicker": { "jersey": "", "name": "" },
+      "kickYards": 55,
+      "returnYards": 20,
       "interceptedBy": { "jersey": "", "name": "" },
-      "spotEncoding": "catch:-32|end:-32"
+      "spotEncoding": "catch:-5|end:-25"
     },
     {
       "playNumber": 2,
       "quarter": 1,
       "odk": "O",
-      "yardLine": -32,
+      "yardLine": -25,
       "down": 1,
       "distance": 10,
       "hash": "M",
