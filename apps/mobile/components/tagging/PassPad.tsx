@@ -19,6 +19,7 @@ import {
   type TackleEnd,
 } from "@/lib/tagging/tackleSpot";
 import type { InterceptionReturnSpots } from "@/lib/tagging/interceptionReturn";
+import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
 import type { YardLine } from "@huddlestat/shared";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
@@ -34,6 +35,7 @@ type PassPadProps = {
   onIntSpotsChange: (spots: InterceptionReturnSpots) => void;
   penaltyFoulSpot: YardLine;
   onPenaltyFoulSpotChange: (spot: YardLine) => void;
+  defendingEnd?: DefendingEnd;
 };
 
 export function PassPad({
@@ -48,6 +50,7 @@ export function PassPad({
   onIntSpotsChange,
   penaltyFoulSpot,
   onPenaltyFoulSpotChange,
+  defendingEnd = "left",
 }: PassPadProps) {
   const alternates = getAlternateResultsForPlayType(draft.playType);
   const showTackleSpot = needsTackleSpot(draft.playType, draft.result);
@@ -79,6 +82,7 @@ export function PassPad({
             end={tackleEnd}
             onChange={onTackleEndChange}
             touchdownMode={isTouchdownTackleResult(draft.result)}
+            defendingEnd={defendingEnd}
           />
         </View>
       ) : draft.result === Result.Interception ? (
@@ -86,6 +90,7 @@ export function PassPad({
           <InterceptionReturnSpotsPanel
             spots={intSpots}
             onChange={onIntSpotsChange}
+            defendingEnd={defendingEnd}
           />
         </View>
       ) : draft.result === Result.Penalty ? (
@@ -93,6 +98,7 @@ export function PassPad({
           <PenaltySpotPanel
             foulSpot={penaltyFoulSpot}
             onChange={onPenaltyFoulSpotChange}
+            defendingEnd={defendingEnd}
           />
         </View>
       ) : null}

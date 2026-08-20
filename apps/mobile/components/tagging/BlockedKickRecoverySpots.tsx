@@ -10,16 +10,19 @@ import {
   type BlockedKickRecoverySpots,
 } from "@/lib/tagging/blockedKickRecovery";
 import { computeReturnYards } from "@/lib/tagging/kickoffReturn";
+import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 type BlockedKickRecoverySpotsProps = {
   spots: BlockedKickRecoverySpots;
   onChange: (spots: BlockedKickRecoverySpots) => void;
+  defendingEnd?: DefendingEnd;
 };
 
 export function BlockedKickRecoverySpotsPanel({
   spots,
   onChange,
+  defendingEnd = "left",
 }: BlockedKickRecoverySpotsProps) {
   const isTd = spots.returnEnd.kind === "touchdown";
   const isSafety = spots.returnEnd.kind === "safety";
@@ -41,6 +44,7 @@ export function BlockedKickRecoverySpotsPanel({
         leftTick="−1"
         centerTick="50"
         rightTick="+1"
+        defendingEnd={defendingEnd}
       />
 
       <FieldPositionSlider
@@ -91,6 +95,7 @@ export function BlockedKickRecoverySpotsPanel({
         }}
         hideTrack={hideReturnTrack}
         displayValue={formatReturnEndDisplay(spots.returnEnd)}
+        defendingEnd={defendingEnd}
       />
 
       <View style={styles.computedRow}>

@@ -25,7 +25,9 @@ Huddlestat targets **high school** games first. College and NFL overtime are dif
 
 Constants: `HS_OT_OFFENSE_YARD_LINE`, `HS_OT_DEFENSE_YARD_LINE`, `HS_OT_DISTANCE` in `packages/shared/src/fieldPosition100.ts`.
 
-**Not modeled yet:** coin toss, choosing offense/defense first, mercy if both score TD+XP each round, FG-only wins without a defensive stop, state-specific tie-breaker variants.
+**OT start UX (mobile):** Start OT modal declares **who has the ball first** (`otPossession`) **and** which end we defend (`defendingEnd`). Full NFHS coin-toss branching (winner picks end *or* ball) is **not** modeled — both are declared. Defending end is set once at OT start (v1); no auto-flip between OT possessions.
+
+**Not modeled yet:** full coin-toss winner choice tree, mercy if both score TD+XP each round, FG-only wins without a defensive stop, state-specific tie-breaker variants.
 
 ---
 

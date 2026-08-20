@@ -11,6 +11,7 @@ import {
   type TackleEnd,
 } from "@/lib/tagging/tackleSpot";
 import type { YardLine } from "@huddlestat/shared";
+import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 type TackleSpotPanelProps = {
@@ -19,6 +20,7 @@ type TackleSpotPanelProps = {
   onChange: (end: TackleEnd) => void;
   /** Rush TD / Complete TD — Touchdown end button on the right */
   touchdownMode: boolean;
+  defendingEnd?: DefendingEnd;
 };
 
 export function TackleSpotPanel({
@@ -26,6 +28,7 @@ export function TackleSpotPanel({
   end,
   onChange,
   touchdownMode,
+  defendingEnd = "left",
 }: TackleSpotPanelProps) {
   const isTd = end.kind === "touchdown";
   const isSafety = end.kind === "safety";
@@ -71,6 +74,7 @@ export function TackleSpotPanel({
         rightAction={touchdownMode ? touchdownAction : undefined}
         hideTrack={hideTrack}
         displayValue={formatTackleEndDisplay(end)}
+        defendingEnd={defendingEnd}
       />
 
       <View style={styles.computedRow}>

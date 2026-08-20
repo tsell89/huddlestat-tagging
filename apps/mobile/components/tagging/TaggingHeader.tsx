@@ -3,6 +3,8 @@ import { router } from "expo-router";
 import type { GamePhase, PlaylistData } from "@huddlestat/shared";
 import type { LocalGame } from "@/lib/db/types";
 import { formatSituationLine } from "@/lib/tagging/formatSituation";
+import { DirectionOfPlayChip } from "@/components/tagging/DirectionOfPlayControl";
+import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 type TaggingHeaderProps = {
@@ -11,6 +13,9 @@ type TaggingHeaderProps = {
   unsyncedCount: number;
   onUndo?: () => void;
   undoEnabled?: boolean;
+  defendingEnd?: DefendingEnd;
+  advancingTowardOpponent?: boolean;
+  onDirectionPress?: () => void;
 };
 
 function phaseBadgeLabel(phase: GamePhase): string {
@@ -30,6 +35,9 @@ export function TaggingHeader({
   unsyncedCount,
   onUndo,
   undoEnabled = false,
+  defendingEnd,
+  advancingTowardOpponent = true,
+  onDirectionPress,
 }: TaggingHeaderProps) {
   const { colors } = LAYOUT;
 
@@ -58,6 +66,14 @@ export function TaggingHeader({
             : ""}
         </Text>
       </View>
+
+      {defendingEnd ? (
+        <DirectionOfPlayChip
+          defendingEnd={defendingEnd}
+          advancingTowardOpponent={advancingTowardOpponent}
+          onPress={onDirectionPress}
+        />
+      ) : null}
 
       <View style={styles.right}>
         <Text style={styles.score}>

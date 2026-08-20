@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Result, type PlaylistData, type PlayerRef } from "@huddlestat/shared";
 import { TapGrid } from "@/components/tagging/TapGrid";
 import { KickoffReturnSpotsPanel } from "@/components/tagging/KickoffReturnSpots";
+import { DirectionOfPlayControl } from "@/components/tagging/DirectionOfPlayControl";
 import { JerseyQuickGrid } from "@/components/tagging/JerseyQuickGrid";
 import type { LocalPlay } from "@/lib/db/types";
 import { buildJerseyGridRankings } from "@/lib/tagging/jerseyGridRank";
@@ -15,6 +16,8 @@ import {
 import type { KickoffReturnSpots } from "@/lib/tagging/kickoffReturn";
 import { kickoffSlotLabel } from "@/lib/tagging/kickoffReturn";
 import type { KickoffRole } from "@/lib/tagging/kickoffRole";
+import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
+import { isAdvancingTowardOpponent } from "@/lib/tagging/directionOfPlay";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 const KICKOFF_ROLE_OPTIONS = ["We kick", "We receive"] as const;
@@ -26,6 +29,10 @@ type KickoffTaggingPadProps = {
   onKickoffSpotsChange: (spots: KickoffReturnSpots) => void;
   kickoffRole: KickoffRole;
   onKickoffRoleChange: (role: KickoffRole) => void;
+  defendingEnd: DefendingEnd;
+  onDefendingEndChange: (end: DefendingEnd) => void;
+  usLabel: string;
+  themLabel: string;
   activePlayerSlot: PlayerSlotKey | null;
   onActivePlayerSlotChange: (slot: PlayerSlotKey | null) => void;
   gamePlays: LocalPlay[];
@@ -54,6 +61,10 @@ export function KickoffTaggingPad({
   onKickoffSpotsChange,
   kickoffRole,
   onKickoffRoleChange,
+  defendingEnd,
+  onDefendingEndChange,
+  usLabel,
+  themLabel,
   activePlayerSlot,
   onActivePlayerSlotChange,
   gamePlays,
@@ -81,6 +92,8 @@ export function KickoffTaggingPad({
     [activeSlot, gamePlays],
   );
 
+  const advancing = isAdvancingTowardOpponent(draft, kickoffRole);
+
   return (
     <View style={styles.pad}>
       <View style={styles.roleRow}>
@@ -92,6 +105,16 @@ export function KickoffTaggingPad({
           }}
           columns={2}
           size="dense"
+        />
+      </View>
+
+      <View style={styles.roleRow}>
+        <DirectionOfPlayControl
+          defendingEnd={defendingEnd}
+          onChange={onDefendingEndChange}
+          usLabel={usLabel}
+          themLabel={themLabel}
+          advancingTowardOpponent={advancing}
         />
       </View>
 
@@ -119,6 +142,7 @@ export function KickoffTaggingPad({
           <KickoffReturnSpotsPanel
             spots={kickoffSpots}
             onChange={onKickoffSpotsChange}
+            defendingEnd={defendingEnd}
             onTouchback={() => {
               onChange(applyResultChange(draft, Result.Touchback));
               onActivePlayerSlotChange("kicker");

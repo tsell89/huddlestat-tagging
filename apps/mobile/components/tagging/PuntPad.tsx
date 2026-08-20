@@ -19,6 +19,7 @@ import {
   type PuntSpots,
 } from "@/lib/tagging/puntReturn";
 import type { BlockedKickRecoverySpots } from "@/lib/tagging/blockedKickRecovery";
+import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 type PuntPadProps = {
@@ -33,6 +34,7 @@ type PuntPadProps = {
   onBlockedSpotsChange: (spots: BlockedKickRecoverySpots) => void;
   penaltyFoulSpot: YardLine;
   onPenaltyFoulSpotChange: (spot: YardLine) => void;
+  defendingEnd?: DefendingEnd;
 };
 
 export function PuntPad({
@@ -47,6 +49,7 @@ export function PuntPad({
   onBlockedSpotsChange,
   penaltyFoulSpot,
   onPenaltyFoulSpotChange,
+  defendingEnd = "left",
 }: PuntPadProps) {
   const alternates = getAlternateResultsForPlayType(draft.playType);
 
@@ -73,6 +76,7 @@ export function PuntPad({
             onChange={(returnSpots) =>
               onPuntSpotsChange({ ...puntSpots, returnSpots })
             }
+            defendingEnd={defendingEnd}
           />
         </View>
       ) : draft.result === Result.Downed ? (
@@ -88,6 +92,7 @@ export function PuntPad({
             leftTick="−1"
             centerTick="50"
             rightTick="+1"
+            defendingEnd={defendingEnd}
           />
         </View>
       ) : draft.result === Result.Touchback ? (
@@ -101,6 +106,7 @@ export function PuntPad({
           <BlockedKickRecoverySpotsPanel
             spots={blockedSpots}
             onChange={onBlockedSpotsChange}
+            defendingEnd={defendingEnd}
           />
         </View>
       ) : draft.result === Result.Penalty ? (
@@ -108,6 +114,7 @@ export function PuntPad({
           <PenaltySpotPanel
             foulSpot={penaltyFoulSpot}
             onChange={onPenaltyFoulSpotChange}
+            defendingEnd={defendingEnd}
           />
         </View>
       ) : null}

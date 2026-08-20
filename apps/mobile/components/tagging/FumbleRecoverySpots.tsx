@@ -11,6 +11,7 @@ import {
   type FumbleRecoverySpots,
 } from "@/lib/tagging/fumbleRecovery";
 import { computeReturnYards } from "@/lib/tagging/kickoffReturn";
+import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 const RECOVERY_SIDES = ["Offense", "Defense"] as const;
@@ -18,6 +19,7 @@ const RECOVERY_SIDES = ["Offense", "Defense"] as const;
 type FumbleRecoverySpotsProps = {
   spots: FumbleRecoverySpots;
   onChange: (spots: FumbleRecoverySpots) => void;
+  defendingEnd?: DefendingEnd;
 };
 
 function sideToLabel(side: FumbleRecoverySide): (typeof RECOVERY_SIDES)[number] {
@@ -31,6 +33,7 @@ function labelToSide(label: (typeof RECOVERY_SIDES)[number]): FumbleRecoverySide
 export function FumbleRecoverySpotsPanel({
   spots,
   onChange,
+  defendingEnd = "left",
 }: FumbleRecoverySpotsProps) {
   const isDefense = spots.recoveredBy === "defense";
   const isTd = spots.returnEnd.kind === "touchdown";
@@ -64,6 +67,7 @@ export function FumbleRecoverySpotsPanel({
         leftTick="−1"
         centerTick="50"
         rightTick="+1"
+        defendingEnd={defendingEnd}
       />
 
       <View style={styles.sideRow}>
@@ -111,6 +115,7 @@ export function FumbleRecoverySpotsPanel({
             leftTick="−1"
             centerTick="50"
             rightTick="+1"
+            defendingEnd={defendingEnd}
           />
 
           <FieldPositionSlider
@@ -161,6 +166,7 @@ export function FumbleRecoverySpotsPanel({
             }}
             hideTrack={hideReturnTrack}
             displayValue={formatReturnEndDisplay(spots.returnEnd)}
+            defendingEnd={defendingEnd}
           />
 
           <View style={styles.computedRow}>

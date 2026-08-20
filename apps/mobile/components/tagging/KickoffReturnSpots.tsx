@@ -10,18 +10,21 @@ import {
   returnedYardLineToRatio,
   type KickoffReturnSpots,
 } from "@/lib/tagging/kickoffReturn";
+import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 
 type KickoffReturnSpotsProps = {
   spots: KickoffReturnSpots;
   onChange: (spots: KickoffReturnSpots) => void;
   onTouchback: () => void;
+  defendingEnd?: DefendingEnd;
 };
 
 export function KickoffReturnSpotsPanel({
   spots,
   onChange,
   onTouchback,
+  defendingEnd = "left",
 }: KickoffReturnSpotsProps) {
   const isTd = spots.returnEnd.kind === "touchdown";
   const isSafety = spots.returnEnd.kind === "safety";
@@ -75,6 +78,7 @@ export function KickoffReturnSpotsPanel({
           label: "Touchback",
           onPress: onTouchback,
         }}
+        defendingEnd={defendingEnd}
       />
 
       <FieldPositionSlider
@@ -95,6 +99,7 @@ export function KickoffReturnSpotsPanel({
         rightAction={touchdownAction}
         hideTrack={hideReturnTrack}
         displayValue={formatReturnEndDisplay(spots.returnEnd)}
+        defendingEnd={defendingEnd}
       />
 
       <View style={styles.computedRow}>

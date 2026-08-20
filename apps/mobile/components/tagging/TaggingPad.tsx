@@ -15,6 +15,7 @@ import type { TackleEnd } from "@/lib/tagging/tackleSpot";
 import type { InterceptionReturnSpots } from "@/lib/tagging/interceptionReturn";
 import type { FumbleRecoverySpots } from "@/lib/tagging/fumbleRecovery";
 import type { BlockedKickRecoverySpots } from "@/lib/tagging/blockedKickRecovery";
+import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
 import type { YardLine } from "@huddlestat/shared";
 
 type TaggingPadProps = {
@@ -27,6 +28,10 @@ type TaggingPadProps = {
   onKickoffSpotsChange: (spots: KickoffReturnSpots) => void;
   kickoffRole: KickoffRole;
   onKickoffRoleChange: (role: KickoffRole) => void;
+  defendingEnd: DefendingEnd;
+  onDefendingEndChange: (end: DefendingEnd) => void;
+  usLabel: string;
+  themLabel: string;
   puntSpots: PuntSpots;
   onPuntSpotsChange: (spots: PuntSpots) => void;
   tackleEnd: TackleEnd;

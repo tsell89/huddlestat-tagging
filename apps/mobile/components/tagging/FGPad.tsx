@@ -21,6 +21,7 @@ import {
 } from "@/lib/tagging/fieldGoal";
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 import type { BlockedKickRecoverySpots } from "@/lib/tagging/blockedKickRecovery";
+import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
 
 type FGPadProps = {
   draft: PlaylistData;
@@ -32,6 +33,7 @@ type FGPadProps = {
   onBlockedSpotsChange: (spots: BlockedKickRecoverySpots) => void;
   penaltyFoulSpot: YardLine;
   onPenaltyFoulSpotChange: (spot: YardLine) => void;
+  defendingEnd?: DefendingEnd;
 };
 
 function withKickYards(draft: PlaylistData): PlaylistData {
@@ -48,6 +50,7 @@ export function FGPad({
   onBlockedSpotsChange,
   penaltyFoulSpot,
   onPenaltyFoulSpotChange,
+  defendingEnd = "left",
 }: FGPadProps) {
   const alternates = getAlternateResultsForPlayType(draft.playType);
   const attemptYards = fgAttemptYards(draft.yardLine);
@@ -108,6 +111,7 @@ export function FGPad({
           <BlockedKickRecoverySpotsPanel
             spots={blockedSpots}
             onChange={onBlockedSpotsChange}
+            defendingEnd={defendingEnd}
           />
         </View>
       ) : draft.result === Result.Penalty ? (
@@ -115,6 +119,7 @@ export function FGPad({
           <PenaltySpotPanel
             foulSpot={penaltyFoulSpot}
             onChange={onPenaltyFoulSpotChange}
+            defendingEnd={defendingEnd}
           />
         </View>
       ) : null}
