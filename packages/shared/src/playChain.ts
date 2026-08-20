@@ -355,11 +355,19 @@ export type PlayChainOptions = {
   overtime?: boolean;
 };
 
-/** Completed scoring snap that advances to kickoff (Good XP/2pt/FG or blocked attempt). */
+/** Completed scoring snap that advances to kickoff (or OT possession). */
 function isScoringComplete(
   play: Pick<PlaylistData, "playType" | "result">,
 ): boolean {
   if (isScoringGood(play)) return true;
+  // Missed XP / 2pt still ends the try — kickoff (or OT flip).
+  if (
+    play.result === Result.NoGood &&
+    (play.playType === PlayType.ExtraPoint ||
+      play.playType === PlayType.TwoPoint)
+  ) {
+    return true;
+  }
   if (play.result !== Result.Blocked) return false;
   return (
     play.playType === PlayType.ExtraPointBlock ||

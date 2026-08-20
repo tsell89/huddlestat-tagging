@@ -48,6 +48,17 @@ function isSafetyOutcome(
   return play.spotEncoding?.includes("end:SA") === true;
 }
 
+function isOffensePatAttempt(
+  play: Pick<PlaylistData, "playType" | "result" | "odk">,
+): boolean {
+  return (
+    play.odk === ODK.Offense &&
+    (play.playType === PlayType.ExtraPoint ||
+      play.playType === PlayType.TwoPoint) &&
+    (play.result === Result.Good || play.result === Result.NoGood)
+  );
+}
+
 /** UX-14: default kickoff role after a scoring play when the chain next snap is kickoff. */
 export function resolveKickoffRoleAfterSave(
   savedPlay: PlaylistData,
@@ -61,6 +72,11 @@ export function resolveKickoffRoleAfterSave(
   if (isSafetyOutcome(savedPlay)) {
     // Scored-upon team free-kicks: we were on O → we kick; we were on D → we receive.
     return savedPlay.odk === ODK.Offense ? "kick" : "receive";
+  }
+
+  // Our TD try (Good or miss) → we kick off.
+  if (isOffensePatAttempt(savedPlay)) {
+    return "kick";
   }
 
   if (savedPlay.odk === ODK.Offense && isScoringGood(savedPlay)) {

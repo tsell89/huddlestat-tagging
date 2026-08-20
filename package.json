@@ -17,6 +17,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspace=@huddlestat/shared && npm run test --workspace=@huddlestat/mobile",
     "test:pbp": "npm run test:pbp --workspace=@huddlestat/shared",
+    "qa:script-sim": "npm run qa:script-sim --workspace=@huddlestat/shared",
     "qa:replay": "npx tsx scripts/qa-replay.mjs",
     "lint": "echo 'no lint configured'"
   },

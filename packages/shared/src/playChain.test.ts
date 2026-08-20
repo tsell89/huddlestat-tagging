@@ -185,6 +185,62 @@ describe("TD → scoring → kickoff chain", () => {
     assert.equal(ko.playNumber, 5);
   });
 
+  test("XP No Good → kickoff (missed try still ends scoring)", () => {
+    const xp = basePlay({
+      playNumber: 4,
+      playType: PlayType.ExtraPoint,
+      result: Result.NoGood,
+      yardLine: 3,
+      down: 1,
+      distance: 1,
+      gainLoss: 0,
+      odk: ODK.Offense,
+    });
+
+    const ko = nextDraftAfterPlay(xp, 5, TEAM);
+    assert.equal(ko.playType, PlayType.Kickoff);
+    assert.equal(ko.odk, ODK.Kicking);
+    assert.equal(ko.yardLine, -40);
+  });
+
+  test("2 Pt. No Good → kickoff", () => {
+    const two = basePlay({
+      playNumber: 4,
+      playType: PlayType.TwoPoint,
+      result: Result.NoGood,
+      yardLine: 1,
+      down: 1,
+      distance: 1,
+      gainLoss: 0,
+      odk: ODK.Offense,
+    });
+
+    const ko = nextDraftAfterPlay(two, 5, TEAM);
+    assert.equal(ko.playType, PlayType.Kickoff);
+    assert.equal(ko.odk, ODK.Kicking);
+  });
+
+  test("HS OT: XP No Good → opponent possession (not kickoff)", () => {
+    const xp = basePlay({
+      playNumber: 2,
+      playType: PlayType.ExtraPoint,
+      result: Result.NoGood,
+      yardLine: 3,
+      down: 1,
+      distance: 1,
+      gainLoss: 0,
+      odk: ODK.Offense,
+    });
+
+    const next = nextDraftAfterPlay(xp, 3, TEAM, {
+      rules: "HS",
+      overtime: true,
+    });
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.yardLine, -10);
+    assert.notEqual(next.playType, PlayType.Kickoff);
+  });
+
   test("KO return TD → Extra Pt scoring pad (odk O)", () => {
     const koRec = basePlay({
       playNumber: 1,

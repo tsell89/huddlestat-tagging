@@ -52,6 +52,23 @@ When automation finds unsupported or ambiguous state, the tagger must keep going
 | `kickoff-return-midfield-spot.json` | HS | KO Rec Own 5→Own 25 → next snap @ −25 (return end) |
 | `odk-d-scrimmage.json` | HS | We-kick → odk D series preserves ODK across snaps |
 | `safety-free-kick.json` | HS | Run Safety → free kick from Own 20 |
+| `xp-no-good-kickoff.json` | HS | Rush TD → XP No Good → kickoff |
+
+### QA script games (`games/qa-script-*`, `qa-full-regulation`)
+
+| gameId | Maps to |
+|--------|---------|
+| `qa-script-a` | Script A canonical drive + we-kick TB |
+| `qa-script-b` | Script B TD → XP Good → KO |
+| `qa-script-b-xp-miss` | Script B with XP miss |
+| `qa-script-d` | Script D KO Rec TD → XP |
+| `qa-script-e` | Script E punt → Punt Rec |
+| `qa-script-g` | Script G live-ball pairs |
+| `qa-full-regulation` | Expanded multi-drive regulation narrative |
+
+```bash
+npm run qa:script-sim
+```
 
 **Overtime:** HS uses alternating possessions from the **opponent 10** (`+10` / `−10`), not college/NFL kickoff periods. See [overtime-rules.md](./overtime-rules.md).
 

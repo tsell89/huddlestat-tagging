@@ -141,6 +141,7 @@ Step-by-step tags for [ipad-qa-checklist.md](./ipad-qa-checklist.md). Report eac
 | Saved play | Next is kickoff? | Toggle default |
 |------------|------------------|----------------|
 | Our FG / XP / 2pt **Good** (odk O) | yes | **We kick** |
+| Our XP / 2pt **No Good** (odk O) | yes | **We kick** |
 | Opponent FG / XP / 2pt **Good** (odk D) | yes | **We receive** |
 | Our PAT **block** after opp TD (odk D) | yes | **We receive** |
 | OT XP Good | no (OT possession) | unchanged |

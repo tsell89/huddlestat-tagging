@@ -1,0 +1,11 @@
+{
+  "gameId": "qa-script-b",
+  "rules": "HS",
+  "source": "hand",
+  "teamOffense": "TEAM_A",
+  "teamDefense": "OPP",
+  "periods": 4,
+  "overtime": false,
+  "redacted": true,
+  "description": "iPad QA Script B \u2014 Rush TD \u2192 XP Good \u2192 we-kick TB \u2192 D @ Opp 20"
+}

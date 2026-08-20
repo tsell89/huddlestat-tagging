@@ -77,6 +77,19 @@ describe("resolveKickoffRoleAfterSave", () => {
     );
   });
 
+  test("our XP No Good → kick (missed PAT still our kickoff)", () => {
+    const saved = {
+      ...defaultOffensivePlay(6, TEAM),
+      playType: PlayType.ExtraPoint,
+      result: Result.NoGood,
+      odk: ODK.Offense,
+    };
+    assert.equal(
+      resolveKickoffRoleAfterSave(saved, kickoffDraft, "receive"),
+      "kick",
+    );
+  });
+
   test("blocked PAT after opponent TD → receive", () => {
     const saved = {
       ...defaultOffensivePlay(6, TEAM),

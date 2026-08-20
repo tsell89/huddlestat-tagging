@@ -323,12 +323,14 @@ API: `buildJerseyGridRankings()` in `lib/tagging/jerseyGridRank.ts`.
 | FG | No Good (into EZ) | FGPad | Touchback @ Own 20 |
 | FG | Blocked | FGPad | pkg H |
 | Extra Pt. | Good | Scoring | Kickoff |
+| Extra Pt. | No Good | Scoring | Kickoff (missed try) |
 | Extra Pt. Block | Blocked | Scoring | Kickoff |
 | 2 Pt. | Good | Scoring | Kickoff |
+| 2 Pt. | No Good | Scoring | Kickoff (missed try) |
 | 2 Pt. Block | Blocked | Scoring | Kickoff |
 | Run / Pass / Return | Safety / `end:SA` | any | Free kick — scored-upon @ Own 20 (`KO` if we were O; `KO Rec` if we were D) |
 
-**Remaining code gaps:** XP/2pt no-good on offense, post-block kickoff edge cases (§10).
+**Remaining code gaps:** post-block kickoff edge cases (§10).
 
 ---
 

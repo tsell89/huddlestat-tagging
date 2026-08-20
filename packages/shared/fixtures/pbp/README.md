@@ -39,5 +39,14 @@ npm run test:pbp --workspace=@huddlestat/shared
 | `defensive-special-td-catalog.json` | HS | INT return TD → scoring pad |
 | `onside-recovery.json` | HS | Onside kick recovery spot (replay asserts end spot) |
 | `safety-free-kick.json` | HS | Run Safety → free kick KO @ Own 20 → we-kick TB → D @ Opp 20 |
+| `xp-no-good-kickoff.json` | HS | Rush TD → XP No Good → kickoff |
+
+## QA script games (`games/qa-script-*`)
+
+Scripted simulations of [ipad-qa-play-scripts.md](../../../docs/ipad-qa-play-scripts.md):
+
+```bash
+npm run qa:script-sim --workspace=@huddlestat/shared
+```
 
 See [docs/overtime-rules.md](../../../docs/overtime-rules.md).

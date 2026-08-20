@@ -259,7 +259,7 @@ export function getAlternateResultsForPlayType(
       return [Result.Good, Result.NoGood, Result.Blocked, Result.Penalty];
     case PlayType.ExtraPoint:
     case PlayType.TwoPoint:
-      return [Result.Good];
+      return [Result.Good, Result.NoGood];
     case PlayType.ExtraPointBlock:
     case PlayType.TwoPointBlock:
       return [Result.Blocked];
