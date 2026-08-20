@@ -405,7 +405,7 @@ API: `buildJerseyGridRankings()` in `lib/tagging/jerseyGridRank.ts`.
 | **H** | **Live ball: fumble, INT, blocked kicks, penalties** ✓ |
 | **I** | **iPad QA** — automated ✓; manual **§2.4 ✓** 2026-05-27; A–I manual + UX items open ([report](./package-i-qa-report.md)) |
 
-**Deferred:** stats revisit UX (quarter/halftime), fake punt/FG, full penalty library, KO penalty edge cases.
+**Deferred:** stats revisit UX (quarter/halftime), fake punt/FG (tag as Run/Pass from 4th — no special result yet), KO penalty edge cases. Penalty library: 5/10/15 + against O/D + auto-1st + half-distance shipped; offsetting / decline / special-teams enforcement still open.
 
 ---
 
