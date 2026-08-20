@@ -87,15 +87,18 @@ export async function recordOpeningDefendingEnd(
 
 /**
  * Persist opening defending end from the direction control or first save.
- * Overwritable until the first play is saved; locked afterward.
- * Never invents opening from a mid-game change when opening is still unset.
+ * Overwritable in Q1 until the first play is saved.
+ * Locked after first save, and never rewritten once phase leaves Q1
+ * (Q1→Q2 records opening pre-flip via {@link recordOpeningDefendingEnd}).
  */
 export async function persistOpeningDefendingEnd(
   gameId: string,
   end: DefendingEnd,
   savedPlayCount: number,
+  phase?: string,
 ): Promise<void> {
   if (savedPlayCount > 0) return;
+  if (phase !== undefined && phase !== "Q1") return;
   await writeOpeningDefendingEnd(gameId, end);
 }
 

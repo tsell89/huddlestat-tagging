@@ -805,7 +805,7 @@ export default function TaggingScreen() {
   function handleDefendingEndChange(end: DefendingEnd) {
     setDefendingEndState(end);
     if (id) {
-      void persistOpeningDefendingEnd(id, end, plays.length);
+      void persistOpeningDefendingEnd(id, end, plays.length, game?.phase);
       void setDefendingEnd(id, end);
     }
   }
@@ -1121,7 +1121,12 @@ export default function TaggingScreen() {
             plays.length,
           );
         }
-        await persistOpeningDefendingEnd(id, defendingEnd, plays.length);
+        await persistOpeningDefendingEnd(
+          id,
+          defendingEnd,
+          plays.length,
+          game.phase,
+        );
         const saved = await saveLocalPlay(id, toSave);
         const newPlays = [...plays, saved];
         setPlays(newPlays);
