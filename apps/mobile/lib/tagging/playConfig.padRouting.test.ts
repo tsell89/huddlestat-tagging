@@ -7,7 +7,11 @@ import {
   nextDraftAfterPlay,
   Result,
 } from "@huddlestat/shared";
-import { shouldShowOffensePad } from "./playConfig.js";
+import {
+  applyResultChange,
+  playTypeTapTarget,
+  shouldShowOffensePad,
+} from "./playConfig.js";
 
 const TEAM = "WHS";
 
@@ -66,5 +70,61 @@ describe("shouldShowOffensePad — Punt Rec after 4th-down punt", () => {
     assert.equal(afterInt.odk, ODK.Defense);
     assert.equal(afterInt.playType, "");
     assert.equal(shouldShowOffensePad(afterInt), true);
+  });
+});
+
+describe("playTypeTapTarget — Punt Rec", () => {
+  test("Punt tap on PuntReceive is a no-op", () => {
+    assert.equal(
+      playTypeTapTarget(PlayType.PuntReceive, PlayType.Punt),
+      null,
+    );
+  });
+
+  test("Run tap on PuntReceive switches to Run", () => {
+    assert.equal(
+      playTypeTapTarget(PlayType.PuntReceive, PlayType.Run),
+      PlayType.Run,
+    );
+  });
+
+  test("Punt tap on Punt still applies Punt", () => {
+    assert.equal(playTypeTapTarget(PlayType.Punt, PlayType.Punt), PlayType.Punt);
+  });
+});
+
+describe("applyResultChange — PuntReceive spotEncoding", () => {
+  test("preserves recv: encoding when re-selecting Return", () => {
+    const draft = {
+      ...defaultPuntReceivePlay(6, TEAM),
+      result: Result.Return,
+      spotEncoding: "recv:-5|end:-25",
+      returnYards: 20,
+      gainLoss: 15,
+    };
+    const next = applyResultChange(draft, Result.Return);
+    assert.equal(next.spotEncoding, "recv:-5|end:-25");
+  });
+
+  test("preserves end: encoding when re-selecting FairCatch", () => {
+    const draft = {
+      ...defaultPuntReceivePlay(6, TEAM),
+      result: Result.FairCatch,
+      spotEncoding: "end:-22",
+      gainLoss: 18,
+    };
+    const next = applyResultChange(draft, Result.FairCatch);
+    assert.equal(next.spotEncoding, "end:-22");
+  });
+
+  test("preserves recover: encoding when re-selecting Blocked", () => {
+    const draft = {
+      ...defaultPuntReceivePlay(6, TEAM),
+      result: Result.Blocked,
+      spotEncoding: "recover:20|end:-32",
+      returnYards: 12,
+    };
+    const next = applyResultChange(draft, Result.Blocked);
+    assert.equal(next.spotEncoding, "recover:20|end:-32");
   });
 });

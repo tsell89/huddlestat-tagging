@@ -324,6 +324,20 @@ export function yardsSliderRange(yardLine: YardLine): { min: number; max: number
 }
 
 /**
+ * Map a PlayTypeRow tap to the play type to apply, or null to keep the draft.
+ * Punt Rec shares the Punt cell highlight — re-tapping must not rewrite to Punt.
+ */
+export function playTypeTapTarget(
+  draftPlayType: PlaylistData["playType"],
+  tapped: OffensePlayType,
+): OffensePlayType | null {
+  if (tapped === PlayType.Punt && draftPlayType === PlayType.PuntReceive) {
+    return null;
+  }
+  return tapped;
+}
+
+/**
  * Switch play type mid-snap (Run ↔ Pass or to Punt/FG).
  * Preserves down, distance, yardLine; resets result-specific fields.
  */
@@ -401,18 +415,23 @@ function spotEncodingMatchesResult(
   if (result === Result.Penalty) return spotEncoding.startsWith("foul:");
   if (
     result === Result.Blocked &&
-    (playType === PlayType.Punt || playType === PlayType.FieldGoal)
+    (playType === PlayType.Punt ||
+      playType === PlayType.PuntReceive ||
+      playType === PlayType.FieldGoal)
   ) {
     return spotEncoding.startsWith("recover:");
   }
   if (needsTackleSpot(playType, result)) {
     return spotEncoding.startsWith("tackle:");
   }
-  if (playType === PlayType.Punt && result === Result.Return) {
+  if (
+    (playType === PlayType.Punt || playType === PlayType.PuntReceive) &&
+    result === Result.Return
+  ) {
     return spotEncoding.startsWith("recv:");
   }
   if (
-    playType === PlayType.Punt &&
+    (playType === PlayType.Punt || playType === PlayType.PuntReceive) &&
     (result === Result.Downed || result === Result.FairCatch)
   ) {
     return (

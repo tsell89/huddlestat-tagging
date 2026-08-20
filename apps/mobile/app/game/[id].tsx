@@ -892,7 +892,11 @@ export default function TaggingScreen() {
       return;
     }
 
-    if (next.playType === PlayType.Punt && next.result === Result.Blocked) {
+    if (
+      (next.playType === PlayType.Punt ||
+        next.playType === PlayType.PuntReceive) &&
+      next.result === Result.Blocked
+    ) {
       const spotInputsChanged =
         draft?.playType !== next.playType ||
         draft?.result !== next.result ||

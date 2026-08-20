@@ -3,6 +3,7 @@ import { PlayType, type PlaylistData } from "@huddlestat/shared";
 import {
   OFFENSE_PLAY_TYPES,
   getPlayTypeTapSizes,
+  playTypeTapTarget,
   type OffensePlayType,
   type PlayTypeTapSize,
 } from "@/lib/tagging/playConfig";
@@ -75,7 +76,11 @@ export function PlayTypeRow({ draft, onChange, compact = false }: PlayTypeRowPro
               selected && styles.cellSelected,
               muted && styles.cellMuted,
             ]}
-            onPress={() => onChange(playType)}
+            onPress={() => {
+              const target = playTypeTapTarget(draft.playType, playType);
+              if (target == null) return;
+              onChange(target);
+            }}
           >
             <Text
               style={[
