@@ -1,4 +1,4 @@
-import { ODK, PlayType, type PlaylistData } from "@huddlestat/shared";
+import { ODK, PlayType, Result, type PlaylistData } from "@huddlestat/shared";
 import type { KickoffRole } from "@/lib/tagging/kickoffRoleResolve";
 
 /**
@@ -9,14 +9,24 @@ export function isAdvancingTowardOpponent(
   draft: PlaylistData,
   kickoffRole: KickoffRole,
 ): boolean {
+  // Our pass intercepted — return goes toward our defending end.
+  if (draft.odk === ODK.Offense && draft.result === Result.Interception) {
+    return false;
+  }
   if (draft.odk === ODK.Offense) return true;
-  if (draft.odk === ODK.Defense) return false;
-  // Special teams (ODK K): receive → we return toward opp; kick → return comes at us.
+
+  // Our defensive / special-teams returns advance toward the opponent end.
   if (
+    draft.result === Result.Interception ||
     draft.playType === PlayType.KickoffReceive ||
-    kickoffRole === "receive"
+    draft.playType === PlayType.PuntReceive
   ) {
     return true;
   }
+
+  if (draft.odk === ODK.Defense) return false;
+
+  // Special teams kickoff (ODK K): receive role → we return toward opp.
+  if (kickoffRole === "receive") return true;
   return false;
 }

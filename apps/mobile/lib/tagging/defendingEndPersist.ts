@@ -87,7 +87,7 @@ export async function recordOpeningDefendingEnd(
 
 /**
  * Persist opening defending end from the direction control or first save.
- * Overwritable until the first play is saved; locked after that.
+ * Overwritable until the first play is saved; locked afterward.
  * Never invents opening from a mid-game change when opening is still unset.
  */
 export async function persistOpeningDefendingEnd(
@@ -95,23 +95,8 @@ export async function persistOpeningDefendingEnd(
   end: DefendingEnd,
   savedPlayCount: number,
 ): Promise<void> {
-  const existing = await getOpeningDefendingEnd(gameId);
-  if (existing !== null) return;
   if (savedPlayCount > 0) return;
   await writeOpeningDefendingEnd(gameId, end);
-}
-
-/**
- * Lock opening from the current period end only when still in Q1 (true opening).
- * Do not call with a post-flip current end.
- */
-export async function recordOpeningDefendingEndIfQ1(
-  gameId: string,
-  end: DefendingEnd,
-  phase: string,
-): Promise<void> {
-  if (phase !== "Q1") return;
-  await recordOpeningDefendingEnd(gameId, end);
 }
 
 /** 2H default: same as opening (teams have flipped twice by Q3). */
