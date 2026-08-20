@@ -43,6 +43,11 @@ export function defaultPenaltyDraft(ballSpot: YardLine): PenaltyDraftFields {
   };
 }
 
+/** Default AFD when switching Against — D on, O off (manual toggle still allowed after). */
+export function autoFirstDownWhenAgainst(against: PenaltyAgainst): boolean {
+  return against === "D";
+}
+
 export function initPenaltyDraftFromPlay(
   draft: PlaylistData | null,
 ): PenaltyDraftFields {

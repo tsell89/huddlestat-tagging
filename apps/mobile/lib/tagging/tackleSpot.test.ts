@@ -50,6 +50,37 @@ describe("computeTackleGainLoss odk polarity", () => {
       -5,
     );
   });
+
+  test("defense TD Opp 20 keeps positive possession yards", () => {
+    assert.equal(
+      computeTackleGainLoss(20, { kind: "touchdown" }, ODK.Defense),
+      20,
+    );
+  });
+
+  test("offense TD Opp 20 is +20", () => {
+    assert.equal(
+      computeTackleGainLoss(20, { kind: "touchdown" }, ODK.Offense),
+      20,
+    );
+  });
+});
+
+describe("applyTackleSpotToDraft D TD", () => {
+  test("D Rush TD @ Opp 20 → gainLoss +20 not negative", () => {
+    const draft = {
+      ...defaultOffensivePlay(5, TEAM),
+      odk: ODK.Defense,
+      playType: PlayType.Run,
+      result: Result.RushTd,
+      yardLine: 20,
+      down: 1,
+      distance: 10,
+    };
+    const saved = applyTackleSpotToDraft(draft, { kind: "touchdown" });
+    assert.equal(saved.gainLoss, 20);
+    assert.equal(saved.spotEncoding, "tackle:20|end:TD");
+  });
 });
 
 describe("applyTackleSpotToDraft odk D", () => {

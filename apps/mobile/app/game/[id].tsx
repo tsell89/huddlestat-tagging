@@ -850,7 +850,9 @@ export default function TaggingScreen() {
     const isKickoff =
       next.playType === PlayType.Kickoff ||
       next.playType === PlayType.KickoffReceive;
-    const isPunt = next.playType === PlayType.Punt;
+    const isPunt =
+      next.playType === PlayType.Punt ||
+      next.playType === PlayType.PuntReceive;
 
     if (isKickoff && next.result === Result.Touchback) {
       setKickoffSpots(defaultKickoffReturnSpots());
@@ -890,7 +892,7 @@ export default function TaggingScreen() {
       return;
     }
 
-    if (isPunt && next.result === Result.Blocked) {
+    if (next.playType === PlayType.Punt && next.result === Result.Blocked) {
       const spotInputsChanged =
         draft?.playType !== next.playType ||
         draft?.result !== next.result ||

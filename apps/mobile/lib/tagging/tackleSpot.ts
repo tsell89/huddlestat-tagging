@@ -62,7 +62,8 @@ function taggedTeamTackleGain(ballSpot: YardLine, end: TackleEnd): number {
 
 /**
  * Possession-team gain/loss for the chain.
- * odk D: opponent advances toward our goal — negate tagged-team axis delta.
+ * odk D yard-line tackles: opponent advances toward our goal — negate tagged-team axis delta.
+ * TD/SA ends stay positive possession yards (Hudl/MaxPreps: D TD gainLoss > 0).
  */
 export function computeTackleGainLoss(
   ballSpot: YardLine,
@@ -70,6 +71,9 @@ export function computeTackleGainLoss(
   odk: PlaylistData["odk"] = ODK.Offense,
 ): number {
   const tagged = taggedTeamTackleGain(ballSpot, end);
+  if (end.kind === "touchdown" || end.kind === "safety") {
+    return tagged;
+  }
   return odk === ODK.Defense ? -tagged : tagged;
 }
 

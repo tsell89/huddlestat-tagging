@@ -130,11 +130,18 @@ export function decodePuntDownedFromSpotEncoding(
   return Number(match[1]) as YardLine;
 }
 
+/** Our punt (Punt) or opponent punt receive (Punt Rec) — both use return/downed spots. */
+export function isPuntSpotPlayType(
+  playType: PlaylistData["playType"] | undefined,
+): boolean {
+  return playType === PlayType.Punt || playType === PlayType.PuntReceive;
+}
+
 export function initPuntSpotsFromDraft(
   draft: PlaylistData | null,
 ): PuntSpots {
   const ballSpot = draft?.yardLine ?? (-35 as YardLine);
-  if (!draft || draft.playType !== PlayType.Punt) {
+  if (!draft || !isPuntSpotPlayType(draft.playType)) {
     return defaultPuntSpots(ballSpot);
   }
 
@@ -180,7 +187,7 @@ export function applyPuntSpotsToDraft(
   draft: PlaylistData,
   spots: PuntSpots,
 ): PlaylistData {
-  if (draft.playType !== PlayType.Punt) return draft;
+  if (!isPuntSpotPlayType(draft.playType)) return draft;
 
   if (draft.result === Result.Touchback) {
     return {

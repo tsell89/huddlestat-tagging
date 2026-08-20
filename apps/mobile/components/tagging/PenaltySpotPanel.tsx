@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { FieldPositionSlider } from "@/components/tagging/FieldPositionSlider";
 import {
   PENALTY_YARD_OPTIONS,
+  autoFirstDownWhenAgainst,
   foulRatioToYardLine,
   foulYardLineToRatio,
   type PenaltyAgainst,
@@ -26,11 +27,11 @@ export function PenaltySpotPanel({
     onChange({ ...penalty, yards });
   }
   function setAgainst(against: PenaltyAgainst) {
-    // Defensive fouls commonly carry an automatic first down.
+    // Defensive fouls commonly carry an automatic first down; clear when back to O.
     onChange({
       ...penalty,
       against,
-      autoFirstDown: against === "D" ? true : penalty.autoFirstDown,
+      autoFirstDown: autoFirstDownWhenAgainst(against),
     });
   }
 
