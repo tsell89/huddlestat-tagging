@@ -66,7 +66,7 @@ We do **not** tag “caught at X, carried to Y” on complete passes today. Tota
 | **Incomplete** / **Tipped pass** | Down+1, distance **unchanged** | **Unchanged** | **0 always** |
 | **Failed 4th** (go for it, short) | Turnover — see §2.3 | End spot | auto **`result: COP`** on save |
 
-**Penalties (most flags):** replay **same down**; yardage from **spot of foul** (Package H). Example: 2nd & 10 @ Own 40, holding at Own 42 → **2nd & 18 @ Own 32**.
+**Penalties:** replay **same down** (unless auto first down); yardage from **spot of foul**. Encoding: `foul:Y` (holding 10 vs O) or `foul:Y|yd:5|vs:D|afd:1`. Half-distance near the goal. Example: 2nd & 10 @ Own 40, holding at Own 42 → **2nd & 18 @ Own 32**.
 
 ### 2.3 Touchback vs turnover
 

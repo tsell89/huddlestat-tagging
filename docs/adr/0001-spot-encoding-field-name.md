@@ -75,7 +75,7 @@ On **Pass** play type, result buttons are **`Complete`**, **`Incomplete`**, **`C
    | Run / pass (complete, sack, rush TD) | `tackle:LOS\|end:Y` (or `TD`/`SA`) | Snap spot + **play end only** |
    | Pass incomplete / tipped | *(empty)* | LOS unchanged; `gainLoss = 0` |
    | Punt downed, FG no-good | `end:Y`, `end:field`, `end:TB`, … | End spot only |
-   | Penalty | `foul:Y` | Spot of foul |
+   | Penalty | `foul:Y` or `foul:Y\|yd:N\|vs:O\|afd:0` | Spot of foul + yards / against / auto-1st |
    | Fumble / blocked kick | `fumble:…`, `recover:…` | Recovery chain |
 
 5. **Implementation:** completed in [PR #18](https://github.com/tsell89/huddlestat-tagging/pull/18) — schema, SQLite, fixtures, helpers; CSV header `COMPLETION` unchanged.

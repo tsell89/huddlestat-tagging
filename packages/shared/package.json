@@ -15,7 +15,7 @@
     "test:qa": "tsx --test src/qa/replayQaLog.test.ts src/qa/simulateScript.test.ts",
     "qa:replay": "tsx scripts/replay-qa-log.mjs",
     "qa:script-sim": "tsx scripts/qa-script-sim.mjs",
-    "test": "tsx --test src/playChain.test.ts src/scoreFromPlays.test.ts src/defensiveCredits.test.ts src/specialTeamsCredits.test.ts src/reconcileMaxPrepsExport.test.ts src/maxPrepsBoxScore.test.ts src/hudlCanonical.test.ts src/pbp/hudlCsv.test.ts src/qa/replayQaLog.test.ts src/qa/simulateScript.test.ts && npm run test:pbp",
+    "test": "tsx --test src/playChain.test.ts src/penalty.test.ts src/scoreFromPlays.test.ts src/defensiveCredits.test.ts src/specialTeamsCredits.test.ts src/reconcileMaxPrepsExport.test.ts src/maxPrepsBoxScore.test.ts src/hudlCanonical.test.ts src/pbp/hudlCsv.test.ts src/qa/replayQaLog.test.ts src/qa/simulateScript.test.ts && npm run test:pbp",
     "lint": "echo 'no lint configured'"
   },
   "devDependencies": {

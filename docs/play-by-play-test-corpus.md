@@ -56,6 +56,7 @@ When automation finds unsupported or ambiguous state, the tagger must keep going
 | `opp-xp-block-outcomes.json` | HS | Opp TD → Extra Pt. Block Good/No Good → KO Rec |
 | `fair-catch-punt.json` | HS | Fair Catch punt → Punt Rec; Timeout keeps down/distance |
 | `kneel-spike-clock.json` | HS | Spike · Timeout · kneel |
+| `penalty-library.json` | HS | Holding, false start, defensive holding auto-1st, half-distance |
 
 ### QA script games (`games/qa-script-*`, `qa-full-regulation`)
 

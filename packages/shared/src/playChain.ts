@@ -12,8 +12,8 @@ import {
   defaultScoringPlayAfterTd,
 } from "./defaults.js";
 import type { PlaylistData, YardLine } from "./index.js";
+import { advancePenaltySituation, decodePenalty, enforcePenaltyFieldPosition, penaltyTaggedDelta } from "./penalty.js";
 import {
-  FIELD_OWN_GOAL,
   HS_TOUCHBACK_YARD_LINE,
   fieldPositionToHudl,
   flipHudlYardLinePerspective,
@@ -21,6 +21,20 @@ import {
   hudlToFieldPosition,
   yardsAdvanced,
 } from "./fieldPosition100.js";
+
+export {
+  HOLDING_PENALTY_YARDS,
+  decodePenalty,
+  decodePenaltyFoulSpot,
+  encodePenaltySpotEncoding,
+  advancePenaltySituation,
+  enforcePenaltyFieldPosition,
+  penaltyTaggedDelta,
+  PENALTY_YARD_OPTIONS,
+  type DecodedPenalty,
+  type PenaltyAgainst,
+  type PenaltyYards,
+} from "./penalty.js";
 
 export type SituationFields = Pick<
   PlaylistData,
@@ -154,16 +168,6 @@ export function decodeFumbleSpotEncoding(
   };
 }
 
-/** Holding penalty — foul:-42 (MVP: 10 yards from spot of foul). */
-export function decodePenaltyFoulSpot(spotEncoding?: string): YardLine | null {
-  if (!spotEncoding?.startsWith("foul:")) return null;
-  const match = /^foul:(-?\d+)$/.exec(spotEncoding);
-  if (!match) return null;
-  return Number(match[1]) as YardLine;
-}
-
-export const HOLDING_PENALTY_YARDS = 10;
-
 function isFgPlay(playType: PlaylistData["playType"]): boolean {
   return playType === PlayType.FieldGoal;
 }
@@ -204,21 +208,7 @@ function isLiveBallTurnover(play: PlayChainInput): boolean {
 }
 
 function penaltySituation(play: PlayChainInput): SituationFields {
-  const foulSpot = decodePenaltyFoulSpot(play.spotEncoding) ?? play.yardLine;
-  const foulPos = hudlToFieldPosition(foulSpot);
-  const newPos = Math.max(
-    FIELD_OWN_GOAL,
-    foulPos - HOLDING_PENALTY_YARDS,
-  );
-  const newYardLine = fieldPositionToHudl(newPos);
-  const firstDownMarker =
-    hudlToFieldPosition(play.yardLine) + play.distance;
-  const newDistance = Math.max(1, firstDownMarker - newPos);
-  return {
-    down: play.down,
-    distance: newDistance,
-    yardLine: newYardLine,
-  };
+  return advancePenaltySituation(play);
 }
 
 function isNoGainResult(result: PlaylistData["result"]): boolean {
@@ -447,13 +437,21 @@ export function yardLineAfterPlay(
   }
 
   if (play.result === Result.Penalty) {
-    const foulSpot = decodePenaltyFoulSpot(play.spotEncoding) ?? play.yardLine;
-    const foulPos = hudlToFieldPosition(foulSpot);
-    const newPos = Math.max(
-      FIELD_OWN_GOAL,
-      foulPos - HOLDING_PENALTY_YARDS,
+    const decoded = decodePenalty(play.spotEncoding) ?? {
+      foulSpot: play.yardLine,
+      yards: 10 as const,
+      against: "O" as const,
+      autoFirstDown: false,
+    };
+    const foulPos = hudlToFieldPosition(decoded.foulSpot);
+    const taggedDelta = penaltyTaggedDelta(
+      decoded.yards,
+      decoded.against,
+      play.odk,
     );
-    return fieldPositionToHudl(newPos);
+    return fieldPositionToHudl(
+      enforcePenaltyFieldPosition(foulPos, taggedDelta),
+    );
   }
 
   if (isNoGainResult(play.result) || play.result === Result.Timeout) {

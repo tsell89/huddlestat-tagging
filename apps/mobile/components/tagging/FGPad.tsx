@@ -22,6 +22,7 @@ import {
 import { LAYOUT } from "@/lib/tagging/layoutConstants";
 import type { BlockedKickRecoverySpots } from "@/lib/tagging/blockedKickRecovery";
 import type { DefendingEnd } from "@/lib/tagging/defendingEnd";
+import type { PenaltyDraftFields } from "@/lib/tagging/penaltySpot";
 
 type FGPadProps = {
   draft: PlaylistData;
@@ -31,8 +32,8 @@ type FGPadProps = {
   gamePlays: LocalPlay[];
   blockedSpots: BlockedKickRecoverySpots;
   onBlockedSpotsChange: (spots: BlockedKickRecoverySpots) => void;
-  penaltyFoulSpot: YardLine;
-  onPenaltyFoulSpotChange: (spot: YardLine) => void;
+  penalty: PenaltyDraftFields;
+  onPenaltyChange: (penalty: PenaltyDraftFields) => void;
   defendingEnd?: DefendingEnd;
 };
 
@@ -48,8 +49,8 @@ export function FGPad({
   gamePlays,
   blockedSpots,
   onBlockedSpotsChange,
-  penaltyFoulSpot,
-  onPenaltyFoulSpotChange,
+  penalty,
+  onPenaltyChange,
   defendingEnd = "left",
 }: FGPadProps) {
   const alternates = getAlternateResultsForPlayType(draft.playType);
@@ -117,8 +118,8 @@ export function FGPad({
       ) : draft.result === Result.Penalty ? (
         <View style={styles.section}>
           <PenaltySpotPanel
-            foulSpot={penaltyFoulSpot}
-            onChange={onPenaltyFoulSpotChange}
+            penalty={penalty}
+            onChange={onPenaltyChange}
             defendingEnd={defendingEnd}
           />
         </View>

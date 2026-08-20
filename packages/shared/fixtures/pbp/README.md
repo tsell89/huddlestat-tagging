@@ -43,7 +43,7 @@ npm run test:pbp --workspace=@huddlestat/shared
 | `xp-no-good-kickoff.json` | HS | Rush TD → XP No Good → kickoff |
 | `opp-xp-block-outcomes.json` | HS | Opp TD → Extra Pt. Block Good / No Good → KO Rec |
 | `fair-catch-punt.json` | HS | Fair Catch punt → Punt Rec; Timeout keeps situation |
-| `kneel-spike-clock.json` | HS | Spike Incomplete · Timeout · kneel Rush −1 |
+| `penalty-library.json` | HS | Holding, false start 5, defensive holding auto-1st, half-distance |
 
 ## QA script games (`games/qa-script-*`)
 
