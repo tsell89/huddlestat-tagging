@@ -46,4 +46,25 @@ describe("shouldShowOffensePad — Punt Rec after 4th-down punt", () => {
       true,
     );
   });
+
+  test("open scrimmage draft after turnover (odk D, empty playType) shows pad", () => {
+    const afterInt = nextDraftAfterPlay(
+      {
+        ...defaultPuntReceivePlay(3, TEAM),
+        playNumber: 3,
+        odk: ODK.Offense,
+        playType: PlayType.Pass,
+        result: Result.Interception,
+        yardLine: -30,
+        down: 2,
+        distance: 8,
+        spotEncoding: "catch:15|end:-32",
+      },
+      4,
+      TEAM,
+    );
+    assert.equal(afterInt.odk, ODK.Defense);
+    assert.equal(afterInt.playType, "");
+    assert.equal(shouldShowOffensePad(afterInt), true);
+  });
 });

@@ -255,11 +255,12 @@ describe("TD → scoring → kickoff chain", () => {
     });
 
     const scoring = nextDraftAfterPlay(punt, 6, TEAM);
-    assert.equal(scoring.playType, PlayType.ExtraPoint);
+    assert.equal(scoring.playType, PlayType.ExtraPointBlock);
+    assert.equal(scoring.odk, ODK.Defense);
     assert.equal(scoring.yardLine, 3);
   });
 
-  test("blocked punt recover|end:TD → Extra Pt scoring pad (odk O)", () => {
+  test("blocked punt recover|end:TD → Extra Pt. Block (they scored on our punt)", () => {
     const blocked = basePlay({
       playNumber: 6,
       playType: PlayType.Punt,
@@ -272,8 +273,8 @@ describe("TD → scoring → kickoff chain", () => {
     });
 
     const scoring = nextDraftAfterPlay(blocked, 7, TEAM);
-    assert.equal(scoring.playType, PlayType.ExtraPoint);
-    assert.equal(scoring.odk, ODK.Offense);
+    assert.equal(scoring.playType, PlayType.ExtraPointBlock);
+    assert.equal(scoring.odk, ODK.Defense);
     assert.equal(scoring.yardLine, 3);
   });
 
@@ -595,6 +596,25 @@ describe("punt receive chain", () => {
     });
 
     assert.equal(yardLineAfterPlay(puntRec), -20);
+  });
+
+  test("Punt Rec touchback → next odk D 1st & 10 @ Opp 20", () => {
+    const puntRec = basePlay({
+      playType: PlayType.PuntReceive,
+      result: Result.Touchback,
+      odk: ODK.Defense,
+      yardLine: -35,
+      down: 1,
+      distance: 10,
+      gainLoss: 0,
+    });
+
+    const next = nextDraftAfterPlay(puntRec, 7, TEAM);
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
+    assert.equal(next.yardLine, 20);
+    assert.equal(next.playType, "");
   });
 });
 

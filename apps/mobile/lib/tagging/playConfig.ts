@@ -96,19 +96,28 @@ export function isOffensePadPlayType(
   );
 }
 
+/** Scrimmage series — our offense or theirs (we tag Run/Pass with odk D). */
+function isOpenScrimmageDraft(draft: PlaylistData): boolean {
+  return (
+    (draft.odk === ODK.Offense || draft.odk === ODK.Defense) &&
+    draft.down >= 1 &&
+    !draft.playType
+  );
+}
+
 export function shouldShowOffensePad(draft: PlaylistData): boolean {
   if (isScoringPlayType(draft.playType)) return false;
   return (
     isOffensePadPlayType(draft.playType) ||
     draft.playType === PlayType.PuntReceive ||
-    (draft.odk === ODK.Offense && draft.down >= 1 && !draft.playType)
+    isOpenScrimmageDraft(draft)
   );
 }
 
 /** New offensive series defaults to RunPad with Rush selected. */
 export function ensureOffensePadDraft(draft: PlaylistData): PlaylistData {
   if (isScoringPlayType(draft.playType)) return draft;
-  if (draft.odk === ODK.Offense && draft.down >= 1 && !draft.playType) {
+  if (isOpenScrimmageDraft(draft)) {
     return applyPlayTypeChange(draft, PlayType.Run);
   }
   return draft;

@@ -43,6 +43,7 @@ export {
   liveDraftFromLastPlay,
   nextDraftAfterPlay,
   normalizePlayOnSave,
+  scoringOdkForTouchdown,
   yardLineAfterPlay,
   type FumbleRecoverySide,
   type PlayChainInput,
