@@ -51,6 +51,7 @@ When automation finds unsupported or ambiguous state, the tagger must keep going
 | `onside-recovery.json` | HS | Short kick + recovery spot (Package H live-ball path) |
 | `kickoff-return-midfield-spot.json` | HS | KO Rec Own 5→Own 25 → next snap @ −25 (return end) |
 | `odk-d-scrimmage.json` | HS | We-kick → odk D series preserves ODK across snaps |
+| `safety-free-kick.json` | HS | Run Safety → free kick from Own 20 |
 
 **Overtime:** HS uses alternating possessions from the **opponent 10** (`+10` / `−10`), not college/NFL kickoff periods. See [overtime-rules.md](./overtime-rules.md).
 

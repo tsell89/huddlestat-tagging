@@ -90,6 +90,37 @@ describe("resolveKickoffRoleAfterSave", () => {
     );
   });
 
+  test("our Safety → we free-kick", () => {
+    const saved = {
+      ...defaultOffensivePlay(6, TEAM),
+      playType: PlayType.Run,
+      result: Result.Safety,
+      odk: ODK.Offense,
+    };
+    assert.equal(
+      resolveKickoffRoleAfterSave(saved, kickoffDraft, "receive"),
+      "kick",
+    );
+  });
+
+  test("we safety them → we receive their free kick", () => {
+    const receiveDraft = {
+      ...defaultKickoffPlay(7, TEAM),
+      playType: PlayType.KickoffReceive,
+      yardLine: 20,
+    };
+    const saved = {
+      ...defaultOffensivePlay(6, TEAM),
+      playType: PlayType.Run,
+      result: Result.Safety,
+      odk: ODK.Defense,
+    };
+    assert.equal(
+      resolveKickoffRoleAfterSave(saved, receiveDraft, "kick"),
+      "receive",
+    );
+  });
+
   test("next draft not kickoff → role unchanged", () => {
     const saved = {
       ...defaultOffensivePlay(6, TEAM),

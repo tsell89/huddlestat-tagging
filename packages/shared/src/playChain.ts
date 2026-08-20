@@ -322,6 +322,14 @@ function isTouchdownResult(result: PlaylistData["result"]): boolean {
   return result === Result.RushTd || result === Result.CompleteTd;
 }
 
+/** Safety via explicit result or live-ball end:SA (not a TD). */
+function isSafetyOutcome(
+  play: Pick<PlaylistData, "result" | "spotEncoding">,
+): boolean {
+  if (play.result === Result.Safety) return true;
+  return play.spotEncoding?.includes("end:SA") === true;
+}
+
 function isScoringGood(play: Pick<PlaylistData, "playType" | "result">): boolean {
   if (play.result !== Result.Good) return false;
   return (
@@ -594,6 +602,24 @@ export function nextDraftAfterPlay(
       return defaultHsOtPossessionSnap(nextPlayNumber, team, nextOdk);
     }
     return defaultKickoffPlay(nextPlayNumber, team);
+  }
+
+  // Safety → free kick (NFHS: scored-upon team kicks from their 20).
+  if (isSafetyOutcome(play)) {
+    if (play.odk === ODK.Offense) {
+      // We were scored upon → we free-kick from Own 20.
+      return {
+        ...defaultKickoffPlay(nextPlayNumber, team),
+        playType: PlayType.Kickoff,
+        yardLine: -20,
+      };
+    }
+    // We scored the safety → they free-kick; we receive from Opp 20.
+    return {
+      ...defaultKickoffPlay(nextPlayNumber, team),
+      playType: PlayType.KickoffReceive,
+      yardLine: 20,
+    };
   }
 
   if (

@@ -41,6 +41,13 @@ function isPatBlockComplete(
   );
 }
 
+function isSafetyOutcome(
+  play: Pick<PlaylistData, "result" | "spotEncoding">,
+): boolean {
+  if (play.result === Result.Safety) return true;
+  return play.spotEncoding?.includes("end:SA") === true;
+}
+
 /** UX-14: default kickoff role after a scoring play when the chain next snap is kickoff. */
 export function resolveKickoffRoleAfterSave(
   savedPlay: PlaylistData,
@@ -49,6 +56,11 @@ export function resolveKickoffRoleAfterSave(
 ): KickoffRole {
   if (!isKickoffDraft(nextChainDraft)) {
     return currentRole;
+  }
+
+  if (isSafetyOutcome(savedPlay)) {
+    // Scored-upon team free-kicks: we were on O → we kick; we were on D → we receive.
+    return savedPlay.odk === ODK.Offense ? "kick" : "receive";
   }
 
   if (savedPlay.odk === ODK.Offense && isScoringGood(savedPlay)) {

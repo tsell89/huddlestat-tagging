@@ -293,8 +293,41 @@ describe("TD → scoring → kickoff chain", () => {
     const next = nextDraftAfterPlay(koRec, 2, TEAM);
     assert.notEqual(next.playType, PlayType.ExtraPoint);
     assert.notEqual(next.playType, PlayType.ExtraPointBlock);
-    assert.equal(next.down, 1);
-    assert.equal(next.yardLine, 0);
+    // Safety on our return → they scored; we free-kick from Own 20.
+    assert.equal(next.playType, PlayType.Kickoff);
+    assert.equal(next.odk, ODK.Kicking);
+    assert.equal(next.yardLine, -20);
+  });
+
+  test("Run Safety (odk O) → we free-kick from Own 20", () => {
+    const safety = basePlay({
+      playType: PlayType.Run,
+      result: Result.Safety,
+      odk: ODK.Offense,
+      yardLine: -5,
+      down: 2,
+      distance: 8,
+      gainLoss: -5,
+    });
+    const next = nextDraftAfterPlay(safety, 3, TEAM);
+    assert.equal(next.playType, PlayType.Kickoff);
+    assert.equal(next.yardLine, -20);
+    assert.equal(next.odk, ODK.Kicking);
+  });
+
+  test("we safety them (odk D) → KO Rec free-kick receive @ Opp 20", () => {
+    const safety = basePlay({
+      playType: PlayType.Run,
+      result: Result.Safety,
+      odk: ODK.Defense,
+      yardLine: 5,
+      down: 2,
+      distance: 8,
+      gainLoss: -5,
+    });
+    const next = nextDraftAfterPlay(safety, 3, TEAM);
+    assert.equal(next.playType, PlayType.KickoffReceive);
+    assert.equal(next.yardLine, 20);
   });
 
   test("HS OT: XP Good → opponent possession @ Own 10 (defense)", () => {
@@ -807,7 +840,7 @@ describe("Package H — live ball", () => {
     assert.equal(next.down, 1);
   });
 
-  test("fumble safety → turnover @ own goal", () => {
+  test("fumble safety → free kick from Own 20 (we were scored upon)", () => {
     const fumble = basePlay({
       playType: PlayType.Run,
       result: Result.Fumble,
@@ -821,8 +854,9 @@ describe("Package H — live ball", () => {
 
     assert.equal(yardLineAfterPlay(fumble), 0);
     const next = nextDraftAfterPlay(fumble, 6, TEAM);
-    assert.equal(next.odk, ODK.Defense);
-    assert.equal(next.yardLine, 0);
+    assert.equal(next.playType, PlayType.Kickoff);
+    assert.equal(next.yardLine, -20);
+    assert.equal(next.odk, ODK.Kicking);
   });
 
   test("holding penalty replays same down from spot of foul", () => {

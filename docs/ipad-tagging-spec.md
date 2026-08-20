@@ -326,8 +326,9 @@ API: `buildJerseyGridRankings()` in `lib/tagging/jerseyGridRank.ts`.
 | Extra Pt. Block | Blocked | Scoring | Kickoff |
 | 2 Pt. | Good | Scoring | Kickoff |
 | 2 Pt. Block | Blocked | Scoring | Kickoff |
+| Run / Pass / Return | Safety / `end:SA` | any | Free kick — scored-upon @ Own 20 (`KO` if we were O; `KO Rec` if we were D) |
 
-**Remaining code gaps:** XP/2pt no-good on offense, kickoff return TD → scoring, post-block kickoff edge cases (§10).
+**Remaining code gaps:** XP/2pt no-good on offense, post-block kickoff edge cases (§10).
 
 ---
 
