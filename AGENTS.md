@@ -27,6 +27,7 @@ Before changing stats semantics, export, or docs:
 | Path | Role |
 |------|------|
 | `parseHudlCsv` | Official 32-col ingest (exported from `@huddlestat/shared`) |
+| `parseWithRules` | Dictation transcript → snap facts; does **not** invent down/distance/ODK |
 | `parsePartialPlaylistCsv` | **Deprecated** — 23-col Section A fixtures only |
 | `looksLikePartial23ColPlaylist` | Guard partial shape (platform official commit rejects) |
 | `toPlaylistDataRow` / `PLAYLIST_DATA_HEADERS` | iPad → Hudl CSV export (ADR-0001) |

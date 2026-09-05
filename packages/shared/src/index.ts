@@ -335,6 +335,16 @@ export {
   rowToPlaylistData,
 } from "./pbp/hudlCsv.js";
 export {
+  openingDictatedChain,
+  parseWithRules,
+  parserOmitsSituation,
+  parsedSnapIsConfirmable,
+  previewParsedPlay,
+  stripChainOwnedSituation,
+  type DictatedChain,
+  type DictatedPlayInput,
+} from "./parseDictated.js";
+export {
   deriveMaxPrepsBoxScoreFromPlays,
   MAXPREPS_FOOTBALL_COLUMNS,
   maxPrepsRowEquals,
