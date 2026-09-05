@@ -56,6 +56,8 @@ Friday (free MIT)
 
 Friday (optional hosted)
   iPad tag ──► POST /v1/publish ──► live tables (Unofficial)
+  iPhone dictation ──► parseWithRules / on-device AI ──► POST /v1/live/:slug/confirm
+                   ──► live tables every confirmed play (Unofficial; internet required)
 
 Saturday (platform — not this repo)
   Hudl 32-col export ──► parseHudlCsv ──► official_saturday commit
@@ -78,6 +80,7 @@ MaxPreps (coach)
 | iPad tagging | `apps/mobile/` |
 | Cloud publish | `apps/mobile/lib/sync/` |
 | Field position | `packages/shared/src/fieldPosition100.ts` |
+| Dictation parse (text → snap) | `packages/shared/src/parseDictated.ts` — `parseWithRules`; does **not** invent down/distance/ODK |
 
 ## Test plan (maps to layer table)
 

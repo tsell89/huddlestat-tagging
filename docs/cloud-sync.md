@@ -34,3 +34,11 @@ EXPO_PUBLIC_WEB_BASE_URL=https://your-team.live.example/game/...
 - `app/game/[id].tsx` — calls publish on milestones
 
 Live publish **does not** update season statistics (Option A). Season is a separate hosted tier.
+
+## iPhone voice tagger (hosted, not this app)
+
+Friday **hosted** tagging can use an iPhone dictation client in `huddlestat-platform` (`apps/iphone-tagger`). That path requires internet and publishes unofficial live snapshots on **every confirmed play**.
+
+This MIT iPad app stays the **offline fallback**: tap tagging + Hudl CSV export with zero platform env vars. Do not require `EXPO_PUBLIC_SYNC_API_*` for core export.
+
+Dictation text → snap parsing lives in `@huddlestat/shared` (`parseWithRules`). Situation (down / distance / yard line / ODK) stays in `playChain`.
