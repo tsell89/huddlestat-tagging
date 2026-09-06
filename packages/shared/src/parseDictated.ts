@@ -211,6 +211,8 @@ export function parseWithRules(rawTranscript: string, chain: DictatedChain): Dic
         playType: PlayType.Pass,
         result: Result.Sack,
         gainLoss: loss !== undefined ? -loss : undefined,
+        confidence: loss !== undefined ? "high" : "low",
+        warnings: loss !== undefined ? [] : ["Sack needs loss yards"],
       }),
       text,
     );

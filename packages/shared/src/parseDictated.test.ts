@@ -221,4 +221,19 @@ describe("dictation path — parse then chain", () => {
     assert.equal(reset.play.yardLine, -40);
     assert.equal(reset.play.playType, PlayType.Kickoff);
   });
+
+  test("sack without yards is low confidence", () => {
+    const parsed = parseWithRules("12 sacked", givenChain({ odk: ODK.Offense }));
+    assert.equal(parsed.result, Result.Sack);
+    assert.equal(parsed.gainLoss, undefined);
+    assert.equal(parsed.confidence, "low");
+    assert.match(parsed.warnings.join(" "), /loss yards/i);
+  });
+
+  test("sack for a loss of 7 is high confidence", () => {
+    const parsed = parseWithRules("12 sacked for a loss of 7", givenChain({ odk: ODK.Offense }));
+    assert.equal(parsed.result, Result.Sack);
+    assert.equal(parsed.gainLoss, -7);
+    assert.equal(parsed.confidence, "high");
+  });
 });
