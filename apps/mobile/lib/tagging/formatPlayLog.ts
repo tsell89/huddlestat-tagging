@@ -24,5 +24,5 @@ export function formatPlayPlayers(play: LocalPlay): string {
 }
 
 export function formatPlaySituation(play: LocalPlay): string {
-  return `${formatDownDistance(play.down, play.distance)} @ ${displayYardLine(play.yardLine)} (${play.hash})`;
+  return `${formatDownDistance(play.down, play.distance, play.yardLine, play.odk)} @ ${displayYardLine(play.yardLine)} (${play.hash})`;
 }

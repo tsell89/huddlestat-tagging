@@ -35,5 +35,5 @@ export function formatSituationLine(draft: PlaylistData): string {
     return `@ ${yl}`;
   }
 
-  return `${formatDownDistance(draft.down, draft.distance)} @ ${yl}`;
+  return `${formatDownDistance(draft.down, draft.distance, draft.yardLine, draft.odk)} @ ${yl}`;
 }
