@@ -8,7 +8,7 @@ Full product context: see the platform repo [product-path.md](https://github.com
 
 ## What publishes
 
-Full game snapshots at milestones only:
+**iPad tap tagging** (MIT, optional cloud) — full game snapshots at milestones only:
 
 | Trigger | Kind |
 |---------|------|
@@ -16,6 +16,8 @@ Full game snapshots at milestones only:
 | Halftime | `halftime` |
 | Start of Q3 | `live` |
 | Final | `final` |
+
+**iPhone voice tagging** (hosted, internet required) — every Confirm publishes `snapshotKind: live`. CSV: `GET /v1/live/:slug/csv`.
 
 Each publish is **this team’s view** of the game (`teamCode` vs opponent). There is no shared stats database with the rival school.
 

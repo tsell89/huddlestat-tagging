@@ -1,4 +1,11 @@
 import { z } from "zod";
+import {
+  capDistanceToGoal,
+  isLegalScrimmageDistance,
+  labelYardLine,
+  yardsToOpponentGoal,
+  yardsToScoringGoal,
+} from "./fieldPosition100.js";
 
 export {
   Hash,
@@ -31,9 +38,15 @@ export {
   hudlForOpponentOffenseAtFieldSpot,
   hudlToFieldPosition,
   yardsAdvanced,
-  yardsToOpponentGoal,
   type EndZoneSide,
 } from "./fieldPosition100.js";
+export {
+  yardsToOpponentGoal,
+  yardsToScoringGoal,
+  capDistanceToGoal,
+  isLegalScrimmageDistance,
+  labelYardLine,
+};
 export {
   advanceSituation,
   advancePenaltySituation,
@@ -44,6 +57,7 @@ export {
   enforcePenaltyFieldPosition,
   HOLDING_PENALTY_YARDS,
   PENALTY_YARD_OPTIONS,
+  firstAndTenOrGoal,
   isFailedFourthDown,
   liveDraftFromLastPlay,
   nextDraftAfterPlay,
@@ -136,11 +150,22 @@ export function displayYardLine(yardLine: number): string {
   return String(yardLine);
 }
 
-/** Down and distance display */
-export function formatDownDistance(down: number, distance: number): string {
+/** Down and distance display — Goal when distance is yards-to-goal inside the 10. */
+export function formatDownDistance(
+  down: number,
+  distance: number,
+  yardLine?: number,
+  odk: "O" | "D" | "K" = "O",
+): string {
   if (down === 0) return "0 & 0";
   const ordinals = ["", "1st", "2nd", "3rd", "4th"] as const;
   const downLabel = ordinals[down] ?? `${down}th`;
+  if (yardLine !== undefined) {
+    const toGoal = yardsToScoringGoal(yardLine, odk);
+    if (toGoal > 0 && toGoal <= 10 && distance >= toGoal) {
+      return `${downLabel} & Goal`;
+    }
+  }
   return `${downLabel} & ${distance}`;
 }
 
@@ -344,6 +369,18 @@ export {
   type MaxPrepsFootballColumn,
   type MaxPrepsPlayerRow,
 } from "./maxPrepsBoxScore.js";
+export {
+  openingDictatedChain,
+  parseWithRules,
+  parserOmitsSituation,
+  previewParsedPlay,
+  type DictatedChain,
+  type DictatedPlayInput,
+} from "./parseDictated.js";
+export {
+  checkChainDistanceInvariants,
+  checkSituationDistanceToGoal,
+} from "./situationInvariants.js";
 
 export function buildGameSlug(teamCode: string, opponent: string): string {
   const safe = (s: string) =>

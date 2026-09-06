@@ -15,6 +15,7 @@ import type { PlaylistData, YardLine } from "./index.js";
 import { advancePenaltySituation, decodePenalty, enforcePenaltyFieldPosition, penaltyTaggedDelta } from "./penalty.js";
 import {
   HS_TOUCHBACK_YARD_LINE,
+  capDistanceToGoal,
   fieldPositionToHudl,
   flipHudlYardLinePerspective,
   hudlForOpponentOffenseAtFieldSpot,
@@ -40,6 +41,21 @@ export type SituationFields = Pick<
   PlaylistData,
   "down" | "distance" | "yardLine"
 >;
+
+/**
+ * 1st & 10, or 1st & Goal when the team with the ball is inside the 10.
+ * Pass the **next** snap's ODK — D series attacks our goal, O attacks theirs.
+ */
+export function firstAndTenOrGoal(
+  yardLine: YardLine,
+  possession: PlaylistData["odk"] = ODK.Offense,
+): SituationFields {
+  return {
+    down: 1,
+    distance: capDistanceToGoal(10, yardLine, possession),
+    yardLine,
+  };
+}
 
 export type PlayChainInput = Pick<
   PlaylistData,
@@ -296,17 +312,18 @@ function isSuccessfulFourthDownPunt(play: PlaylistData): boolean {
  */
 function puntReceiveSituation(play: PlayChainInput): SituationFields {
   const endHudl = yardLineAfterPlay(play);
+  const nextOdk =
+    play.odk === ODK.Offense ? ODK.Defense : ODK.Offense;
 
   if (play.result === Result.Return || play.result === Result.Touchback) {
-    return { down: 1, distance: 10, yardLine: endHudl };
+    return firstAndTenOrGoal(endHudl, nextOdk);
   }
 
   const fieldSpot = hudlToFieldPosition(endHudl);
-  return {
-    down: 1,
-    distance: 10,
-    yardLine: hudlForOpponentOffenseAtFieldSpot(fieldSpot),
-  };
+  return firstAndTenOrGoal(
+    hudlForOpponentOffenseAtFieldSpot(fieldSpot),
+    nextOdk,
+  );
 }
 
 function isTouchdownResult(result: PlaylistData["result"]): boolean {
@@ -500,11 +517,12 @@ function turnoverSituation(
   play: PlayChainInput,
   endYardLine: YardLine,
 ): SituationFields {
-  return {
-    down: 1,
-    distance: 10,
-    yardLine: flipHudlYardLinePerspective(endYardLine),
-  };
+  const nextOdk =
+    play.odk === ODK.Offense ? ODK.Defense : ODK.Offense;
+  return firstAndTenOrGoal(
+    flipHudlYardLinePerspective(endYardLine),
+    nextOdk,
+  );
 }
 
 /** Advance down, distance, and ball spot after a play. */
@@ -519,11 +537,7 @@ export function advanceSituation(play: PlayChainInput): SituationFields {
   }
 
   if (isKickoffPlay(play.playType)) {
-    return {
-      down: 1,
-      distance: 10,
-      yardLine: yardLineAfterPlay(play),
-    };
+    return firstAndTenOrGoal(yardLineAfterPlay(play));
   }
 
   if (play.result === Result.Penalty) {
@@ -545,7 +559,7 @@ export function advanceSituation(play: PlayChainInput): SituationFields {
       const gain = play.odk === ODK.Defense ? -taggedGain : taggedGain;
       const firstDown = gain >= play.distance;
       if (firstDown) {
-        return { down: 1, distance: 10, yardLine: endYardLine };
+        return firstAndTenOrGoal(endYardLine, play.odk);
       }
       if (play.down >= 4) {
         return turnoverSituation(play, endYardLine);
@@ -560,11 +574,9 @@ export function advanceSituation(play: PlayChainInput): SituationFields {
 
   if (isFgPlay(play.playType) && play.result === Result.NoGood) {
     if (isFgNoGoodTouchback(play.spotEncoding)) {
-      return {
-        down: 1,
-        distance: 10,
-        yardLine: HS_TOUCHBACK_YARD_LINE,
-      };
+      const nextOdk =
+        play.odk === ODK.Offense ? ODK.Defense : ODK.Offense;
+      return firstAndTenOrGoal(HS_TOUCHBACK_YARD_LINE, nextOdk);
     }
     if (isFgNoGoodInField(play.spotEncoding)) {
       return turnoverSituation(play, play.yardLine);
@@ -595,7 +607,7 @@ export function advanceSituation(play: PlayChainInput): SituationFields {
   const firstDown = gain >= play.distance;
 
   if (firstDown) {
-    return { down: 1, distance: 10, yardLine: endYardLine };
+    return firstAndTenOrGoal(endYardLine, play.odk);
   }
 
   if (play.down >= 4) {
@@ -687,9 +699,7 @@ export function nextDraftAfterPlay(
             : yardLineAfterPlay(play);
         return {
           ...defaultOffensivePlay(nextPlayNumber, team),
-          down: 1,
-          distance: 10,
-          yardLine: endHudl,
+          ...firstAndTenOrGoal(endHudl, ODK.Offense),
           odk: ODK.Offense,
           ...emptyPlayers,
         };
@@ -718,19 +728,16 @@ export function nextDraftAfterPlay(
     if (play.odk === ODK.Offense) {
       return {
         ...defaultOffensivePlay(nextPlayNumber, team),
-        down: 1,
-        distance: 10,
-        yardLine: endHudl,
+        ...firstAndTenOrGoal(endHudl, ODK.Offense),
         odk: ODK.Offense,
         ...emptyPlayers,
       };
     }
+    const nextYardLine =
+      endHudl < 0 ? flipHudlYardLinePerspective(endHudl) : endHudl;
     return {
       ...defaultOffensivePlay(nextPlayNumber, team),
-      down: 1,
-      distance: 10,
-      yardLine:
-        endHudl < 0 ? flipHudlYardLinePerspective(endHudl) : endHudl,
+      ...firstAndTenOrGoal(nextYardLine, ODK.Defense),
       odk: ODK.Defense,
       ...emptyPlayers,
     };

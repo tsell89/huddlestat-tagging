@@ -109,6 +109,60 @@ describe("canonical drive (spec §2.4)", () => {
   });
 });
 
+describe("1st & Goal (distance capped to yards-to-goal)", () => {
+  test("1st & 10 Opp 18, rush 10 → 1st & Goal Opp 8", () => {
+    const run = basePlay({
+      playNumber: 6,
+      playType: PlayType.Run,
+      result: Result.Rush,
+      yardLine: 18,
+      down: 1,
+      distance: 10,
+      gainLoss: 10,
+    });
+    assert.deepEqual(advanceSituation(run), {
+      down: 1,
+      distance: 8,
+      yardLine: 8,
+    });
+  });
+
+  test("1st & Goal Opp 8, rush 4 → 2nd & 4 Opp 4 (not 2nd & 6)", () => {
+    const run = basePlay({
+      playNumber: 7,
+      playType: PlayType.Run,
+      result: Result.Rush,
+      yardLine: 8,
+      down: 1,
+      distance: 8,
+      gainLoss: 4,
+    });
+    assert.deepEqual(advanceSituation(run), {
+      down: 2,
+      distance: 4,
+      yardLine: 4,
+    });
+  });
+
+  test("kickoff return to Opp 5 → 1st & Goal Opp 5", () => {
+    const ko: PlaylistData = {
+      ...defaultKickoffPlay(1, TEAM),
+      yardLine: -40,
+      down: 0,
+      distance: 0,
+      result: Result.Return,
+      gainLoss: 0,
+      returnYards: 90,
+      spotEncoding: "catch:-5|end:5",
+    };
+    assert.deepEqual(advanceSituation(ko), {
+      down: 1,
+      distance: 5,
+      yardLine: 5,
+    });
+  });
+});
+
 describe("TD → scoring → kickoff chain", () => {
   test("rush TD (offense) → Extra Pt. Good pre-loaded", () => {
     const td = basePlay({
