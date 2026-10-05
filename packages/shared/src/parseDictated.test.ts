@@ -333,4 +333,16 @@ describe("dictation path — parse then chain", () => {
     assert.equal(parsed.spotEncoding, "catch:40|end:-20");
     assert.equal(parsed.returnYards, 40);
   });
+
+  test("a bare punt stays unconfirmed until the end spot is named", () => {
+    const parsed = parseWithRules(
+      "punt",
+      givenChain({ odk: ODK.Offense, down: 4, distance: 8, yardLine: -35 }),
+    );
+    assert.equal(parsed.playType, PlayType.Punt);
+    assert.equal(parsed.result, Result.Downed);
+    assert.equal(parsed.confidence, "low");
+    assert.equal(parsed.spotEncoding, undefined);
+    assert.match(parsed.warnings.join(" "), /end spot/i);
+  });
 });

@@ -503,6 +503,19 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
     } else if (ended) {
       spotEncoding = `end:${noteYard(ended.side, ended.yards, weKick)}`;
     }
+    if (!spotEncoding) {
+      return withTackle(
+        base(chain, {
+          playType: PlayType.Punt,
+          result: gain === undefined && !caught ? Result.Downed : Result.Return,
+          gainLoss: gain === undefined && !caught ? 0 : returnYards,
+          returnYards: gain === undefined && !caught ? undefined : returnYards,
+          kickerJersey: kicker,
+          confidence: "low",
+          warnings: ["Punt needs an end spot"],
+        }),
+      );
+    }
     return withTackle(
       base(chain, {
         playType: PlayType.Punt,

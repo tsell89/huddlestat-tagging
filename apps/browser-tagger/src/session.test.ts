@@ -109,4 +109,14 @@ describe("browser tagger session", () => {
     assert.equal(edited.play?.returnYards, 25);
     assert.equal(edited.next.yardLine, 45);
   });
+
+  test("a bare punt cannot confirm", () => {
+    const preview = previewSnap(
+      confirmSnap(openingGame("Northrop"), "Kickoff touchback, kicker 94"),
+      "punt",
+    );
+    assert.equal(preview.canConfirm, false);
+    assert.equal(preview.parsed.result, "Downed");
+    assert.equal(preview.parsed.confidence, "low");
+  });
 });
