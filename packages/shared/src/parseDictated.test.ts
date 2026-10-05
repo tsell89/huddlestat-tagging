@@ -297,4 +297,40 @@ describe("dictation path — parse then chain", () => {
     assert.equal(parsed.gainLoss, -7);
     assert.equal(parsed.confidence, "high");
   });
+
+  test("downed and fair-catch punts keep the dead-ball spot", () => {
+    const downed = parseWithRules(
+      "Punt 88, downed Opp 45.",
+      givenChain({ odk: ODK.Offense, down: 4, distance: 8, yardLine: -21 }),
+    );
+    assert.equal(downed.result, Result.Downed);
+    assert.equal(downed.spotEncoding, "end:45");
+
+    const fair = parseWithRules(
+      "Punt 88, fair catch 18 THEM blank at Homestead 13.",
+      givenChain({ odk: ODK.Offense, down: 4, distance: 1, yardLine: 50 }),
+    );
+    assert.equal(fair.result, Result.FairCatch);
+    assert.equal(fair.spotEncoding, "end:13");
+  });
+
+  test("an opponent punter does not flip Own to their side", () => {
+    const parsed = parseWithRules(
+      "Wayne 6 punts, downed Own 12.",
+      givenChain({ odk: ODK.Defense, down: 4, distance: 12, yardLine: 32 }),
+    );
+    assert.equal(parsed.kickerJersey, "6");
+    assert.equal(parsed.result, Result.Downed);
+    assert.equal(parsed.spotEncoding, "end:-12");
+  });
+
+  test("interception return yards use the field, not the raw numbers", () => {
+    const parsed = parseWithRules(
+      "Pass 7 intercepted by 24, catch Opp 40, return Snider 20.",
+      givenChain({ odk: ODK.Offense, down: 2, distance: 7, yardLine: 40 }),
+    );
+    assert.equal(parsed.result, Result.Interception);
+    assert.equal(parsed.spotEncoding, "catch:40|end:-20");
+    assert.equal(parsed.returnYards, 40);
+  });
 });

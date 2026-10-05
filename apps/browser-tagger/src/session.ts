@@ -1,5 +1,7 @@
 import {
   Result,
+  decodePenalty,
+  encodePenaltySpotEncoding,
   nextDraftAfterPlay,
   openingDictatedChain,
   parseWithRules,
@@ -89,7 +91,18 @@ export function applyAdjust(
   const next: DictatedPlayInput = { ...parsed };
   if (adjust.result !== undefined) next.result = adjust.result;
   if (adjust.gainLoss !== undefined) next.gainLoss = adjust.gainLoss;
-  if (adjust.yardLine !== undefined) next.yardLine = adjust.yardLine;
+  if (adjust.yardLine !== undefined) {
+    next.yardLine = adjust.yardLine;
+    if (next.result === Result.Penalty && next.spotEncoding) {
+      const penalty = decodePenalty(next.spotEncoding);
+      if (penalty) {
+        next.spotEncoding = encodePenaltySpotEncoding({
+          ...penalty,
+          foulSpot: adjust.yardLine,
+        });
+      }
+    }
+  }
   if (adjust.down !== undefined) next.down = adjust.down;
   if (adjust.distance !== undefined) next.distance = adjust.distance;
   if (adjust.returnYards !== undefined) {

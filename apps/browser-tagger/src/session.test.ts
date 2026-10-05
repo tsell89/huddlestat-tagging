@@ -87,4 +87,13 @@ describe("browser tagger session", () => {
     assert.equal(currentChain(loaded.plays).yardLine, 38);
     assert.equal(gameFromStored("not json").plays.length, 0);
   });
+
+  test("a yard-line correction moves the penalty foul spot", () => {
+    const note = "False start, 5 yards.";
+    const unadjusted = previewSnap(openingGame("Northrop"), note);
+    const moved = previewSnap(openingGame("Northrop"), note, { yardLine: -30 });
+    assert.match(unadjusted.play?.spotEncoding ?? "", /foul:-40/);
+    assert.match(moved.play?.spotEncoding ?? "", /foul:-30/);
+    assert.notEqual(moved.next.yardLine, unadjusted.next.yardLine);
+  });
 });

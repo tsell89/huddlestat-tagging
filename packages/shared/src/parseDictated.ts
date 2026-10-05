@@ -222,10 +222,13 @@ function noteYard(side: string, yards: number, weKick: boolean): number {
 }
 
 function spotMention(text: string, kind: "catch" | "end"): { side: string; yards: number } | null {
+  const side = "(own|opp|opponent|snider|shs|[a-z]{3,})";
   const pattern =
     kind === "catch"
-      ? /(?:catch|caught)\s+(?:by\s+)?#?\d*\s*(?:at\s+)?(own|opp|opponent|snider|shs|[a-z]{3,})\s+(\d+)/
-      : /(?:return|oob|to)\s+(?:at\s+)?(own|opp|opponent|snider|shs|[a-z]{3,})\s+(\d+)/;
+      ? new RegExp(`(?:catch|caught)\\s+(?:by\\s+)?#?\\d*\\s*(?:at\\s+)?${side}\\s+(\\d+)`)
+      : new RegExp(
+          `(?:return|oob|downed|fair catch|to)\\s+(?:(?:#?\\d+|them|blank|us)\\s+)*(?:at\\s+)?${side}\\s+(\\d+)`,
+        );
   const match = pattern.exec(text);
   if (!match || NOTE_STOP.has(match[1]) && match[1] !== "own" && match[1] !== "opp") {
     if (!match) return null;
@@ -346,7 +349,7 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
       const catchHudl = noteYard(caught.side, caught.yards, weKick);
       const endHudl = noteYard(ended.side, ended.yards, weKick);
       spotEncoding = `catch:${catchHudl}|end:${endHudl}`;
-      returnYards = Math.abs(ended.yards - caught.yards);
+      returnYards = Math.abs(yardsAdvanced(catchHudl, endHudl));
     }
     return withTackle(
       base(chain, {
@@ -441,7 +444,9 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
       text,
       /\bpunts?\s+#?(\d+)/.exec(text)?.[1] ?? /(\d+)\s+punts?\b/.exec(text)?.[1],
     );
-    const weKick = Boolean(kicker) || chain.odk !== "D";
+    const opponentPunter = /\b(?!snider\b|shs\b)[a-z]{3,}\s+\d+\s+punts?\b/.test(text);
+    const ourPunter = /\b(?:snider|shs)\s+\d+\s+punts?\b/.test(text);
+    const weKick = ourPunter || (!opponentPunter && chain.odk !== "D");
     if (/\btouchback\b/.test(text)) {
       return base(chain, {
         playType: PlayType.Punt,
