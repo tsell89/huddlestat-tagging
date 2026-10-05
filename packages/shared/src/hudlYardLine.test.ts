@@ -49,6 +49,22 @@ describe("yardLineForHudlExport", () => {
       yardLineForHudlExport({
         yardLine: 3,
         odk: ODK.Defense,
+        playType: PlayType.ExtraPoint,
+      }),
+      3,
+    );
+    assert.equal(
+      yardLineForHudlExport({
+        yardLine: 1,
+        odk: ODK.Defense,
+        playType: PlayType.TwoPoint,
+      }),
+      1,
+    );
+    assert.equal(
+      yardLineForHudlExport({
+        yardLine: 3,
+        odk: ODK.Defense,
         playType: PlayType.ExtraPointBlock,
       }),
       3,

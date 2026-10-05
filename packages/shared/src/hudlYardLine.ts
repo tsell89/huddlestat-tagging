@@ -15,6 +15,8 @@ export function yardLineForHudlExport(play: {
   const yardLine = play.yardLine;
   if (yardLine === 0 || yardLine === 50) return yardLine;
   if (
+    play.playType === PlayType.ExtraPoint ||
+    play.playType === PlayType.TwoPoint ||
     play.playType === PlayType.ExtraPointBlock ||
     play.playType === PlayType.TwoPointBlock
   ) {

@@ -506,7 +506,8 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
     if (caught && ended) {
       spotEncoding = `recv:${noteYard(caught.side, caught.yards, weKick)}|end:${noteYard(ended.side, ended.yards, weKick)}`;
     } else if (ended) {
-      spotEncoding = `end:${noteYard(ended.side, ended.yards, weKick)}`;
+      const endHudl = noteYard(ended.side, ended.yards, weKick);
+      spotEncoding = `recv:${endHudl}|end:${endHudl}`;
     }
     if (!spotEncoding) {
       return withTackle(

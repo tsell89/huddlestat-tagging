@@ -354,4 +354,21 @@ describe("dictation path — parse then chain", () => {
     assert.equal(parsed.spotEncoding, undefined);
     assert.match(parsed.warnings.join(" "), /end spot/i);
   });
+
+  test("a punt that only names the end spot chains to that spot", () => {
+    const parsed = parseWithRules(
+      "Punt 88 to Opp 35.",
+      givenChain({ odk: ODK.Offense, down: 4, distance: 10, yardLine: -40 }),
+    );
+    assert.equal(parsed.result, Result.Return);
+    assert.equal(parsed.spotEncoding, "recv:35|end:35");
+    const { next } = previewParsedPlay([], {
+      ...parsed,
+      down: 4,
+      distance: 10,
+      yardLine: -40,
+      odk: ODK.Offense,
+    });
+    assert.equal(next.yardLine, 35);
+  });
 });
