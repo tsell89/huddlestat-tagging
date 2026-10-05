@@ -230,6 +230,57 @@ export function undoLast(game: BrowserGame): { game: BrowserGame; transcript: st
   };
 }
 
+/** Second undo, while the last snap is already back in the box, must not drop the play before it. */
+export function takeBackLastPlay(
+  game: BrowserGame,
+  correcting: boolean,
+):
+  | { kind: "already" }
+  | { kind: "empty" }
+  | { kind: "undone"; game: BrowserGame; transcript: string } {
+  if (correcting) return { kind: "already" };
+  if (game.plays.length === 0) return { kind: "empty" };
+  const undone = undoLast(game);
+  return { kind: "undone", game: undone.game, transcript: undone.transcript };
+}
+
+function hasWord(text: string, word: string): boolean {
+  if (!word) return false;
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`\\b${escaped}\\b`, "i").test(text);
+}
+
+export function parseSpotLabel(
+  text: string,
+  labels: { team: string; opponent: string },
+): { ok: true; yardLine: number } | { ok: false; message: string } {
+  const raw = text.trim();
+  const lower = raw.toLowerCase();
+  if (lower === "50" || lower === "the 50" || lower === "midfield") {
+    return { ok: true, yardLine: 50 };
+  }
+  const match = lower.match(/-?\d+/);
+  if (!match) return { ok: false, message: "Yard line needs a number" };
+  const n = Math.abs(Number(match[0]));
+  if (n === 0) return { ok: true, yardLine: 0 };
+  if (n === 50) return { ok: true, yardLine: 50 };
+  if (n > 49) return { ok: false, message: "Yard line is 1–49, or the 50" };
+  const team = labels.team.toLowerCase();
+  const opp = labels.opponent.toLowerCase();
+  if (hasWord(lower, "own") || hasWord(lower, team)) {
+    return { ok: true, yardLine: -n };
+  }
+  if (hasWord(lower, "opp") || hasWord(lower, "opponent") || hasWord(lower, opp)) {
+    return { ok: true, yardLine: n };
+  }
+  if (raw.startsWith("-")) return { ok: true, yardLine: -n };
+  if (raw.startsWith("+")) return { ok: true, yardLine: n };
+  return {
+    ok: false,
+    message: `Say whose yard line — ${labels.team} ${n} or ${labels.opponent} ${n}`,
+  };
+}
+
 export function startOver(game: BrowserGame): BrowserGame {
   return openingGame(game.opponent);
 }

@@ -426,17 +426,22 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
       spotEncoding = `catch:${weKick ? 20 : -20}|end:${noteYard(ended.side, ended.yards, weKick)}`;
     }
     const returner = keepJersey(text, /#(\d+)\s+catch/.exec(text)?.[1]);
-    return withTackle(
-      base(chain, {
-        playType: weKick ? PlayType.Kickoff : PlayType.KickoffReceive,
-        result: Result.Return,
-        gainLoss: gain,
-        returnYards: gain,
-        kickerJersey: weKick ? kicker : undefined,
-        returnerJersey: weKick ? undefined : returner,
-        spotEncoding,
-      }),
-    );
+    const returned = base(chain, {
+      playType: weKick ? PlayType.Kickoff : PlayType.KickoffReceive,
+      result: Result.Return,
+      gainLoss: gain,
+      returnYards: gain,
+      kickerJersey: weKick ? kicker : undefined,
+      returnerJersey: weKick ? undefined : returner,
+      spotEncoding,
+      ...(spotEncoding
+        ? {}
+        : {
+            confidence: "low" as const,
+            warnings: ["Kickoff needs an end spot"],
+          }),
+    });
+    return withTackle(returned);
   }
 
   if (/\bpunts?\b/.test(text)) {

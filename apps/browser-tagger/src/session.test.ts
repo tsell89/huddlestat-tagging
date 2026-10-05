@@ -11,6 +11,8 @@ import {
   previewSnap,
   startOver,
   storedGame,
+  takeBackLastPlay,
+  parseSpotLabel,
   undoLast,
 } from "./session.js";
 
@@ -118,5 +120,27 @@ describe("browser tagger session", () => {
     assert.equal(preview.canConfirm, false);
     assert.equal(preview.parsed.result, "Downed");
     assert.equal(preview.parsed.confidence, "low");
+  });
+
+  test("undo while a snap is already back does not drop the play before it", () => {
+    const game = confirmSnap(
+      confirmSnap(openingGame("Northrop"), KICKOFF),
+      "Run 4 THEM blank, +9. Tackle 24 US.",
+    );
+    const once = takeBackLastPlay(game, false);
+    assert.equal(once.kind, "undone");
+    if (once.kind !== "undone") return;
+    assert.equal(once.game.plays.length, 1);
+    const twice = takeBackLastPlay(once.game, true);
+    assert.equal(twice.kind, "already");
+    assert.equal(once.game.plays.length, 1);
+  });
+
+  test("yard line words do not match inside other words", () => {
+    const labels = { team: "Snider", opponent: "Northrop" };
+    assert.equal(parseSpotLabel("brown 25", labels).ok, false);
+    assert.equal(parseSpotLabel("opportunity 40", labels).ok, false);
+    assert.deepEqual(parseSpotLabel("Own 25", labels), { ok: true, yardLine: -25 });
+    assert.deepEqual(parseSpotLabel("Northrop 38", labels), { ok: true, yardLine: 38 });
   });
 });

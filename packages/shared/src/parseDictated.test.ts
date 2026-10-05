@@ -345,4 +345,13 @@ describe("dictation path — parse then chain", () => {
     assert.equal(parsed.spotEncoding, undefined);
     assert.match(parsed.warnings.join(" "), /end spot/i);
   });
+
+  test("a kickoff return without an end spot cannot confirm", () => {
+    const parsed = parseWithRules("Snider 88 KO +18", openingDictatedChain());
+    assert.equal(parsed.playType, PlayType.Kickoff);
+    assert.equal(parsed.result, Result.Return);
+    assert.equal(parsed.confidence, "low");
+    assert.equal(parsed.spotEncoding, undefined);
+    assert.match(parsed.warnings.join(" "), /end spot/i);
+  });
 });
