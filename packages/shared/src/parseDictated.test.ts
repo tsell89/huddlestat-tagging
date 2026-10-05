@@ -121,6 +121,8 @@ describe("dictation path — parse then chain", () => {
       yardLine: 8,
       odk: ODK.Offense,
     }));
+    assert.equal(parsed.result, Result.Incomplete);
+    assert.equal(parsed.passerJersey, "7");
     const { next } = previewParsedPlay([], {
       ...parsed,
       down: 1,

@@ -615,7 +615,12 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
   }
 
   if (/\bincomplete\b/.test(text)) {
-    const passer = keepJersey(text, /\bincomplete\s+#?(\d+)/.exec(text)?.[1]);
+    const passer = keepJersey(
+      text,
+      /\bincomplete\s+#?(\d+)/.exec(text)?.[1] ??
+        /\bpasser\s+#?(\d+)/.exec(text)?.[1] ??
+        /^#?(\d+)\s+incomplete/.exec(text)?.[1],
+    );
     return withTackle(
       base(chain, {
         playType: PlayType.Pass,
