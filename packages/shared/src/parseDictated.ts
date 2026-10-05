@@ -351,6 +351,19 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
       spotEncoding = `catch:${catchHudl}|end:${endHudl}`;
       returnYards = Math.abs(yardsAdvanced(catchHudl, endHudl));
     }
+    if (!spotEncoding) {
+      return withTackle(
+        base(chain, {
+          playType: PlayType.Pass,
+          result: Result.Interception,
+          gainLoss: chain.down === 4 ? chain.distance : 0,
+          passerJersey: passer,
+          interceptedByJersey: picked,
+          confidence: "low",
+          warnings: ["Interception needs an end spot"],
+        }),
+      );
+    }
     return withTackle(
       base(chain, {
         playType: PlayType.Pass,
@@ -472,21 +485,41 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
       );
     }
     if (/\bfair catch\b/.test(text)) {
+      if (!ended) {
+        return base(chain, {
+          playType: PlayType.Punt,
+          result: Result.FairCatch,
+          gainLoss: 0,
+          kickerJersey: kicker,
+          confidence: "low",
+          warnings: ["Punt needs an end spot"],
+        });
+      }
       return base(chain, {
         playType: PlayType.Punt,
         result: Result.FairCatch,
         gainLoss: 0,
         kickerJersey: kicker,
-        spotEncoding: ended ? `end:${noteYard(ended.side, ended.yards, weKick)}` : undefined,
+        spotEncoding: `end:${noteYard(ended.side, ended.yards, weKick)}`,
       });
     }
     if (/\boob\b|\bdowned\b/.test(text)) {
+      if (!ended) {
+        return base(chain, {
+          playType: PlayType.Punt,
+          result: Result.Downed,
+          gainLoss: 0,
+          kickerJersey: kicker,
+          confidence: "low",
+          warnings: ["Punt needs an end spot"],
+        });
+      }
       return base(chain, {
         playType: PlayType.Punt,
         result: Result.Downed,
         gainLoss: 0,
         kickerJersey: kicker,
-        spotEncoding: ended ? `end:${noteYard(ended.side, ended.yards, weKick)}` : undefined,
+        spotEncoding: `end:${noteYard(ended.side, ended.yards, weKick)}`,
       });
     }
     if (/\bno return\b/.test(text) && ended) {

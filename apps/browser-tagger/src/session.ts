@@ -48,7 +48,20 @@ export type SnapPreview = {
 
 const SACK_YARDS_WARNING = "Sack needs loss yards";
 
-/** Move a return's end spot by the corrected return yards, same direction as the parsed end. */
+function encodingForResult(
+  encoding: string,
+  result: PlaylistData["result"],
+): string | undefined {
+  if (result === Result.Touchback || result === Result.Incomplete) return undefined;
+  if (result === Result.Return || result === Result.Interception) return encoding;
+  if (result === Result.Downed || result === Result.FairCatch) {
+    const end = /(?:^|\|)end:(TD|SA|-?\d+)/.exec(encoding);
+    return end ? `end:${end[1]}` : undefined;
+  }
+  if (result === Result.Penalty && encoding.startsWith("foul:")) return encoding;
+  if (/^(?:catch|recv):/.test(encoding) || encoding.startsWith("end:")) return undefined;
+  return encoding;
+}
 function spotEncodingForReturnYards(spotEncoding: string, returnYards: number): string | undefined {
   const match = /^(catch|recv):(-?\d+)\|end:(TD|SA|-?\d+)$/.exec(spotEncoding);
   if (!match) return undefined;
@@ -111,6 +124,9 @@ export function applyAdjust(
   if (!adjust) return parsed;
   const next: DictatedPlayInput = { ...parsed };
   if (adjust.result !== undefined) next.result = adjust.result;
+  if (adjust.result !== undefined && next.spotEncoding) {
+    next.spotEncoding = encodingForResult(next.spotEncoding, adjust.result);
+  }
   if (adjust.gainLoss !== undefined) next.gainLoss = adjust.gainLoss;
   if (adjust.yardLine !== undefined) {
     next.yardLine = adjust.yardLine;

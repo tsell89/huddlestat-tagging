@@ -371,4 +371,32 @@ describe("dictation path — parse then chain", () => {
     });
     assert.equal(next.yardLine, 35);
   });
+
+  test("downed and fair catch without a spot cannot confirm", () => {
+    const downed = parseWithRules(
+      "Punt 88 downed",
+      givenChain({ odk: ODK.Offense, down: 4, distance: 5, yardLine: -30 }),
+    );
+    assert.equal(downed.result, Result.Downed);
+    assert.equal(downed.confidence, "low");
+    assert.equal(downed.spotEncoding, undefined);
+
+    const fair = parseWithRules(
+      "Punt 88 fair catch",
+      givenChain({ odk: ODK.Offense, down: 4, distance: 5, yardLine: -30 }),
+    );
+    assert.equal(fair.result, Result.FairCatch);
+    assert.equal(fair.confidence, "low");
+    assert.equal(fair.spotEncoding, undefined);
+  });
+
+  test("an interception without an end spot cannot confirm", () => {
+    const parsed = parseWithRules(
+      "Pass 7 intercepted by 24",
+      givenChain({ odk: ODK.Offense, down: 2, distance: 7, yardLine: 40 }),
+    );
+    assert.equal(parsed.result, Result.Interception);
+    assert.equal(parsed.confidence, "low");
+    assert.equal(parsed.spotEncoding, undefined);
+  });
 });

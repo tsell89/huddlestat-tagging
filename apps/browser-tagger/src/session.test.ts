@@ -112,6 +112,15 @@ describe("browser tagger session", () => {
     assert.equal(edited.next.yardLine, 45);
   });
 
+  test("changing a return to a touchback drops the old end spot", () => {
+    const returned = previewSnap(openingGame("Northrop"), KICKOFF);
+    const touchback = previewSnap(openingGame("Northrop"), KICKOFF, { result: "Touchback" });
+    assert.equal(returned.next.yardLine, 38);
+    assert.equal(touchback.play?.result, "Touchback");
+    assert.equal(touchback.play?.spotEncoding, undefined);
+    assert.notEqual(touchback.next.yardLine, 38);
+  });
+
   test("a bare punt cannot confirm", () => {
     const preview = previewSnap(
       confirmSnap(openingGame("Northrop"), "Kickoff touchback, kicker 94"),
