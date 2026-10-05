@@ -674,7 +674,8 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
   }
 
   const run = /\brun\s+#?(\d+)\b/.exec(text) ?? /\b(?:qb\s+)?#?(\d+)\s+run\b/.exec(text);
-  if (run || /\brun\b/.test(text)) {
+  const namedRush = Boolean(run) || explicitGain(text) !== undefined || /\btd\b|touchdown/.test(text);
+  if (/\brun\b/.test(text) && namedRush) {
     const td = /\btd\b|touchdown/.test(text);
     return withTackle(
       base(chain, {

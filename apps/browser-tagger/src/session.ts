@@ -15,6 +15,7 @@ import {
   parseWithRules,
   previewParsedPlay,
   shouldFinalizeOtGame,
+  yardLineAfterPlay,
   type DictatedChain,
   type DictatedPlayInput,
   type PlaylistData,
@@ -200,6 +201,13 @@ export function currentChain(plays: PlaylistData[], phase: BrowserPhase = "tag")
     playNumber: next.playNumber,
     playTypeGuess: next.playType || "",
   };
+}
+
+/** Where the last confirmed snap ended. A waiting kickoff or overtime spot is not this yard line. */
+export function lastPlayEndYard(game: BrowserGame): number | null {
+  const play = game.plays[game.plays.length - 1];
+  if (!play) return null;
+  return yardLineAfterPlay(play);
 }
 
 export function situationChain(game: BrowserGame): DictatedChain {

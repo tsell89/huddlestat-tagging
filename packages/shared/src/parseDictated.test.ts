@@ -392,6 +392,21 @@ describe("dictation path — parse then chain", () => {
     assert.equal(fair.spotEncoding, undefined);
   });
 
+  test("a bare run word is not a zero-yard rush", () => {
+    for (const note of ["run play", "run the clock"]) {
+      const parsed = parseWithRules(note, givenChain({}));
+      assert.equal(parsed.playType, undefined);
+      assert.equal(parsed.result, undefined);
+      assert.equal(parsed.confidence, "low");
+    }
+    const rushed = parseWithRules("Run 4, +9", givenChain({}));
+    assert.equal(rushed.playType, PlayType.Run);
+    assert.equal(rushed.result, Result.Rush);
+    assert.equal(rushed.rusherJersey, "4");
+    assert.equal(rushed.gainLoss, 9);
+    assert.equal(rushed.confidence, "high");
+  });
+
   test("an interception without an end spot cannot confirm", () => {
     const parsed = parseWithRules(
       "Pass 7 intercepted by 24",

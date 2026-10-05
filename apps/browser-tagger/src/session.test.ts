@@ -14,8 +14,10 @@ import {
   currentChain,
   gameFromStored,
   hudlCsv,
+  lastPlayEndYard,
   openingGame,
   previewSnap,
+  situationChain,
   situationLine,
   startOver,
   storedGame,
@@ -199,6 +201,8 @@ describe("browser tagger session", () => {
     assert.equal(next.plays.length, 1);
     assert.equal(next.kickoff, "kick");
     assert.equal(situationLine(next), "Kickoff. Northrop kicks from Northrop 40.");
+    assert.equal(situationChain(next).yardLine, 40);
+    assert.equal(lastPlayEndYard(next), 38);
   });
 
   test("a failed note does not change the playlist", () => {

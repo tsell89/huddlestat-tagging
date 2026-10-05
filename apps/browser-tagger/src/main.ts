@@ -6,8 +6,8 @@ import {
   gameFromStored,
   hasOpeningSituation,
   hudlCsv,
+  lastPlayEndYard,
   previewSnap,
-  situationChain,
   situationLine,
   startOver,
   storedGame,
@@ -91,8 +91,8 @@ function render() {
   const play = game.plays.length ? game.plays[game.plays.length - 1]! : null;
   show($("previous"), Boolean(play));
   if (play) {
-    const nextYard = situationChain(game).yardLine;
-    $("previousLine").textContent = previousHappened(play, names(), nextYard);
+    const endYard = lastPlayEndYard(game);
+    $("previousLine").textContent = previousHappened(play, names(), endYard ?? play.yardLine);
     const who = whoLine(play);
     show($("previousWho"), Boolean(who));
     $("previousWho").textContent = who;
