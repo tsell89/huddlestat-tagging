@@ -9,6 +9,7 @@ import {
   parserOmitsSituation,
 } from "@huddlestat/shared";
 import {
+  confirmReplacing,
   confirmSnap,
   csvFilename,
   currentChain,
@@ -252,6 +253,18 @@ describe("browser tagger session", () => {
     assert.equal(replaced.plays[0]!.result, "Touchback");
     assert.equal(replaced.transcripts[0], "Kickoff touchback, kicker 94");
     assert.equal(replaced.plays[0]!.kicker.jersey, "94");
+  });
+
+  test("editing the last play of a finished game stays finished", () => {
+    const ended = confirmSnap(confirmSnap(ready(), KICKOFF), "Final.");
+    assert.equal(ended.phase, "final");
+    const replaced = confirmReplacing(ended, "Kickoff touchback, kicker 94");
+    assert.equal(replaced.phase, "final");
+    assert.equal(replaced.plays[0]!.result, "Touchback");
+    assert.equal(situationLine(replaced), "Snider 0, Northrop 0.");
+
+    const ot = confirmReplacing({ ...ended, phase: "ot" }, "Kickoff touchback, kicker 94");
+    assert.equal(ot.phase, "ot");
   });
 
   test("final confirms the score from the plays and adds no row", () => {

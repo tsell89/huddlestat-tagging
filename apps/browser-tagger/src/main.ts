@@ -1,5 +1,6 @@
 import {
   STORAGE_KEY,
+  confirmReplacing,
   confirmSnap,
   csvFilename,
   fileStem,
@@ -176,7 +177,7 @@ function commitNow() {
     render();
     return;
   }
-  game = confirmSnap(base, text);
+  game = replacing ? confirmReplacing(game, text) : confirmSnap(base, text);
   replacing = false;
   resetToDictate();
   transcriptField.value = "";

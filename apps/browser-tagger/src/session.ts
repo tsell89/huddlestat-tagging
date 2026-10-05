@@ -594,6 +594,20 @@ export function previewSnap(
   return preview;
 }
 
+/** Replace the last snap. A finished game stays finished. */
+export function confirmReplacing(
+  game: BrowserGame,
+  transcript: string,
+  adjust?: SituationAdjust,
+): BrowserGame {
+  const phase = game.phase;
+  const next = confirmSnap(withoutLastPlay(game), transcript, adjust);
+  if ((phase === "final" || phase === "ot") && next.phase === "tag") {
+    return { ...next, phase };
+  }
+  return next;
+}
+
 export function confirmSnap(
   game: BrowserGame,
   transcript: string,
