@@ -1,4 +1,4 @@
-import { Hash, PlayType, Result, emptyPlayerRef } from "./constants.js";
+import { Hash, ODK, PlayType, Result, emptyPlayerRef } from "./constants.js";
 import { defaultKickoffPlay } from "./defaults.js";
 import { yardsAdvanced, yardsToScoringGoal } from "./fieldPosition100.js";
 import type { PlaylistData } from "./index.js";
@@ -282,6 +282,7 @@ function looksLikeGameNote(text: string): boolean {
     /\bxp\b/.test(text) ||
     /\bfg\b/.test(text) ||
     /\bpunts?\b/.test(text) ||
+    /\b2\s*-?\s*pt\b|\btwo\s*-?\s*point\b/.test(text) ||
     /\bsack\b/.test(text) ||
     /\bkneel\b|\bkeeper\b|\bqb\s+#?\d+\s+to\b/.test(text) ||
     /\b(pre-snap|dead-ball|dead ball|encroachment|encroach|offsides|false start|delay of game|dpi|face\s*mask|facemask|illegal|holding|penalt(?:y|ies)|late hit|uns|\bur vs\b)\b/.test(text) ||
@@ -468,9 +469,12 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
     const opponentPunter = /\b(?!snider\b|shs\b)[a-z]{3,}\s+\d+\s+punts?\b/.test(text);
     const ourPunter = /\b(?:snider|shs)\s+\d+\s+punts?\b/.test(text);
     const weKick = ourPunter || (!opponentPunter && chain.odk !== "D");
+    const puntPlay = weKick
+      ? { playType: PlayType.Punt }
+      : { playType: PlayType.PuntReceive, odk: ODK.Offense };
     if (/\btouchback\b/.test(text)) {
       return base(chain, {
-        playType: PlayType.Punt,
+        ...puntPlay,
         result: Result.Touchback,
         kickerJersey: kicker,
       });
@@ -480,7 +484,7 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
     if (/\bblocked\b/.test(text)) {
       return withTackle(
         base(chain, {
-          playType: PlayType.Punt,
+          ...puntPlay,
           result: Result.Blocked,
           gainLoss: 0,
           kickerJersey: kicker,
@@ -490,7 +494,7 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
     if (/\bfair catch\b/.test(text)) {
       if (!ended) {
         return base(chain, {
-          playType: PlayType.Punt,
+          ...puntPlay,
           result: Result.FairCatch,
           gainLoss: 0,
           kickerJersey: kicker,
@@ -499,7 +503,7 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
         });
       }
       return base(chain, {
-        playType: PlayType.Punt,
+        ...puntPlay,
         result: Result.FairCatch,
         gainLoss: 0,
         kickerJersey: kicker,
@@ -509,7 +513,7 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
     if (/\boob\b|\bdowned\b/.test(text)) {
       if (!ended) {
         return base(chain, {
-          playType: PlayType.Punt,
+          ...puntPlay,
           result: Result.Downed,
           gainLoss: 0,
           kickerJersey: kicker,
@@ -518,7 +522,7 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
         });
       }
       return base(chain, {
-        playType: PlayType.Punt,
+        ...puntPlay,
         result: Result.Downed,
         gainLoss: 0,
         kickerJersey: kicker,
@@ -528,7 +532,7 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
     if (/\bno return\b/.test(text) && ended) {
       const endHudl = noteYard(ended.side, ended.yards, weKick);
       return base(chain, {
-        playType: PlayType.Punt,
+        ...puntPlay,
         result: Result.Return,
         gainLoss: 0,
         returnYards: 0,
@@ -548,7 +552,7 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
     if (!spotEncoding) {
       return withTackle(
         base(chain, {
-          playType: PlayType.Punt,
+          ...puntPlay,
           result: gain === undefined && !caught ? Result.Downed : Result.Return,
           gainLoss: gain === undefined && !caught ? 0 : returnYards,
           returnYards: gain === undefined && !caught ? undefined : returnYards,
@@ -560,7 +564,7 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
     }
     return withTackle(
       base(chain, {
-        playType: PlayType.Punt,
+        ...puntPlay,
         result: Result.Return,
         gainLoss: returnYards,
         returnYards,
@@ -672,6 +676,36 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
         gainLoss: td ? tdYards(text, chain) : (explicitGain(text) ?? 0),
         passerJersey: themSkill ? undefined : keepJersey(text, thrown[1]),
         receiverJersey: themSkill ? undefined : keepJersey(text, thrown[2]),
+      }),
+    );
+  }
+
+  if (/\b2\s*-?\s*pt\b|\btwo\s*-?\s*point\b/.test(text)) {
+    const blockUnit = /\b2\s*-?\s*pt\s+block\b|\btwo\s*-?\s*point\s+block\b/.test(text);
+    const result = /\bno good\b/.test(text)
+      ? Result.NoGood
+      : /\bblocked\b/.test(text)
+        ? Result.Blocked
+        : /\bgood\b/.test(text)
+          ? Result.Good
+          : undefined;
+    const runner = keepJersey(text, /\brun\s+#?(\d+)/.exec(text)?.[1]);
+    if (!result) {
+      return withTackle(
+        base(chain, {
+          playType: blockUnit ? PlayType.TwoPointBlock : PlayType.TwoPoint,
+          rusherJersey: runner,
+          confidence: "low",
+          warnings: ["Name whether the two-point try was good."],
+        }),
+      );
+    }
+    return withTackle(
+      base(chain, {
+        playType: blockUnit ? PlayType.TwoPointBlock : PlayType.TwoPoint,
+        result,
+        rusherJersey: runner,
+        gainLoss: 0,
       }),
     );
   }

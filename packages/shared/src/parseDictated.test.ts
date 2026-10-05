@@ -339,8 +339,29 @@ describe("dictation path — parse then chain", () => {
       givenChain({ odk: ODK.Defense, down: 4, distance: 12, yardLine: 32 }),
     );
     assert.equal(parsed.kickerJersey, "6");
+    assert.equal(parsed.playType, PlayType.PuntReceive);
+    assert.equal(parsed.odk, ODK.Offense);
     assert.equal(parsed.result, Result.Downed);
     assert.equal(parsed.spotEncoding, "end:-12");
+  });
+
+  test("a two-point run is not a scrimmage rush", () => {
+    const blocked = parseWithRules(
+      "Wayne 2-pt run 6 THEM blank, good. 2 Pt. Block.",
+      givenChain({ odk: ODK.Defense, down: 1, distance: 2, yardLine: 3 }),
+    );
+    assert.equal(blocked.playType, PlayType.TwoPointBlock);
+    assert.equal(blocked.result, Result.Good);
+    assert.equal(blocked.rusherJersey, undefined);
+    assert.equal(blocked.confidence, "high");
+
+    const ours = parseWithRules(
+      "2-pt run 6, good.",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 2, yardLine: 3 }),
+    );
+    assert.equal(ours.playType, PlayType.TwoPoint);
+    assert.equal(ours.result, Result.Good);
+    assert.equal(ours.rusherJersey, "6");
   });
 
   test("interception return yards use the field, not the raw numbers", () => {
