@@ -627,15 +627,23 @@ export function confirmSnap(
   };
 }
 
+function kickRoleFromPlay(play: PlaylistData): KickRole | null {
+  if (play.playType === PlayType.Kickoff) return "kick";
+  if (play.playType === PlayType.KickoffReceive) return "receive";
+  return null;
+}
+
 /** Drop the last snap so the next confirm writes that slot again. */
 export function withoutLastPlay(game: BrowserGame): BrowserGame {
   if (game.plays.length === 0) return game;
+  const removed = game.plays[game.plays.length - 1]!;
   const plays = game.plays.slice(0, -1);
+  const waitingKick = kickRoleFromPlay(removed);
   return {
     ...game,
     plays,
     transcripts: game.transcripts.slice(0, -1),
-    nextKickoff: plays.length === 0 ? game.kickoff : game.nextKickoff,
+    nextKickoff: waitingKick ?? (plays.length === 0 ? game.kickoff : game.nextKickoff),
     phase: game.phase === "final" ? "tag" : game.phase,
   };
 }

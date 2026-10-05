@@ -209,6 +209,18 @@ describe("browser tagger session", () => {
     assert.equal(lastPlayEndYard(next), 38);
   });
 
+  test("editing a second-half kickoff keeps that kickoff waiting", () => {
+    const afterHalf = confirmSnap(confirmSnap(ready(), KICKOFF), "Northrop is kicking off.");
+    const kicked = confirmSnap(afterHalf, "Northrop 80 KO touchback.");
+    assert.equal(kicked.plays.length, 2);
+    assert.equal(kicked.plays[1]!.playType, "KO Rec");
+    assert.equal(kicked.nextKickoff, null);
+    const editing = withoutLastPlay(kicked);
+    assert.equal(editing.plays.length, 1);
+    assert.equal(editing.nextKickoff, "receive");
+    assert.equal(situationLine(editing), "Kickoff. Northrop kicks from Northrop 40.");
+  });
+
   test("a failed note does not change the playlist", () => {
     const game = confirmSnap(ready(), KICKOFF);
     const preview = previewSnap(game, "um the thing");
