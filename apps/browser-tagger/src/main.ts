@@ -106,14 +106,15 @@ function render() {
   show($("thisPlay"), !ended);
   transcriptField.placeholder = placeholder();
 
-  const ready = mode === "ready" && lastPreview?.canConfirm === true;
-  show(previewBtn, !ready);
-  show(editBtn, ready);
-  confirmBtn.disabled = !ready;
-  confirmBtn.classList.toggle("h-double", ready);
-  confirmBtn.classList.toggle("h-single", !ready);
-  show($("storyCard"), ready);
-  if (ready && lastPreview) {
+  const previewing = mode === "ready" && lastPreview != null;
+  const canSave = Boolean(previewing && lastPreview?.canConfirm);
+  show(previewBtn, !previewing);
+  show(editBtn, previewing);
+  confirmBtn.disabled = !canSave;
+  confirmBtn.classList.toggle("h-double", canSave);
+  confirmBtn.classList.toggle("h-single", !canSave);
+  show($("storyCard"), previewing);
+  if (previewing && lastPreview) {
     $("storyBefore").textContent = lastPreview.story.before;
     $("storyHappened").textContent = lastPreview.story.happened;
     $("storyNext").textContent = lastPreview.story.next.replace(/^Next:\s*/, "");
@@ -146,17 +147,18 @@ function previewNow() {
     return;
   }
   const data = previewSnap(targetGame(), text);
-  if (!data.canConfirm) {
+  const hasRow = data.canConfirm || data.play != null;
+  if (!hasRow) {
     resetToDictate();
-    messageText = data.story.happened;
+    messageText = data.ask || data.story.happened;
     render();
-    selectNote();
+    transcriptField.focus();
     return;
   }
   mode = "ready";
   lastPreview = data;
   lastKey = text;
-  messageText = "";
+  messageText = data.canConfirm ? "" : data.ask;
   render();
 }
 

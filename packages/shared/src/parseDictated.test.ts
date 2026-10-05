@@ -213,6 +213,23 @@ describe("dictation path — parse then chain", () => {
     assert.equal(next.yardLine, -28);
   });
 
+  test("O0B is out of bounds on the Northrop opening kick return", () => {
+    const note = "Snider 88 KO. #0 catch Own 20 (THEM blank), OOB Own 38, +18.";
+    const chain = openingDictatedChain();
+    const oob = parseWithRules(note, chain);
+    for (const token of ["O0B", "0OB", "00B", "o0b"]) {
+      const parsed = parseWithRules(note.replace("OOB", token), chain);
+      assert.equal(parsed.confidence, "high", token);
+      assert.equal(parsed.playType, oob.playType, token);
+      assert.equal(parsed.result, oob.result, token);
+      assert.equal(parsed.spotEncoding, "catch:20|end:38", token);
+      assert.equal(parsed.returnYards, 18, token);
+      assert.equal(parsed.gainLoss, 18, token);
+      assert.equal(parsed.kickerJersey, "88", token);
+      assert.equal(parsed.returnerJersey, undefined, token);
+    }
+  });
+
   test("game note: Snider kickoff return is a snap", () => {
     const parsed = parseWithRules(
       "Snider 88 KO. #0 catch Own 20 (THEM blank), OOB Own 38, +18.",

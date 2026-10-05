@@ -1,0 +1,2992 @@
+{
+  "note": "Copied from huddlestat-platform plays.jsonl. Each snap is the # comment above a JSON play, with the leading play index removed. playType and result are that JSON answer key. When one comment sits above more than one JSON play, the answer key is the first play. Do not read the platform repo from tests.",
+  "games": [
+    {
+      "id": "shs-at-wayne-2026-09-11",
+      "source": "huddlestat-platform/scripts/dictated-pbp/games/shs-at-wayne-2026-09-11/plays.jsonl",
+      "opponent": "Wayne",
+      "kickedOff": false,
+      "snaps": [
+        {
+          "comment": "Wayne 91 KO (THEM blank). #3 catch Own 14, return Own 33. Tackler 45 THEM blank.",
+          "playType": "KO Rec",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Own 33. Run 6 to Own 48, +15. Spoken next was Own 40 — see #3 override.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Spoken 1st & 10 Own 40 (chain was Own 48). Run 6 to Wayne 48, +12. Spoken next 2nd & 7 — see #4.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Spoken 2nd & 7 Wayne 48. Complete 17→4 to Wayne 41, +7, 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Wayne 41. Run 6 to Wayne 35 (Taco Bell=tackle). Then SHS holding, ball Own 49.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Spoken 2nd & 20 Own 49. Complete 17→12 to Wayne 34. 5-yd facemask vs D, AFD, Wayne 29.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Wayne 29. Run 6 to Wayne 8, +21. Chain 1st & Goal (spoken 1st & 10).",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Run 6 to Wayne 4, +4.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & Goal from 4. Run 6 TD. SHS 6–0.",
+          "playType": "Run",
+          "result": "Rush, TD"
+        },
+        {
+          "comment": "XP 88 good. SHS 7–0.",
+          "playType": "Extra Pt.",
+          "result": "Good"
+        },
+        {
+          "comment": "SHS 80 KO. Wayne 25 catch +7 (THEM blank), to +25. Tackler 35 US. Then ball at +15 1st & 10.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "Spoken 1st & 10 Wayne 15 (kickoff series). Run 25 THEM blank, tackle 14 to Wayne 18, +3.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 7. QB 19 sack 52 and 7, Wayne 12. −6. Spoken next 3rd & 12; chain 3rd & 13 (4th & 16 later matches chain).",
+          "playType": "Pass",
+          "result": "Sack"
+        },
+        {
+          "comment": "Sack 7 at Wayne 9, −3 → 4th & 16.",
+          "playType": "Pass",
+          "result": "Sack"
+        },
+        {
+          "comment": "Wayne 6 punts (kicker THEM blank). #3 return recv Wayne 41 to Wayne 6. Tacklers 6/10 THEM blank.",
+          "playType": "Punt Rec",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & Goal Wayne 6. Run 6 to Wayne 1, +5.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 1 from 1. Run 6 TD. SHS 12–0.",
+          "playType": "Run",
+          "result": "Rush, TD"
+        },
+        {
+          "comment": "XP 88 good. SHS 14–0.",
+          "playType": "Extra Pt.",
+          "result": "Good"
+        },
+        {
+          "comment": "SHS 88 KO. Catch Wayne 8 (THEM 25 blank) to Wayne 24. Tacklers 24 and 35 US.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "Wayne 1st & 10 +24. Run 25 THEM blank, tackle 22, Wayne 18, −6. 2nd & 16.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Incomplete 19 THEM blank. 3rd & 16 from 18.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "Complete 19→11 TD (THEM blank), +18. SHS 14–6.",
+          "playType": "Pass",
+          "result": "Complete, TD"
+        },
+        {
+          "comment": "Wayne XP 91 no good. Extra Pt. Block (THEM kicker blank). SHS 14–6.",
+          "playType": "Extra Pt. Block",
+          "result": "No Good"
+        },
+        {
+          "comment": "Chain after their XP would be our KO — override to KO Rec Opp 40.",
+          "playType": "KO Rec",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Own 45. Complete 17→3 to 50, +5.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 5 at 50. Run 28 to Wayne 46, +4. 3rd & 1.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 1 Wayne 46. Run 6 to Wayne 43, +3. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Wayne 43. Run 28 to Wayne 45, −2. 2nd & 12.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 12 Wayne 45. Run 28 to Wayne 38, +7. 3rd & 5.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 5 Wayne 38. Complete 17→4 to Wayne 21, +17. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10. Pass 17 intercepted in EZ (Wayne 11 THEM blank). Touchback.",
+          "playType": "Pass",
+          "result": "Interception"
+        },
+        {
+          "comment": "Spoken Wayne 1st & 10 at 20 (override after INT). Run 25 THEM blank, tackle 55, no gain.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 10. Complete 19→4 (THEM blank), tackles 34 and 22, no gain.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "Spoken 3rd & 10 Wayne 20 (chain match). Wayne 19 run (THEM blank), fumble Wayne 13, SHS 52 recovers Wayne 11.",
+          "playType": "Run",
+          "result": "Fumble"
+        },
+        {
+          "comment": "Spoken 1st & 10 Wayne 11 (chain would flip COP to Own 11). Run 28 to Wayne 6, +5. Tackler 8 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 5 Wayne 6. Run 28 TD. SHS 20–6.",
+          "playType": "Run",
+          "result": "Rush, TD"
+        },
+        {
+          "comment": "XP 88 good. SHS 21–6.",
+          "playType": "Extra Pt.",
+          "result": "Good"
+        },
+        {
+          "comment": "SHS 88 KO. Wayne 30 catch 18 to 21 (THEM blank). Tackler 21 US.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Wayne 21. Run 25 THEM blank, tackle 24, Wayne 26, +5.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 5 Wayne 26. Run 25, tackle 22, no gain.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 5 Wayne 26 (not restated). Complete 19→11 THEM blank, tackle 34, Wayne 34, +8. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Wayne 34. Complete 19→4 THEM blank, tackle 7, Wayne 39, +5.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 5 Wayne 39. Complete 19→4 THEM blank, tackle 2, Wayne 36, −3.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "3rd & 8 Wayne 36. Complete 9→16 THEM blank, tackle 2, Wayne 32, −4.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "4th & 12 Wayne 32. Wayne 6 punt (THEM blank). #3 recv Own 42, no return.",
+          "playType": "Punt Rec",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Own 42. Run 3 to Own 40, −2. Tackler 4 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 12 Own 40 (not restated). Complete 17→28 to Wayne 49, +11. Tackler 7 THEM blank.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "3rd & 1 Wayne 49. Run 6 to Wayne 44, +5. 1st down. Tackler 22 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Wayne 44. Run 28 to Wayne 42, +2. Tackler 18 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 8 Wayne 42. Pass 17 INT at Wayne 32 (THEM 11 blank), return Wayne 37. Tackles 12 and 66 US.",
+          "playType": "Pass",
+          "result": "Interception"
+        },
+        {
+          "comment": "Penalty on Wayne return. Chain after INT would flip to Own 37; keep physical Wayne 37. 15 yd vs O → chain Wayne 22 1st & 25; spoken 1st & 10 Wayne 23 — next snap override.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Spoken 1st & 10 Wayne 23 (chain 1st & 25 Wayne 22). QB 19 keeper THEM blank, tackles 24 and 34, no gain.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 10 Wayne 23. Sack 55, Wayne 16, −7.",
+          "playType": "Pass",
+          "result": "Sack"
+        },
+        {
+          "comment": "Dead ball foul vs Snider. Spoken \"10 yard\"; spots 16→31 and 3rd & 17→3rd & 2 are 15 yards. Encode 15 vs D.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "3rd & 2 Wayne 31. Pass 19 INT by 22 at Wayne 43. No return spoken.",
+          "playType": "Pass",
+          "result": "Interception"
+        },
+        {
+          "comment": "Spoken 1st & 10 Wayne 43 (chain would flip to Own 43). Run 6 to Wayne 30, +13. Tackler 11 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Wayne 30. Complete 17→4 to Wayne 22, +8. Tackler 4 THEM blank.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 2 Wayne 22. Run 6 to Wayne 25, −3. Tackler 3 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 5 Wayne 25. Complete 17→3 to Wayne 18, +7. Tacklers 18 and 24 THEM blank.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Wayne 18. Run 6 to Wayne 7, +11. Tackler 18 THEM blank. Chain 1st & Goal.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & Goal Wayne 7. Run 6 to Wayne 5, +2. Tackler 22 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & Goal Wayne 5. Illegal shift vs SHS wipes 17→5 TD. Penalty only, 5 yd. 2nd & Goal Wayne 10.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "2nd & Goal Wayne 10. Run 6 TD. SHS 27–6.",
+          "playType": "Run",
+          "result": "Rush, TD"
+        },
+        {
+          "comment": "XP 88 good. SHS 28–6.",
+          "playType": "Extra Pt.",
+          "result": "Good"
+        },
+        {
+          "comment": "SHS 88 KO. Catch Wayne 18 to 21 (THEM 30 blank). Tackler 24 US.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Wayne 21. Run 25 THEM blank, tackles 45 and 14, Wayne 36, +15. End of half.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "SHS 88 KO (override). #25 catch Wayne 9 (THEM blank), return Wayne 28. Tackles 45 and 35 US.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "Spoken 1st & 10 from 29 (chain Wayne 28). Run 25 THEM blank, tackle 45, Wayne 29, +1 → 2nd & 9 matches spoken.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 9 Wayne 29. Play-action pass 19 incomplete (THEM blank). Next 3rd & 9 same spot.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 9 Wayne 29. Incomplete 19 THEM blank → 4th & 9.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "4th & 9 Wayne 29. Wayne 6 punt (THEM blank) blocked. Ball OOB Wayne 47.",
+          "playType": "Punt Rec",
+          "result": "Blocked"
+        },
+        {
+          "comment": "Spoken 1st & 10 Wayne 47 (chain flips blocked kick to Own 47). Complete 17→82 to Wayne 9, +38. Tackler 7 THEM blank.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & Goal Wayne 9 (chain; spoken 1st & Goal). Complete 17→4 TD. SHS 34–6.",
+          "playType": "Pass",
+          "result": "Complete, TD"
+        },
+        {
+          "comment": "XP 88 good. SHS 35–6.",
+          "playType": "Extra Pt.",
+          "result": "Good"
+        },
+        {
+          "comment": "SHS 88 KO. Catch Wayne 10 by 25 (THEM blank), return Own 45 (Snider 45). Holding vs Wayne next.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "Holding vs Wayne (return team). Chain after KO would flip Own 45→Wayne 45; keep physical Own 45. 10 yd vs O ≠ spoken Wayne 15 — next snap override.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Spoken 1st & 10 Wayne 15 (chain after 10 vs O from Own 45 is 1st & 20 Wayne 45). Run 23 THEM blank, tackles 55 and 32, Wayne 10, −5.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 15 Wayne 10 (match). Complete 19→25 THEM blank, tackle 2, Wayne 7, −3 → 3rd & 18.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "3rd & 18 Wayne 7 (not restated). Incomplete 19 THEM blank → 4th & 18.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "4th & 18 Wayne 7. Wayne 6 punt (THEM blank) to Wayne 35, no return. Punt Rec odk O.",
+          "playType": "Punt Rec",
+          "result": "Return"
+        },
+        {
+          "comment": "Spoken complete 17→3 to Wayne 24 wiped: illegal formation (5 in the backfield) vs SHS. Penalty only, 5 vs O → 1st & 15 Wayne 40.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 15 Wayne 40. Complete 17→4 to Wayne 22, +18. Tackler 30 THEM blank. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Wayne 22. Run 28 to Wayne 18, +4. Tackler 18 THEM blank. Chain 2nd & 6 (spoken 2nd & 5).",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 6 Wayne 18. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "Spoken 3rd & 5 (chain 3rd & 6) Wayne 18. Run 28 to Wayne 11, +7. Tackler 24 THEM blank. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Wayne 11. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "2nd & 10 Wayne 11. Run 28 to Wayne 8, +3. Tackler 10 THEM blank. Chain 3rd & 7 (spoken 2nd & 7).",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Chain 3rd & 7 Wayne 8 (spoken 2nd & 7). Run 28 TD. SHS 41–6. Spoken “please snap penalty vs Wayne” not encoded (TD+XP counted; would break XP/KO).",
+          "playType": "Run",
+          "result": "Rush, TD"
+        },
+        {
+          "comment": "XP 88 good. SHS 42–6.",
+          "playType": "Extra Pt.",
+          "result": "Good"
+        },
+        {
+          "comment": "SHS 88 KO. Catch Wayne 11 by 25 (THEM blank), return Wayne 26. Tackler 35 US.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Wayne 26. Run 25 THEM blank, tackle 14, Wayne 29, +3.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 7 Wayne 29. Incomplete 19 THEM blank. Defensive holding vs SHS next.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "Defensive holding 10 vs D, AFD. Wayne 29 → Wayne 39, 1st & 10.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 10 Wayne 39. Complete 19→16 THEM blank, tackle 45, Wayne 41, +2. 2nd & 8.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 8 Wayne 41. Sack 45, Wayne 39, −2.",
+          "playType": "Pass",
+          "result": "Sack"
+        },
+        {
+          "comment": "3rd & 10 Wayne 39. Incomplete 19 THEM blank. Offsetting penalties replay the down (no offsetting encode) — next snap override.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "Spoken replay 3rd & 10 Wayne 39 (chain 4th & 10). Run 25 THEM blank, tackles 45 and 8, Own 49, +12. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Own 49 (chain match). Complete 19→3 THEM blank, tackles 32 and 43 US. No catch/end spot — 0 gain (FLAG).",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 10 Own 49. Run 25 THEM blank to Own 31, +18. Tackler 8 US. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Own 31 (not restated). Incomplete 19 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "Penalty on the play. Ball Snider 16 (31→16 = 15). Encode 15 vs D AFD. Spoken “Snider ball” = spot, not COP (19 still throwing).",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 10 Own 16 (match). Incomplete 19 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "2nd & 10 Own 16 (match). Incomplete 19 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 10 Own 16. Complete 19→11 TD THEM blank. SHS 42–12.",
+          "playType": "Pass",
+          "result": "Complete, TD"
+        },
+        {
+          "comment": "Wayne 2-pt run 6 THEM blank, good. 2 Pt. Block. SHS 42–14.",
+          "playType": "2 Pt. Block",
+          "result": "Good"
+        },
+        {
+          "comment": "They scored → KO Rec from Opp 40 (chain would be our KO). #27 catch Own 19. Spoken “Wayne 31”; 5 vs SHS + 2nd & 12 to Snider 24 only fit Own 31 (same side-slip as 24/27/28/12). Return 12. Tacklers THEM blank.",
+          "playType": "KO Rec",
+          "result": "Return"
+        },
+        {
+          "comment": "Penalty vs Snider 5 yd. Own 31 → Own 26. Chain 1st & 15 — spoken 1st & 10 (KO succeeding spot).",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Spoken 1st & 10 Own 26 (chain 1st & 15). Run 25 to Own 24, −2. Tackler 22 THEM blank. 2nd & 12.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 12 Own 24. Complete 15→82 to Own 33, +9. Tackler 22 THEM blank. 3rd & 3.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "3rd & 3 Own 33. Run 25 to Wayne 39, +28. Tackler 18 THEM blank. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Wayne 39. Run 25, tackler 20 THEM blank. Spoken Snider 42 → physical Wayne 42, −3. Chain 2nd & 13 Wayne 42.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Spoken 2nd & 7 Wayne 40 (chain 2nd & 13 Wayne 42). Run 33 to Wayne 38, +2. Tackler 18 THEM blank. Chain 3rd & 5 (spoken next 1st & 10 — not a conversion).",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Spoken 1st & 10 (chain 3rd & 5 Wayne 38). Run 33 to Wayne 26, +12. Tackler 18 THEM blank. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Wayne 26 (match; spoken “first intent”). Kneel 16, −1 → Wayne 27.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Spoken 2nd & 11 Snider 27 (chain Wayne 27). Kneel 16, −1 → Wayne 28.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Spoken 3rd & 12 Snider 28 (chain Wayne 28). QB 16 to Wayne 12, +16 (spoken Snider 12 — side slip; 1st & 10 matches Wayne 12).",
+          "playType": "Run",
+          "result": "Rush"
+        }
+      ]
+    },
+    {
+      "id": "shs-at-carroll-2026-09-18",
+      "source": "huddlestat-platform/scripts/dictated-pbp/games/shs-at-carroll-2026-09-18/plays.jsonl",
+      "opponent": "Carroll",
+      "kickedOff": true,
+      "snaps": [
+        {
+          "comment": "Spoken next “1st & 10 Carroll 17” is the catch spot; next ball = return end Carroll 37.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Carroll 37. Run 3 THEM blank, tackle 8, to Snider 47, +16.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Snider 47. Run 3 THEM blank, tackles 8 and 24, +9 to Snider 38.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 1 Snider 38. Pass 1 THEM blank, INT 22 at Snider 18, return Snider 41. Tackle 87 THEM blank.",
+          "playType": "Pass",
+          "result": "Interception"
+        },
+        {
+          "comment": "Spoken 1st & 10 Snider 41 (chain flips INT end to Opp 41). Run 6 to Carroll 31, +28. Tackler 4 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Carroll 31. Complete 17→12 to Carroll 11, +20. Tackler 4 THEM blank.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Carroll 11 (not Goal). Run 6 to Carroll 5, +6. Tackler 12 THEM blank. Spoken next 2nd & 4 matches chain.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 4 Carroll 5. Encroachment vs D, half-distance to Carroll 3, repeat down. Chain 2nd & 2; spoken 2nd & 1.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Chain 2nd & 2 Carroll 3. Run 3 to Carroll 1, +2. Tackler 6 THEM blank. Converts; 1st & Goal.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & Goal Carroll 1. Run 6 TD. SHS 6–0.",
+          "playType": "Run",
+          "result": "Rush, TD"
+        },
+        {
+          "comment": "XP. Pre-snap vs Carroll, half-distance 3→2, repeat try.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "XP 88 good from 2. SHS 7–0.",
+          "playType": "Extra Pt.",
+          "result": "Good"
+        },
+        {
+          "comment": "SHS 88 KO. Spoken “Snider 10” treated as Carroll 10 (drive continues Carroll 22→28…). Catch 6 THEM blank, tackle 2, Carroll 22.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Carroll 22. Run 3 THEM blank, tackles 34 and 7, Carroll 28, +6.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 4 Carroll 28. Run 3 THEM blank, tackle 45, Carroll 31, +3.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 1 Carroll 31. Run 1 THEM blank, tackle 34, Carroll 34, +3. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Carroll 34. Complete 1→3 THEM blank to Carroll 40, +6.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 4 Carroll 40. Run 1 THEM blank, tackle 8, Snider 45, +15. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Snider 45. Complete 1→15 THEM blank, tackle 8, Snider 37, +8. Chain 2nd & 2; spoken 2nd & 1.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "Chain 2nd & 2 Snider 37. Run 3 THEM blank, tackle 2, Snider 38, −1. Chain 3rd & 3; spoken 3rd & 2.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Chain 3rd & 3 Snider 38. Run 1 THEM blank, tackle 24, Snider 20, +18. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Snider 20. Spoken “opponent 10” is Snider 10 (drive toward our goal, then 2nd & Goal from 8). Complete 1→13 THEM blank, tackle 35, +10. 1st & Goal.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & Goal Snider 10. Run 3 THEM blank, tackles 2 and 35, to Snider 8, +2. 2nd & Goal.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & Goal Snider 8. Complete 1→13 THEM blank TD. SHS 7–6.",
+          "playType": "Pass",
+          "result": "Complete, TD"
+        },
+        {
+          "comment": "Carroll 95 XP good (THEM kicker blank). Extra Pt. Block. SHS 7–7.",
+          "playType": "Extra Pt. Block",
+          "result": "Good"
+        },
+        {
+          "comment": "Carroll 94 KO into the EZ, touchback. Chain after their XP would be our KO — override KO Rec Opp 40.",
+          "playType": "KO Rec",
+          "result": "Touchback"
+        },
+        {
+          "comment": "1st & 10 Own 20. Run 6 to Own 23, +3. Tackler 91 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Spoken late-hit 15 to Carroll 42 — not walked off (spoken next is 1st & 10 Carroll 42).",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Carroll 42. Run 6 to Carroll 41, +1. Tackler 99 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 9 Carroll 41. Pre-snap vs SHS 5, ball Carroll 46. Chain 2nd & 14.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "2nd & 14 Carroll 46. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 14 Carroll 46. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "4th & 14 Carroll 46. Punt 88, catch Carroll 13 at Carroll 19, no return.",
+          "playType": "Punt",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Carroll 19. Run 3 THEM blank, tackle 36, Carroll 29, +10. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Carroll 29. Run 1 THEM blank OOB Carroll 34, +5. Chain 2nd & 5; spoken 2nd & 6.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Chain 2nd & 5 Carroll 34. Run 3 THEM blank, tackle 22, Carroll 46, +12. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Carroll 46. Incomplete 1 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "2nd & 10 Carroll 46. Run 3 THEM blank, tackles 34 and 24, Carroll 48, +2. 3rd & 8.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 8 Carroll 48. False start vs Carroll 5 → Carroll 43, 3rd & 13.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "3rd & 13 Carroll 43. Run 1 THEM blank, tackle 34, Snider 46, +11. Chain 4th & 2; spoken 4th & 1.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Chain 4th & 2 Snider 46. Run 1 THEM blank, tackle 34, Snider 44, +2. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Snider 44. Complete 1→13 THEM blank, tackle 8, Snider 33, +11. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Snider 33. Complete 1→13 THEM blank TD. Spoken “Opp 13 SHS 6”; actual after XP miss SHS 7–13.",
+          "playType": "Pass",
+          "result": "Complete, TD"
+        },
+        {
+          "comment": "Carroll 95 XP no good (THEM kicker blank). Extra Pt. Block. SHS 7–13.",
+          "playType": "Extra Pt. Block",
+          "result": "No Good"
+        },
+        {
+          "comment": "Chain after their XP would be our KO — override KO Rec Opp 40.",
+          "playType": "KO Rec",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Own 47. Pass 17 INT wiped by DPI vs Carroll. Penalty only, 15 vs D AFD → Carroll 38.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 10 Carroll 38. Pre-snap vs SHS 5 → Carroll 43, 1st & 15.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 15 Carroll 43. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "2nd & 15 Carroll 43. Run 28 to Carroll 38, +5. Tackler 70 THEM blank. 3rd & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 10 Carroll 38. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "4th & 10 Carroll 38. Punt 88 to Carroll 23, no return.",
+          "playType": "Punt",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Carroll 23. QB 1 sack 35, Carroll 18, −5. 2nd & 15.",
+          "playType": "Pass",
+          "result": "Sack"
+        },
+        {
+          "comment": "2nd & 15 Carroll 18. QB 1 run THEM blank, tackles 7 and 52, Carroll 19, +1. 3rd & 14.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 14 Carroll 19. Complete 1→12 THEM blank, tackle 35, Carroll 38, +19. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Carroll 38. Run 1 THEM blank, tackle 9, Carroll 44, +6. 2nd & 4.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 4 Carroll 44. Run to 43 wiped: holding 10 vs O from LOS → Carroll 34, 2nd & 14.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "2nd & 14 Carroll 34. Complete 1→12 THEM blank, tackle 36, 50, +16. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "Spoken 1st & 10 from the 35 vs chain 50. Pass 1→13, tackle 35, Snider 33, +2. Spoken “opponent 33”; 2nd & 8 only fits Snider 33.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 8 Snider 33. Run 3 THEM blank, tackle 36, Snider 29, +4.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "UR vs Snider 15 AFD, Snider 29 → 14. Spoken “opponent 14” is Snider 14 (then 1st & 15 from 19).",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 10 Snider 14. Pre-snap vs Carroll 5 → Snider 19, 1st & 15.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 15 Snider 19. Run 1 THEM blank, tackles 52 and 7, Snider 15, +4. 2nd & 11.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 11 Snider 15. Incomplete 1 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 11 Snider 15. Incomplete 1 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "4th & 11 Snider 15. Inc wiped: holding vs D, spoken half-distance to 8, 4th & 4. Compiler 10 yd → Own 5 4th & 1; next snap override.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Spoken 4th & 4 Snider 8. Incomplete 1 → COP. Chain after penalty was 4th & 1 Own 5.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "Spoken “Snider on opponent 8”; physical Own 8 (2nd & 8 from 10 only works this way). Chain flips to Opp 8. Run 6 to Own 10, +2. Tackler 81 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 8 Own 10. Spoken “number one to 12”; SHS O with R6/P88 → 17→12. Tackler 0 THEM blank. Own 15, +5. 3rd & 3.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "3rd & 3 Own 15. Run 6 to Own 14, −1. Tackler 99 THEM blank. 4th & 4.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "4th & 4 Own 14. Punt 88, catch 13 at Carroll 40, return Snider 10, tackle 88 US.",
+          "playType": "Punt",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & Goal Snider 10. Run 3 THEM blank, tackle 34, Snider 2, +8.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & Goal Snider 2. Run 0 THEM blank TD. SHS 7–19.",
+          "playType": "Run",
+          "result": "Rush, TD"
+        },
+        {
+          "comment": "2-pt run 0 THEM blank, good. 2 Pt. Block. SHS 7–21.",
+          "playType": "2 Pt. Block",
+          "result": "Good"
+        },
+        {
+          "comment": "Carroll 94 KO touchback. Chain after their score would be our KO — override KO Rec Opp 40.",
+          "playType": "KO Rec",
+          "result": "Touchback"
+        },
+        {
+          "comment": "1st & 10 Own 20. Run 28 to Own 19, −1. Tackler 7 THEM blank. 2nd & 11.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 11 Own 19. Complete 17→12 to Own 31, +12. Tackler 3 THEM blank. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Own 31. Run 28 to Own 33, +2. Tackler 12 THEM blank. Chain 2nd & 8; spoken 2nd & 7.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 8 Own 33. Complete 17→80 to Own 39, +6. Tackler 3 THEM blank. 3rd & 2 (matches spoken).",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "3rd & 2 Own 39. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "4th & 2 Own 39. Punt 88, catch 13 at Carroll 30, return TD. Extra Pt. Block next.",
+          "playType": "Punt",
+          "result": "Return"
+        },
+        {
+          "comment": "Carroll 95 XP good (THEM blank). Extra Pt. Block. Spoken 7–28.",
+          "playType": "Extra Pt. Block",
+          "result": "Good"
+        },
+        {
+          "comment": "Carroll 94 KO touchback. Override KO Rec Opp 40.",
+          "playType": "KO Rec",
+          "result": "Touchback"
+        },
+        {
+          "comment": "1st & 10 Own 20. Complete 17→3 to Carroll 23, +57. Tackler 5 THEM blank.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Carroll 23. Run 6 to Carroll 18, +5. Tackler 0 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 5 Carroll 18. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 5 Carroll 18. Complete 17→3 to Carroll 2, +16. Tackler 6 THEM blank.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "Penalty vs Carroll on the play, half-distance 2→1, AFD. Encoded 5 vs D.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & Goal Carroll 1. Run 17 TD. SHS 13–28.",
+          "playType": "Run",
+          "result": "Rush, TD"
+        },
+        {
+          "comment": "XP. Pre-snap encroachment vs D. Compiler 3→2; spoken ball on the 1.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "XP 88 good. Spoken from 1 (chain 2). SHS 14–28.",
+          "playType": "Extra Pt.",
+          "result": "Good"
+        },
+        {
+          "comment": "SHS 88 KO. Catch 24 at Carroll 13. Spoken tackle “opponent 44”; 15 UR to Snider 29 only fits end Snider 44. Tackles 14 and 36 US.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "UR vs Snider 15, Snider 44 → 29. 1st & 10 Snider 29.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 10 Snider 29. Run 3 THEM blank, tackle 34, Snider 24, +5.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 5 Snider 24. Complete 1→82 THEM blank, tackle 2, Snider 23, +1. 3rd & 4.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "3rd & 4 Snider 23. Run 0 THEM blank, tackle 52, Snider 21, +2. 4th & 2.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "4th & 2 Snider 21. Run 0 THEM blank, tackles 58 and 55, Snider 20, +1. Failed 4th → COP.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Spoken Snider 1st & 10 Own 20 (chain flips COP to Opp 20). Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "2nd & 10 Own 20. Run 6 to Own 22, +2. Tackler 91 THEM blank. 3rd & 8.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 8 Own 22. Inc 17 wiped: holding 10 vs D AFD → Own 32, 1st & 10.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 10 Own 32. Run 17 to Own 34, +2. Spoken “opponent 34”; 2nd & 8 only fits Own 34.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 8 Own 34. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 8 Own 34. Run 6 to Own 33, −1. Tackler 91 THEM blank. 4th & 9.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "4th & 9 Own 33. Punt 88, catch 13 at Carroll 23, tackle 36, no return.",
+          "playType": "Punt",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Carroll 23. Complete 1→15 THEM blank, tackle 22, 50, +27.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 at 50. Incomplete 1 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "2nd & 10 at 50. Complete 1→12 THEM blank, tackle 9, Snider 22, +28.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Snider 22. Incomplete 1 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "2nd & 10 Snider 22. Complete 1→82 THEM blank, tackles 19 and 34, Snider 7, +15. 1st & Goal.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & Goal Snider 7. Incomplete 1 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "2nd & Goal Snider 7. Delay of game vs Carroll 5 → Snider 12, 2nd & Goal. Spoken “opponent 12” is Snider 12.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "2nd & Goal Snider 12. FG 94 good (THEM blank). Spoken 31–14. kickYards 12+17.",
+          "playType": "FG",
+          "result": "Good"
+        },
+        {
+          "comment": "Carroll 94 KO OOB, 5-yard penalty. Q3 is the re-kick (TB). Do not retcon this row.",
+          "playType": "KO Rec",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Re-kick: Carroll 94 KO TB (THEM blank). Chain after OOB penalty was 1st & 10 Opp 45 O — override KO Rec Opp 40.",
+          "playType": "KO Rec",
+          "result": "Touchback"
+        },
+        {
+          "comment": "1st & 10 Own 20. Run 6 to Own 21, +1. Tackler 70 THEM blank. 2nd & 9.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 9 Own 21. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 9 Own 21. Complete 17→80 to Own 31, +10. Tackler 3 THEM blank. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Own 31. Run 6 to Own 32, +1. Tackler 6 THEM blank. 2nd & 9.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 9 Own 32. Complete 17→80 to Own 47, +15. Tackler 8 THEM blank. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Own 47. Run 6 to Own 49, +2. Tackler 70 THEM blank. 2nd & 8.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 8 Own 49. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 8 Own 49. Spoken “pass by 17” then 4th & 8 — incomplete.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "4th & 8 Own 49. Punt 88, catch 13 at Carroll 15, tackle 8 at Carroll 7.",
+          "playType": "Punt",
+          "result": "Return"
+        },
+        {
+          "comment": "Facemask vs Snider 5 (spoken 5, not 15). Carroll 7 → 12, 1st & 10.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 10 Carroll 12. Run 3 THEM blank, tackle 7, Carroll 11, −1. 2nd & 11.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 11 Carroll 11. Complete 1→12 THEM blank, OOB Carroll 30, +19. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Carroll 30. Run 13 THEM blank, tackle 8, Carroll 38, +8. Chain 2nd & 2; spoken 2nd & 4.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Chain 2nd & 2 Carroll 38. Run 1 THEM blank, tackle 24, Carroll 44, +6. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Carroll 44. Sack 7, Carroll 42, −2. 2nd & 12.",
+          "playType": "Pass",
+          "result": "Sack"
+        },
+        {
+          "comment": "2nd & 12 Carroll 42. Run 3 THEM blank, tackle 2, Carroll 40, −2. Chain 3rd & 14; spoken 3rd & 8.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Chain 3rd & 14 Carroll 40. Incomplete 1 THEM blank. Chain 4th & 14 Carroll 40; spoken 4th & 8 Carroll 46.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "Spoken 4th & 8 Carroll 46. Punt 94 through EZ, TB. Punt Rec.",
+          "playType": "Punt Rec",
+          "result": "Touchback"
+        },
+        {
+          "comment": "1st & 10 Own 20. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "2nd & 10 Own 20. Run 28 to Own 21, +1. Tackler 99 THEM blank. 3rd & 9.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 9 Own 21. Complete 17→12 to Own 44, +23. Tackler 3 THEM blank. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Own 44. Run 28 to Carroll 48, +8. Tackler 5 THEM blank. 2nd & 2.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 2 Carroll 48. Incomplete 17. 3rd & 2.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 2 Carroll 48. Complete 17→3 to Carroll 40, +8. Tackler 8 THEM blank. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Carroll 40. Run 28 to Carroll 42, −2. Tackler 7 THEM blank. 2nd & 12.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 12 Carroll 42. Run 28 to Carroll 38, +4. Tackler 12 THEM blank. 3rd & 8.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 8 Carroll 38. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "4th & 8 Carroll 38. Incomplete 17 → COP. Spoken next 1st & 10 Carroll 38 (chain would flip to Own 38).",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "Spoken 1st & 10 Carroll 38. Run 3 THEM blank, tackle 35, Carroll 43, +5. 2nd & 5.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 5 Carroll 43. Run 1 THEM blank, tackle 22, 50, +7. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 at 50. Run 3 THEM blank, tackle 55, no gain. Spoken “on the 15th” = fifty.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 10 at 50. Complete 1→13 THEM blank, tackle 21, Snider 26, +24. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Snider 26. Complete 1→12 THEM blank, tackle 35, Snider 12, +14. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Snider 12. Run 1 THEM blank, tackles 38 and 8, Snider 1, +11. 1st & Goal.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & Goal Snider 1. Fumble on the snap, Carroll recovers Own 3 (THEM = O). Next 2nd & Goal from 3.",
+          "playType": "Run",
+          "result": "Fumble"
+        },
+        {
+          "comment": "2nd & Goal Snider 3. Run 0 THEM blank TD. SHS 14–37.",
+          "playType": "Run",
+          "result": "Rush, TD"
+        },
+        {
+          "comment": "Carroll 95 XP good (THEM blank). Extra Pt. Block. Spoken 14–38.",
+          "playType": "Extra Pt. Block",
+          "result": "Good"
+        },
+        {
+          "comment": "Carroll 94 KO. #3 catch Own 7, return Own 29. Chain after their XP would be our KO — override KO Rec Opp 40.",
+          "playType": "KO Rec",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Own 29. Complete 17→12 to Own 33, +4. Tackler 4 THEM blank. 2nd & 6.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 6 Own 33. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 6 Own 33. Sack 17, Own 25, −8. Tackler 12 THEM blank. 4th & 14.",
+          "playType": "Pass",
+          "result": "Sack"
+        },
+        {
+          "comment": "4th & 14 Own 25. Punt 88 to Carroll 27, no return.",
+          "playType": "Punt",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Carroll 27. Complete 1→12 THEM blank, tackle 24, Carroll 39, +12. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "Chain match: 1st & 10 Carroll 39. Complete 1→82 THEM blank, tackle 24, Carroll 48, +9. 2nd & 1.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 1 Carroll 48. Complete 1→82 THEM blank, tackle 24, Snider 46, +6. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Snider 46. Run 3 THEM blank, tackles 24 and 22, Snider 36, +10. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Snider 36. Complete 1→13 THEM blank, tackles 22 and 24, Snider 35, +1. 2nd & 9.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 9 Snider 35. Complete 1→12 THEM blank, tackle 19, Snider 34, +1. 3rd & 8.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "3rd & 8 Snider 34. Complete 1→12 THEM blank, tackle 22, Snider 22, +12. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Snider 22. Incomplete 1 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "2nd & 10 Snider 22. Run 0 THEM blank, tackle 24, Snider 17, +5. 3rd & 5.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 5 Snider 17. Run 1 THEM blank, tackle 24, Snider 10, +7. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Snider 10. Run 0 THEM blank, tackles 34 and 55, no gain. 2nd & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 10 Snider 10. Complete 1→12 THEM blank TD. SHS 14–44.",
+          "playType": "Pass",
+          "result": "Complete, TD"
+        },
+        {
+          "comment": "Carroll 94 XP good (THEM blank). Extra Pt. Block. Spoken 14–45.",
+          "playType": "Extra Pt. Block",
+          "result": "Good"
+        },
+        {
+          "comment": "Carroll 94 KO TB. Chain after their XP would be our KO — override KO Rec Opp 40.",
+          "playType": "KO Rec",
+          "result": "Touchback"
+        },
+        {
+          "comment": "1st & 10 Own 20. Complete 17→4 to Own 22, +2. Tackler 5 THEM blank. 2nd & 8.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 8 Own 22. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 8 Own 22. Complete 17→12 to Own 48, +26. DPI declined — catch stands. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Own 48. Run 6 to 50, +2. Tackler 12 THEM blank. 2nd & 8.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 8 at 50. Complete 17→4 to Carroll 43, +7. Tackler 7 THEM blank. 3rd & 1.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "3rd & 1 Carroll 43. Run 17, fumble, Carroll 91 recovers Carroll 48. Chain would flip to Own 48.",
+          "playType": "Run",
+          "result": "Fumble"
+        },
+        {
+          "comment": "Spoken 1st & 10 Carroll 48 (physical). Run 24 THEM blank, tackle 34, Snider 49, +3. 2nd & 7.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 7 Snider 49. Run 24 THEM blank, tackles 8 and 58, Snider 43, +6. 3rd & 1.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 1 Snider 43. Run 0 THEM blank, tackle 22, Snider 41, +2. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Snider 41. Run 10 THEM blank, tackle 8, Snider 40, +1. 2nd & 9.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 9 Snider 40. Run 10 THEM blank, tackle 9, Snider 33, +7. 3rd & 2.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 2 Snider 33. Run 10 THEM blank, tackle 45, Snider 24, +9. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Snider 24. Run 24 THEM blank, tackle 56, Snider 25, −1. 2nd & 11.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 11 Snider 25. Run 25 THEM blank, tackle 4, Snider 22, +3. Chain 3rd & 8; spoken 2nd & 7.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Chain 3rd & 8 Snider 22. Run 10 THEM blank to Snider 8, +14. 1st & Goal.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & Goal Snider 8. Run 10 THEM blank, tackles 44 and 32, Snider 6, +2. 2nd & Goal.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & Goal Snider 6. Run 24 THEM blank, tackle 22, Snider 3, +3. 3rd & Goal.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & Goal Snider 3. Run 10 THEM blank TD. SHS 14–51.",
+          "playType": "Run",
+          "result": "Rush, TD"
+        },
+        {
+          "comment": "Carroll 95 XP good (THEM blank). Extra Pt. Block. Spoken 14–52.",
+          "playType": "Extra Pt. Block",
+          "result": "Good"
+        },
+        {
+          "comment": "Carroll 94 KO TB. Override KO Rec Opp 40.",
+          "playType": "KO Rec",
+          "result": "Touchback"
+        },
+        {
+          "comment": "1st & 10 Own 20. Run 28, no gain. Tackler 51 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 10 Own 20. Run 25 to Own 24, +4. Tackler 78 THEM blank. End of game (spoken final 52–14). 3rd & 6 is not a snap.",
+          "playType": "Run",
+          "result": "Rush"
+        }
+      ]
+    },
+    {
+      "id": "homestead-at-shs-2026-09-25",
+      "source": "huddlestat-platform/scripts/dictated-pbp/games/homestead-at-shs-2026-09-25/plays.jsonl",
+      "opponent": "Homestead",
+      "kickedOff": false,
+      "snaps": [
+        {
+          "comment": "Homestead 43 KO (THEM kicker blank). #3 catch Own 6, return Own 36, +30. Tackle 43 THEM blank.",
+          "playType": "KO Rec",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Own 36. Run 6 to Own 35, −1. Tackle 7 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 11 Own 35. Complete 17→12 to Own 39, +4. Tackle 0 THEM blank.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "3rd & 7 Own 39. Sack of 17 by 25 THEM blank, Own 33, −6. 4th & 13.",
+          "playType": "Pass",
+          "result": "Sack"
+        },
+        {
+          "comment": "4th & 13 Own 33. Punt 88. Caught by 18 (STT “my car”) at Homestead 35, return Homestead 39, +4. Tackle 8 US. Returner THEM blank.",
+          "playType": "Punt",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Homestead 39. Complete 4→24 THEM blank to Homestead 43, +4. Tackle 22 US.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 6 Homestead 43. Run 4 THEM blank to Homestead 44, +1. Tackle 44 US.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 5 Homestead 44. Sack of 4 by 55, assist 33, Homestead 33, −11. 4th & 16.",
+          "playType": "Pass",
+          "result": "Sack"
+        },
+        {
+          "comment": "4th & 16 Homestead 33. Punt 43 THEM blank to Snider 26, no return.",
+          "playType": "Punt",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Own 26. Run 6 to Own 22, −4. Tackle 7 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 14 Own 22. Complete 17→3 to Own 29, +7. Tackle 8 THEM blank (STT “check my”). Chain next 3rd & 7; spoken 3rd & 8.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "Chain 3rd & 7 Own 29 (spoken 3rd & 8). Complete 17→12 to Own 38, +9. Tackle 1 THEM blank. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Own 38. Run 6 to Own 45, +7. Tackle 25 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 3 Own 45. Complete 17→12 to Own 47, +2. Tackle 3 THEM blank.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "3rd & 1 Own 47. Run 6, 53-yard TD. SHS 6–0.",
+          "playType": "Run",
+          "result": "Rush, TD"
+        },
+        {
+          "comment": "XP 88 no good. SHS 6–0. Next is our KO from Own 40.",
+          "playType": "Extra Pt.",
+          "result": "No Good"
+        },
+        {
+          "comment": "SHS 88 KO. Catch Homestead 6 by 21 THEM blank, return Homestead 29, +23. Tackle 9 US.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Homestead 29. Sack of 4 by 56, assist 34, Homestead 28, −1. 2nd & 11.",
+          "playType": "Pass",
+          "result": "Sack"
+        },
+        {
+          "comment": "2nd & 11 Homestead 28. Incomplete 4 THEM blank (STT “it could be pass”). Chain next 3rd & 11 Homestead 28; spoken Homestead 20.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "Chain 3rd & 11 Homestead 28 (spoken Homestead 20). Sack of 4 by 2, Homestead 21, −7. 4th & 18.",
+          "playType": "Pass",
+          "result": "Sack"
+        },
+        {
+          "comment": "4th & 18 Homestead 21. Punt 43 THEM blank, OOB Homestead 31. Snider ball.",
+          "playType": "Punt",
+          "result": "Downed"
+        },
+        {
+          "comment": "1st & 10 Homestead 31. Complete 17→80 to Homestead 20, +11. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Homestead 20. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "2nd & 10 Homestead 20. Run 6 to Homestead 22, −2. Tackle 0 THEM blank (Taco Bell).",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 12 Homestead 22. Complete 17→80 to Homestead 14, +8. Tackle 8 THEM blank. 4th & 4.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "4th & 4 Homestead 14. FG 88 no good. Touchback spot. Chain next D 1st & 10 Own 20; spoken Homestead 20.",
+          "playType": "FG",
+          "result": "No Good"
+        },
+        {
+          "comment": "Spoken Homestead ball 1st & 10 Homestead 20 (chain Own 20). Run 23 THEM blank, gain 0, still Homestead 20. Tackles 32 and 34 US. Chain next 2nd & 10 Homestead 20; spoken 2nd & 3 Homestead 27.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Spoken 2nd & 3 Homestead 27 (chain 2nd & 10 Homestead 20). Run 24 THEM blank to Homestead 29, +2. Tackle 24 US. 3rd & 1.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 1 Homestead 29. Run 24 THEM blank to Homestead 27, −2. Tackle 24 US. 4th & 3.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "4th & 3 Homestead 27. Punt 43 THEM blank, OOB Homestead 38. Snider ball.",
+          "playType": "Punt",
+          "result": "Downed"
+        },
+        {
+          "comment": "1st & 10 Homestead 38. Run 28 to Homestead 37, +1. Tackle 41 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Penalty on the play vs Snider, 10 yards. Wiped complete 17→3 to Homestead 34, tackle 8. Ball Homestead 47. 2nd & 19.",
+          "playType": "Pass",
+          "result": "Penalty"
+        },
+        {
+          "comment": "2nd & 19 Homestead 47. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 19 Homestead 47. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "4th & 19 Homestead 47. Punt 88 OOB Homestead 33. Chain next flips to Own 33 — override the next snap.",
+          "playType": "Punt",
+          "result": "Downed"
+        },
+        {
+          "comment": "Spoken Homestead ball 1st & 10 Homestead 33 (chain Own 33). Run 4 THEM blank to Homestead 41, +8. Tackles 24 and 36 US.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Run 4 THEM blank to Snider 29, +30, OOB. Tackle 22 US. 1st & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Snider 29 (STT “1029”). Run 25 THEM blank to Snider 25, +4. Tackles 34 and 35 US. End spot from the next line. Chain 2nd & 6; spoken 2nd & 8.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Chain 2nd & 6 Snider 25 (spoken 2nd & 8). Complete 4→17 THEM blank to Snider 13 (STT “813”), +12. Tackles 8 and 22 US. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Snider 13. Run 25 THEM blank to Snider 8, +5. Tackle 7 US.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 5 Snider 8. Run 10 THEM blank, no gain, Snider 8. Tackle 22 US.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 5 Snider 8. Incomplete 4 THEM blank (STT “Egly”).",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "4th & 5 Snider 8. FG 43 THEM blank, good. SHS 6–3. Next kick is theirs.",
+          "playType": "FG",
+          "result": "Good"
+        },
+        {
+          "comment": "Homestead 43 KO (THEM blank). Chain would be our KO — KO Rec Opp 40. #82 catch Own 10 (STT “call me 10”), return Own 39, +29. Tackle 43 THEM blank.",
+          "playType": "KO Rec",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Own 39. Run 28 to Own 46, +7. Tackle 0 THEM blank. Chain next 2nd & 3 Own 46; spoken Snider 40.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Chain 2nd & 3 Own 46 (spoken Snider 40). Run 28 to Homestead 46, +8. Tackle 0 THEM blank (STT “attacked”). 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Homestead 46. Complete 17→80 to Homestead 35, +11. Tackle 3 THEM blank.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Homestead 35. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "2nd & 10 Homestead 35. Complete 17→18 to Homestead 14, +21. Tackle 18 THEM blank. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Homestead 14. Run 22 to Homestead 11, +3. Tackle 63 THEM blank.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Run 28 to Homestead 6, +5. Tackler number not spoken. Chain 3rd & 2; spoken 3rd & 1.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Chain 3rd & 2 Homestead 6 (spoken 3rd & 1). Run 6 to Homestead 3, +3. Tackle 0 THEM blank. 1st & Goal.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & Goal Homestead 3. Run 6 to Homestead 2, +1. Tackle 41 THEM blank. 2nd & Goal.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & Goal Homestead 2. Complete 17→12 TD. SHS 12–3.",
+          "playType": "Pass",
+          "result": "Complete, TD"
+        },
+        {
+          "comment": "XP 88 good. SHS 13–3. Next is our KO.",
+          "playType": "Extra Pt.",
+          "result": "Good"
+        },
+        {
+          "comment": "SHS 88 KO. Catch Homestead 10 by 10 THEM blank, return Homestead 34, +24. Tackle 14 US.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "Pre-snap encroachment by Snider, 5 yards. 1st & 5 Homestead 39.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 5 Homestead 39. Run 4 THEM blank OOB Snider 27, +34. Tackle 22 US. 1st & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Snider 27. Complete 4→14 THEM blank, TD. SHS 13–9 before the kick.",
+          "playType": "Pass",
+          "result": "Complete, TD"
+        },
+        {
+          "comment": "Homestead 43 XP good (THEM blank). Extra Pt. Block. SHS 13–10. Next kick is theirs.",
+          "playType": "Extra Pt. Block",
+          "result": "Good"
+        },
+        {
+          "comment": "Homestead 43 KO. Chain would be our KO — KO Rec Opp 40. #82 catch Own 10, return Own 31, +21. Tackle 37 THEM blank.",
+          "playType": "KO Rec",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Own 31. Complete 17→80 to Own 39, +8. Tackles 3 and 22 THEM blank.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 2 Own 39. Run 28 to Own 41, +2. Tackle 8 THEM blank. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Own 41. Complete 17→80 to Own 49, +8. Tackles 0 and 22 THEM blank. Chain next 2nd & 2; spoken 1st & 10.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "Chain 2nd & 2 Own 49 (spoken 1st & 10). Run 28, no gain, Own 49. Tackle 5 THEM blank. Next spoken is 3rd & 2.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 2 Own 49. Run 28, no gain, Own 49. Tackle 3 THEM blank. Chain next 4th & 2 Own 49; spoken 4th & 1 at the 50.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Spoken 4th & 1 at the 50 (chain 4th & 2 Own 49). Punt 88, fair catch 18 THEM blank at Homestead 13.",
+          "playType": "Punt",
+          "result": "Fair Catch"
+        },
+        {
+          "comment": "Spoken Homestead ball 1st & 10 Homestead 13 (chain Own 13). Sack of 4 by 56, Homestead 6, −7.",
+          "playType": "Pass",
+          "result": "Sack"
+        },
+        {
+          "comment": "Dead-ball excessive celebration vs Snider, 15 yards from Homestead 6. 2nd & 2 Homestead 21.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Pre-snap offsides vs Snider, 5 yards (STT “off”). Crosses the sticks. Chain 2nd & 1 Homestead 26; spoken 1st & 10.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Spoken 1st & 10 Homestead 26 (chain 2nd & 1). Complete 4→21 THEM blank to Homestead 35, +9. Tackle 35 US (STT “bathroom”).",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 1 Homestead 35. Complete 4→21 THEM blank to Homestead 37, +2. Tackle 35 US. Chain 1st & 10; spoken 1st & 5.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "Chain 1st & 10 Homestead 37 (spoken 1st & 5). Complete 4→23 THEM blank to Homestead 34, −3. Tackle 8 US. 2nd & 13.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 13 Homestead 34. Run 4 THEM blank to Homestead 39, +5. Tackles 24 and 34 US.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "SHS 88 KO. Chain was D 3rd & 8 Homestead 39 — override KO Own 40. Catch Homestead 14 by 6 THEM blank, return Homestead 18, +4. Tackles 35 and 22 US.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Homestead 18. Run 25 THEM blank to Homestead 25, +7. Tackle 34 US.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 3 Homestead 25. Run 25 THEM blank to Homestead 31, +6. Tackle 22 US. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Penalty on the play vs Homestead, 10 yards. Wiped QB run 4 to Homestead 37, tackles 24 and 34. Chain 1st & 20 Homestead 21; spoken 2nd & 20.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Chain 1st & 20 Homestead 21 (spoken 2nd & 20). Run 25 THEM blank to Homestead 33, +12. Tackle 36 US. 2nd & 8.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 8 Homestead 33. Run 4 THEM blank to Homestead 38, +5. Tackles 1 and 34 US. 3rd & 3.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 3 Homestead 38. Complete 4→25 THEM blank to Snider 20, +42. Tackle 22 US. Chain next 1st & 10 Snider 20; spoken Snider 22.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "Spoken 1st & 10 Snider 22 (chain Snider 20). Run 4 THEM blank to Snider 19, +3. Tackles 1 and 24 US.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Run 4 THEM blank to Snider 16, +3. Tackle 22 US. Chain 3rd & 4; spoken next 3rd & 3.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Spoken 3rd & 3 Snider 16 (chain 3rd & 4). Holding on the play vs Homestead, 10 yards. Wiped complete 4→14 to Snider 4, tackle 22. Ball Snider 26, 3rd & 13.",
+          "playType": "Pass",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Pre-snap illegal procedure vs Homestead, 5 yards. 3rd & 18 Snider 31.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "3rd & 18 Snider 31. Sack of 4 by 34, Snider 45, −14. 4th & 32.",
+          "playType": "Pass",
+          "result": "Sack"
+        },
+        {
+          "comment": "4th & 32 Snider 45. Punt 43 THEM blank, OOB Snider 20, no return. Snider ball.",
+          "playType": "Punt",
+          "result": "Downed"
+        },
+        {
+          "comment": "1st & 10 Own 20. Pass 17 intercepted (1 THEM blank) at Snider 28, return Snider 26. Tackle 3 US. Then dead-ball UNS vs Homestead.",
+          "playType": "Pass",
+          "result": "Interception"
+        },
+        {
+          "comment": "UNS vs Homestead, 15 yards from the return end. Chain after the INT flips to Opp 26 — enforce from Own 26. Chain next 1st & 25 Own 41; spoken 1st & 10 Own 41.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Spoken 1st & 10 Snider 41 (chain 1st & 25). Run 4 THEM blank to Snider 35, +6. Tackle 24 US. 2nd & 4.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 4 Snider 35. Incomplete 4 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 4 Snider 35. Incomplete 4 THEM blank. 4th & 4.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "4th & 4 Snider 35. Punt 43 THEM blank, downed Snider 8, no return. Spoken next ball Snider 23.",
+          "playType": "Punt",
+          "result": "Downed"
+        },
+        {
+          "comment": "Spoken 1st & 10 Snider 23 (chain Snider 8). Run 6 to Snider 29, +6. Tackle 62 THEM blank. 2nd & 4.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 4 Snider 29. Complete 17→3 to Snider 46, +17. Tackle 40 THEM blank. Chain next 1st & 10 Snider 46; spoken Snider 45.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "Chain 1st & 10 Snider 46 (spoken 45). Complete 17→12 to Homestead 48, +6. Tackle 8 THEM blank. 2nd & 4.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 4 Homestead 48. Complete 17→24 to Homestead 31, +17. Tackle 1 THEM blank. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Homestead 31. Run 6, no gain. Tackle 3 THEM blank. 2nd & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 10 Homestead 31. Incomplete. Passer not spoken.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 10 Homestead 31. Pass 17 intercepted (20 THEM blank) at Snider 26, return Snider 16, +10. Tackle 17 US. Chain flips the end spot.",
+          "playType": "Pass",
+          "result": "Interception"
+        },
+        {
+          "comment": "Spoken Homestead ball 1st & 10 Snider 16 (chain Opp 16). Run 4 THEM blank to Snider 13, +3. Tackle 34 US. 2nd & 7.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 7 Snider 13. Complete 4→24 THEM blank, TD. SHS 13–16.",
+          "playType": "Pass",
+          "result": "Complete, TD"
+        },
+        {
+          "comment": "Homestead 43 XP blocked by 22 US. Extra Pt. Block. Score stays 13–16. Next kick is theirs.",
+          "playType": "Extra Pt. Block",
+          "result": "Blocked"
+        },
+        {
+          "comment": "Homestead 43 KO. Chain would be our KO — KO Rec Opp 40. #82 catch Own 19, return Own 26, +7. Tackle 14 THEM blank.",
+          "playType": "KO Rec",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Own 26. Complete 17→12 to Own 25, −1. Tackle 21 THEM blank. 2nd & 11.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 11 Own 25. Complete 17→3 to Own 34, +9. Tackle 41 THEM blank. 3rd & 2 (STT “throw down 2 yards ago”).",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "3rd & 2 Own 34. Run 6 to Own 36, +2. Tackle 1 THEM blank. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Own 36. Run 6 to Own 39, +3. Tackle 1 THEM blank. 2nd & 7.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 7 Snider 39. Complete 17→10 to Snider 48, +9. Tackle 62 THEM blank. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Snider 48. Run 6 to Homestead 46, +6. Tackle 8 THEM blank. 2nd & 4.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 4 Homestead 46. Complete 17→3 to Homestead 27, +19. Tackle 8 THEM blank. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Homestead 27. Run 62 to Homestead 22, +5. 2nd & 5.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 5 Homestead 22. Run 6 to Homestead 19, +3. Tackle 3 THEM blank. Chain 3rd & 2; spoken 2nd & 2.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Chain 3rd & 2 Homestead 19 (spoken 2nd & 2). Run 6 to Homestead 17, +2. Tackle 8 THEM blank. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Homestead 17. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "2nd & 10 Homestead 17. Run 6, no gain. Tackle 0 THEM blank. 3rd & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Holding on the play vs Snider, 10 yards. Wiped complete 17→3 to Homestead 9. Ball Homestead 27.",
+          "playType": "Pass",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Complete 17→3 to Homestead 6, +21. Tackle 40 THEM blank. 1st & Goal.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & Goal Homestead 6. Run 6 to Homestead 4, +2. Tackle 51 THEM blank. 2nd & Goal.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & Goal Homestead 4. Run 6 TD. Spoken 19–16.",
+          "playType": "Run",
+          "result": "Rush, TD"
+        },
+        {
+          "comment": "XP 88 good. Spoken 20–20; TD plus kick from 13–16 is 20–16, and the final is 20–16.",
+          "playType": "Extra Pt.",
+          "result": "Good"
+        },
+        {
+          "comment": "SHS 88 KO. Catch Homestead 13 by 6 THEM blank, return Homestead 26, +13. Tackle 30 US.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Homestead 26. Complete 4→14 THEM blank to Homestead 34, +8. Tackle 36 US. 2nd & 2.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 2 Homestead 34. Incomplete 4 THEM blank (STT “play pass”). 3rd & 2.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 2 Homestead 34. Run 4 THEM blank to Homestead 39, +5. Tackle 1 US. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Homestead 39. Complete 4→24 THEM blank to Homestead 44, +5. Tackle 34 US (STT “cop”). 2nd & 5.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "Pre-snap illegal procedure vs Homestead, 5 yards. 2nd & 10 Homestead 39.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "2nd & 10 Homestead 39. Run 4 THEM blank to Homestead 40, +1. Tackle 1 US (STT “check”). 3rd & 9.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 9 Homestead 40. Run 4 THEM blank to Homestead 42, +2. Tackle 1 US. Chain 4th & 7; spoken 4th & 6.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Spoken 4th & 6 Homestead 42 (chain 4th & 7). Punt 43 THEM blank, no return. Snider ball at Snider 25.",
+          "playType": "Punt",
+          "result": "Downed"
+        },
+        {
+          "comment": "1st & 10 Snider 25. Run 6 to Snider 21, −4. Tackle 7 THEM blank. 2nd & 14.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 14 Snider 21. Pass 17→3, fumble, recovered by 3 at Snider 34. Tackler number not spoken. 3rd & 1.",
+          "playType": "Pass",
+          "result": "Fumble"
+        },
+        {
+          "comment": "3rd & 1 Snider 34. Run 6 to Snider 36, +2. Tackle 0 THEM blank. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Snider 36. Run 6 to Snider 39, +3. Tackle 8 THEM blank. 2nd & 7.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 7 Snider 39. Run 6 to Snider 41, +2. Tackle 0 THEM blank. 3rd & 5.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 5 Snider 41. Run 6 to Homestead 48, +11. Tackle 18 THEM blank. 1st down.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Homestead 48. Kneel 17 to Homestead 49, −1 (STT “you down”). Final.",
+          "playType": "Run",
+          "result": "Rush"
+        }
+      ]
+    },
+    {
+      "id": "northrop-2026-10-02",
+      "source": "huddlestat-platform/scripts/dictated-pbp/games/northrop-2026-10-02/plays.jsonl",
+      "opponent": "Northrop",
+      "kickedOff": true,
+      "snaps": [
+        {
+          "comment": "Snider 88 KO. #0 catch Own 20 (THEM blank), OOB Own 38, +18.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Northrop 38. Complete 10→6 THEM blank to Northrop 47, +9. Tackle 24 US. 2nd & 1. Spoken next \"from the 45\".",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "Chain 2nd & 1 Northrop 47 (spoken Northrop 45). Run 4 THEM blank to Snider 44, +9. Tackle 24 US. 1st & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Snider 44. Complete 4→6 THEM blank to Snider 40, +4. Tackle 22 US. 2nd & 6.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 6 Snider 40. Pre-snap penalty on Snider, 5 yards. 2nd & 1 Snider 35.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "2nd & 1 Snider 35. Complete 10→9 THEM blank to Snider 20, +15. Tackle 24 US. 1st & 10.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Snider 20 (spoken \"on the Snider\"). Run 4 THEM blank to Snider 15, +5. Tackle 34 US. 2nd & 5.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 5 Snider 15. Incomplete 10 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 5 Snider 15. Run 4 THEM blank to Snider 9, +6. Tackle 2 US. 1st & goal.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & goal Snider 9. Complete 10→9 THEM blank, TD. Northrop 6, Snider 0.",
+          "playType": "Pass",
+          "result": "Complete, TD"
+        },
+        {
+          "comment": "Northrop 80 XP blocked by 22 US. Extra Pt. Block. Northrop 6, Snider 0. Next kick is theirs.",
+          "playType": "Extra Pt. Block",
+          "result": "Blocked"
+        },
+        {
+          "comment": "Northrop 80 KO (THEM blank). #22 catch Own 11, return Opp 45, +44. Tackle 80 THEM blank.",
+          "playType": "KO Rec",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Opp 45. Run 6 to Opp 47, −2. Tackle 22 THEM blank (Taco Bell). 2nd & 12.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 12 Opp 47. Complete 17→12 to Opp 35, +12. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Opp 35. Run 6 to Opp 34, +1. Tackle 5 THEM blank. 2nd & 9.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 9 Opp 34. Complete 10→3 to Opp 24, +10. Tackle 6 THEM blank. 1st down.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Opp 24. Sack by 80 THEM blank to Opp 30, −6. Chain next 2nd & 16 Opp 30; spoken 2nd & 14 Opp 29.",
+          "playType": "Pass",
+          "result": "Sack"
+        },
+        {
+          "comment": "Spoken 2nd & 14 Opp 29 (chain 2nd & 16 Opp 30). Incomplete 10.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 14 Opp 29. Complete 17→6 to Opp 8, +21. Tackle 7 THEM blank. 1st & goal.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & goal Opp 8. Run 6 to Opp 1, +7. Tackle 29 THEM blank. 2nd & goal.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & goal Opp 1. Run 6, TD. Snider 6, Northrop 6.",
+          "playType": "Run",
+          "result": "Rush, TD"
+        },
+        {
+          "comment": "XP 88 good. Snider 7, Northrop 6. Next is our KO from Own 40.",
+          "playType": "Extra Pt.",
+          "result": "Good"
+        },
+        {
+          "comment": "Snider 88 KO. Catch Northrop 26 by 21 THEM blank, return Northrop 33, +7. Tackle 34 US.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Northrop 33. Run 4 THEM blank to Northrop 35, +2. Tackles 24 and 7 US. 2nd & 8.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 8 Northrop 35. Complete 10→0 THEM blank to Northrop 49, +14. Tackle 22 US. 1st & 10.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Northrop 49. Run 4 THEM blank to the 50, +1. Tackle 7 US. 2nd & 9.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 9 at the 50. Incomplete 10 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 9 at the 50. Complete 10→8 THEM blank to Snider 42, +8. 4th & 1.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "4th & 1 Snider 42. Pre-snap encroachment on Snider, 5 yards. 1st & 10 Snider 37.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 10 Snider 37. Run 1 THEM blank, gain 0, still Snider 37. Tackle 1 US. 2nd & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 10 Snider 37. Incomplete 10 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 10 Snider 37. Complete 10→0 THEM blank to Snider 34, +3. Tackle 22 US. 4th & 7.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "4th & 7 Snider 34. Pre-snap penalty on the offense, 5 yards. 4th & 12 Snider 39.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "4th & 12 Snider 39. Punt 83 THEM blank, downed Snider 12. No return. Snider ball.",
+          "playType": "Punt",
+          "result": "Downed"
+        },
+        {
+          "comment": "1st & 10 Own 12. Run 6 to Own 16, +4. Tackle 5 THEM blank. 2nd & 6.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 6 Own 16. Complete 17→4 to Own 21, +5. Tackle 21 THEM blank. 3rd & 1.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "3rd & 1 Own 21. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "4th & 1 Own 21. Punt 88, downed Opp 45. No return. Chain next flips — override the next snap.",
+          "playType": "Punt",
+          "result": "Downed"
+        },
+        {
+          "comment": "1st & 10 Opp 45 (chain would flip). Run 4 THEM blank to Snider 44, +11. Tackles 34 and 36 US. 1st & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Snider 44. Complete 10 THEM blank to Snider 41, +3. Receiver not spoken. Tackles 24 and 36 US. 2nd & 7.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 7 Snider 41. Incomplete 10 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 7 Snider 41. Incomplete 10 THEM blank. 4th & 7.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "4th & 7 Snider 41. Punt 83 THEM blank, blocked by 35 US. Ball OOB Snider 44. Snider ball.",
+          "playType": "Punt",
+          "result": "Blocked"
+        },
+        {
+          "comment": "1st & 10 Snider 44. Face mask vs Northrop, 5 yards, enforced from the tackle spot. Wiped complete 17→3 to Snider 46, tackle 21 THEM blank. Chain next 1st & 3 Opp 49; spoken 1st & 5 Opp 49.",
+          "playType": "Pass",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Spoken 1st & 5 Opp 49 (chain 1st & 3). Run 6 to Opp 36, +13. Tackle 2 THEM blank. 1st & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Opp 36. Run 6 to Opp 27, +9. Tackle 22 THEM blank. 2nd & 1.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 1 Opp 27. Run 17 to Opp 26, +1. Tackle 22 THEM blank. 1st & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Opp 26. Run 6 to Opp 5, +21. Tackle 7 THEM blank. 1st & goal.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & goal Opp 5. Run 6 to Opp 2, +3. Tackle 2 THEM blank. Spoken \"to the 1\"; next call is 2nd & goal from the 2.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & goal Opp 2. Run 6 to Opp 4, −2. Tackle 22 THEM blank. 3rd & goal.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & goal Opp 4. Complete 17→4, TD. Snider 13, Northrop 6 before the kick.",
+          "playType": "Pass",
+          "result": "Complete, TD"
+        },
+        {
+          "comment": "XP 88 good. Snider 14, Northrop 6. Next is our KO from Own 40.",
+          "playType": "Extra Pt.",
+          "result": "Good"
+        },
+        {
+          "comment": "Snider 88 KO. #5 catch Northrop 16 (THEM blank), return Northrop 22, +6. Tackle 1 US.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Northrop 22. Run 4 THEM blank to Northrop 17, −5. Tackle 2 US. 2nd & 15.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 15 Northrop 17. Complete 10→9 THEM blank to Northrop 38, +21. Tackle 8 US. 1st & 10.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Northrop 38. Holding vs Northrop, 10 yards from the spot of the foul. Wiped run 4 THEM blank to Northrop 43, tackle 2 US. 1st & 15 Northrop 33.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 15 Northrop 33. Complete 10→9 THEM blank to Snider 47, +20. Tackle 36 US. 1st & 10.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Snider 47. Incomplete 10 THEM blank. Penalty on the play waved off. 2nd & 10.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "2nd & 10 Snider 47. Run 4 THEM blank to Snider 48, −1. Tackle 34 US. 3rd & 11.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 11 Snider 48. Complete 10→9 THEM blank to Snider 27, +21. Tackle 34 US. 1st down, then the late hit.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "Late hit vs Snider, 15 yards from Snider 27. Chain next 1st & 10 Own 12; spoken 1st & 10 Own 13.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Spoken 1st & 10 Snider 13 (chain Snider 12). Run 4 THEM blank to Snider 15, −2. Tackle 1 US. 2nd & 12.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 12 Snider 15. Incomplete 10 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 12 Snider 15. Complete 10→4 THEM blank to Snider 6, +9. Tackle 36 US. 4th & 3.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "4th & 3 Snider 6. Pass 10 THEM blank intercepted by 36 US in the end zone, return Snider 36. end:36 flips to Own 36 on the change. gainLoss 3 keeps a 4th-down pick from being rewritten as turnover on downs.",
+          "playType": "Pass",
+          "result": "Interception"
+        },
+        {
+          "comment": "Penalty at the end of the play vs Snider, 15 yards. Chain next 1st & 10 Own 21; spoken 1st & 10 Own 20.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Spoken 1st & 10 Own 20 (chain Own 21). Run 6 to Own 24, +4. Tackle 29 THEM blank. 2nd & 6.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 6 Own 24. Run 6 to Own 29, +5. Tackle 21 THEM blank. 3rd & 1.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 1 Own 29. Run 6 to Own 34, +5. Tackle 29 THEM blank. 1st & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Own 34. Run 6 to Own 37, +3. Tackle 51 THEM blank. Chain next 2nd & 7 Own 37; spoken end of quarter 2nd & 8 Own 30.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Northrop 83 KO (THEM blank). #3 catch Own 4, return Own 17, +13. Tackle 40 THEM blank.",
+          "playType": "KO Rec",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Own 17. Run 6 to Own 22, +5. Tackler not spoken. 2nd & 5.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 5 Own 22. Run 6 to Own 32, +10. Tackle 13 THEM blank. 1st & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Own 32. Run 6 to Own 33, +1. Tackle 22 THEM blank. 2nd & 9.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 9 Own 33. Offset penalties. Wiped complete 17→12, tackles 29 and 22 THEM blank, to Own 35. Replay this down. Next snap overridden.",
+          "playType": "Pass",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Spoken 2nd & 9 Own 33 (offset replay). Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 9 Own 33. Complete 17→4 to Own 35, +2. Tackle 29 THEM blank. 4th & 7.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "4th & 7 Own 35. Illegal participation vs Northrop, 5 yards. Wiped punt 88. 4th & 2 Own 40.",
+          "playType": "Punt",
+          "result": "Penalty"
+        },
+        {
+          "comment": "4th & 2 Own 40. Punt 88, no return. Northrop ball at Northrop 20 (touchback). Chain next flips — override the next snap.",
+          "playType": "Punt",
+          "result": "Touchback"
+        },
+        {
+          "comment": "1st & 10 Northrop 20. Run 1 THEM blank to Northrop 21, +1, OOB. Tackle 52 US. 2nd & 9.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 9 Northrop 21. Complete 10→6 THEM blank to Northrop 31, +10. Tackle 36 US. 1st & 10.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Northrop 31. Incomplete 10 THEM blank. Then the 15-yard foul.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "Penalty vs Northrop, 15 yards. 2nd & 25 Northrop 16.",
+          "playType": "Pass",
+          "result": "Penalty"
+        },
+        {
+          "comment": "2nd & 25 Northrop 16. Complete 10→6 THEM blank to Northrop 38, +22. Tackles 8 and 24 US. Chain next 3rd & 3; spoken 2nd & 2.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "Spoken 2nd & 2 Northrop 38 (chain 3rd & 3). Run 1 THEM blank to Northrop 34, −4. Tackles 2 and 24 US. 3rd & 6.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 6 Northrop 34. Complete 10→8 THEM blank to Northrop 42, +8. Tackle 7 US. 1st & 10.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Northrop 42. Complete 10→8 THEM blank to Snider 45, +13. Tackle 9 US. 1st & 10.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Snider 45. Complete 10 THEM blank to Snider 36, +9. Receiver not spoken. Tackle 24 US. Chain next 2nd & 1; spoken 2nd & 2. Kept 2nd & 1 so the next foul is 2nd & 11.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "Chain 2nd & 1 Snider 36 (spoken 2nd & 2). Penalty on the play vs Northrop, 10 yards. Wiped run 1, tackle 22 US. 2nd & 11 Snider 46.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "2nd & 11 Snider 46. Penalty vs Northrop. Wiped complete 10→8 to Snider 31. Spoken ball Snider 47, 2nd & 12 (1 yard). Next snap overridden.",
+          "playType": "Pass",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Spoken 2nd & 12 Snider 47. Incomplete 10 THEM blank wiped. Penalty vs Snider, 15 yards. 1st & 10 Snider 32.",
+          "playType": "Pass",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 10 Snider 32. Complete 10→6 THEM blank to Snider 24, +8. Tackle 2 US. 2nd & 2.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "2nd & 2 Snider 24. Run 1 THEM blank to the 50, −26. Tackle 18 US. 3rd & 28.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 28 at the 50. Incomplete 10 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "4th & 28 at the 50. Pre-snap penalty vs Northrop, 5 yards. 4th & 33 Northrop 45.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "4th & 33 Northrop 45. Punt 83 THEM blank. #3 catch Own 17, return Own 29, +12.",
+          "playType": "Punt",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Own 29. Run 28, gain 0, still Own 29. Tackle 22 THEM blank. 2nd & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 10 Own 29. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 10 Own 29. Incomplete 17.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "4th & 10 Own 29. Punt 88 downed Opp 49. Northrop ball. Chain next flips — override the next snap.",
+          "playType": "Punt",
+          "result": "Downed"
+        },
+        {
+          "comment": "1st & 10 Northrop 49. Penalty vs Northrop. Wiped complete 10→1 to Snider 44, tackle 34 US. Spoken 1st & 18 Northrop 41. Next snap overridden.",
+          "playType": "Pass",
+          "result": "Penalty"
+        },
+        {
+          "comment": "Spoken 1st & 18 Northrop 41. Run 1 THEM blank, fumble, recovered by 9 US. Spoken recovery Snider 40; next call is 1st & 10 Snider 41. end:41 flips to Own 41.",
+          "playType": "Run",
+          "result": "Fumble"
+        },
+        {
+          "comment": "1st & 10 Own 41. Holding vs Snider, 10 yards. Wiped incomplete 17. 1st & 20 Own 31.",
+          "playType": "Pass",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 20 Own 31. Pre-snap penalty vs Northrop, 5 yards. 1st & 15 Own 36.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 15 Own 36. Run 6 to Own 41, +5. Tackle 11 THEM blank. 2nd & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 10 Own 41. Pre-snap penalty vs Northrop, 5 yards. 2nd & 5 Own 46.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "2nd & 5 Own 46. Run 6 OOB Opp 42, +12. No tackle. 1st & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Opp 42. Run 17 to Opp 40, +2. Tackle 5 THEM blank. 2nd & 8.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 8 Opp 40. Complete 17→3 to Opp 15, +25. Tackle 7 THEM blank. 1st & 10.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Opp 15. Complete 17→89 to Opp 1, +14. 1st & goal.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & goal Opp 1. Run 6, TD. Snider 20, Northrop 6.",
+          "playType": "Run",
+          "result": "Rush, TD"
+        },
+        {
+          "comment": "XP 88 good. Snider 21, Northrop 6. Next is our KO from Own 40.",
+          "playType": "Extra Pt.",
+          "result": "Good"
+        },
+        {
+          "comment": "Snider 88 KO. #5 catch Northrop 5 (THEM blank), return Northrop 25, +20. Tackle 19 US. Spoken next \"Snider 25\"; series is Northrop 25.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Northrop 25 (spoken Snider 25). Complete 10→0 THEM blank to Snider 35, +40. Tackle 34 US. 1st & 10.",
+          "playType": "Pass",
+          "result": "Complete"
+        },
+        {
+          "comment": "1st & 10 Snider 35. Run 1 THEM blank, −12. Tackle 18 US. Spoken end Snider 23 and 2nd & 22; a 12-yard loss from Snider 35 is Snider 47. Next series is played at Northrop 23.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Spoken 2nd & 22 Northrop 23. Run 10 THEM blank OOB Northrop 26, +3. 3rd & 19.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 19 Northrop 26. Incomplete 10 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "4th & 19 Northrop 26. Punt 51 THEM blank, downed Snider 45. No return. Snider ball.",
+          "playType": "Punt",
+          "result": "Downed"
+        },
+        {
+          "comment": "1st & 10 Own 45. Run 28 to Own 46, −1. Tackle 22 THEM blank. Chain next 2nd & 11; spoken 2nd & 9 at the 46.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Spoken 2nd & 9 Own 46 (chain 2nd & 11). Run 28 to Opp 45, +9. Tackle 7 THEM blank. 1st & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Opp 45. Run 28 to Opp 42, +3. Tackle 16 THEM blank. 2nd & 7.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 7 Opp 42. Run 28 to Opp 38, +4. Tackle 16 THEM blank. 3rd & 3.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 3 Opp 38. Run 28 to Opp 37, +1. Tackle 11 THEM blank. 4th & 2.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "4th & 2 Opp 37. Delay of game vs Snider, 5 yards. 4th & 7 Opp 42.",
+          "playType": "Run",
+          "result": "Penalty"
+        },
+        {
+          "comment": "4th & 7 Opp 42. Punt 88 through the end zone, touchback. Northrop ball at Northrop 20. Chain next flips — override the next snap.",
+          "playType": "Punt",
+          "result": "Touchback"
+        },
+        {
+          "comment": "1st & 10 Northrop 20. Pass 10 THEM blank intercepted by 36 US. Spoken catch Opp 9, Snider ball Opp 39. end:-39 flips to Opp 39.",
+          "playType": "Pass",
+          "result": "Interception"
+        },
+        {
+          "comment": "1st & 10 Opp 39. Run 6 to Opp 27, +12. 1st & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Opp 27. Run 6 to Opp 19, +8. Tackle 7 THEM blank. 2nd & 2.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 2 Opp 19. Run 6 to Opp 15, +4. Tackle 7 THEM blank. 1st & 10.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "1st & 10 Opp 15. Run 6 to Opp 8, +7. Tackle 21 THEM blank. 2nd & 3.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 3 Opp 8. Run 6 to Opp 9, −1. Tackle 29 THEM blank. 3rd & 4.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 4 Opp 9. Run 6, gain 0, still Opp 9. Tackle 22 THEM blank. 4th & 4.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "4th & 4 Opp 9. FG 88 good. Snider 24, Northrop 6. Next is our KO.",
+          "playType": "FG",
+          "result": "Good"
+        },
+        {
+          "comment": "Snider 88 KO. #0 catch Northrop 15 (THEM blank), return Northrop 26, +11. Tackle 22 US.",
+          "playType": "KO",
+          "result": "Return"
+        },
+        {
+          "comment": "1st & 10 Northrop 26. Incomplete 15 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "2nd & 10 Northrop 26. Run OOB Northrop 29, +3. Runner not spoken. 3rd & 7.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 7 Northrop 29. Run 15 THEM blank OOB Northrop 34, +5. Offsetting unsportsmanlike penalties; the run stands. Chain next 4th & 2; spoken 4th & 3.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Spoken 4th & 3 Northrop 34 (chain 4th & 2). DPI vs Snider, 15 yards from the LOS. Wiped pass 15 intercepted by 9 US at Snider 25. 1st & 10 Northrop 49.",
+          "playType": "Pass",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 10 Northrop 49. Incomplete 15 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "2nd & 10 Northrop 49. Incomplete 15 THEM blank wiped. Penalty vs Snider, 15 yards. 1st & 10 Snider 36.",
+          "playType": "Pass",
+          "result": "Penalty"
+        },
+        {
+          "comment": "1st & 10 Snider 36. Incomplete 15 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "2nd & 10 Snider 36. Incomplete 15 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "3rd & 10 Snider 36. Incomplete 15 THEM blank.",
+          "playType": "Pass",
+          "result": "Incomplete"
+        },
+        {
+          "comment": "4th & 10 Snider 36. Run 15 THEM blank to Snider 31, +5. Tackle 24 US. Turnover on downs. Chain flips the spot — override the next snap.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "Snider ball 1st & 10 Own 31. Kneel 17 to Own 30, −1. 2nd & 11.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "2nd & 11 Own 30. Kneel 17. Spoken spot Own 29; next call is 3rd & 11 at Own 30, so gain 0.",
+          "playType": "Run",
+          "result": "Rush"
+        },
+        {
+          "comment": "3rd & 11 Own 30. Kneel 17, −1. Final. Snider 24, Northrop 6.",
+          "playType": "Run",
+          "result": "Rush"
+        }
+      ]
+    }
+  ]
+}

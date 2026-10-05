@@ -152,6 +152,10 @@ describe("browser tagger session", () => {
     assert.equal(preview.canConfirm, false);
     assert.equal(preview.parsed.result, "Downed");
     assert.equal(preview.parsed.confidence, "low");
+    assert.equal(preview.play == null, false);
+    assert.match(preview.story.happened, /Punt/);
+    assert.match(preview.ask, /end spot/);
+    assert.throws(() => confirmSnap(confirmSnap(ready(), "Kickoff touchback, kicker 94"), "punt"));
   });
 
   test("undo while a snap is already back does not drop the play before it", () => {
@@ -209,8 +213,10 @@ describe("browser tagger session", () => {
     const game = confirmSnap(ready(), KICKOFF);
     const preview = previewSnap(game, "um the thing");
     assert.equal(preview.canConfirm, false);
-    assert.equal(preview.story.happened, "That doesn't look like a play yet. Edit it.");
-    assert.throws(() => confirmSnap(game, "um the thing"));
+    assert.equal(preview.play, null);
+    assert.equal(preview.ask, "Name the play and the result.");
+    assert.equal(preview.story.happened, "Name the play and the result.");
+    assert.throws(() => confirmSnap(game, "um the thing"), /Name the play and the result/);
     assert.equal(game.plays.length, 1);
   });
 

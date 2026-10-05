@@ -22,4 +22,5 @@ jobs:
           node-version-file: .nvmrc
       - run: npm ci
       - run: npm run test --workspace=@huddlestat/mobile
+      - run: npm run test --workspace=@huddlestat/browser-tagger
       - run: npm run typecheck

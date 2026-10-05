@@ -78,6 +78,8 @@ export type SnapPreview = {
   next: DictatedChain;
   story: ChainStory;
   canConfirm: boolean;
+  /** What to edit when this note is not a valid play yet. Empty when confirm is allowed. */
+  ask: string;
   kickoffRole?: KickRole;
   /** The toss note said someone deferred. The this-snap sentence keeps that word. */
   kickoffDeferred?: boolean;
@@ -277,10 +279,24 @@ function storyOf(
       next: situationSentence(otOpeningChain(game.plays.length + 1), names),
     };
   }
+  if (preview.kind === "play" && preview.play) {
+    const story = chainStory({
+      names,
+      before: preview.before,
+      play: preview.play,
+      next: preview.next,
+      canConfirm: true,
+      warnings: [],
+    });
+    if (!preview.canConfirm) {
+      return { ...story, next: "The next snap stays put until this one confirms." };
+    }
+    return story;
+  }
   if (!preview.canConfirm || !preview.play) {
     return {
       before: hasOpeningSituation(game) ? situationSentence(preview.before, names) : BEFORE_KICKOFF,
-      happened: rejectionMessage(preview.parsed.warnings),
+      happened: snapAsk(preview.parsed),
       next: "The next snap stays put until this one confirms.",
     };
   }
@@ -294,10 +310,16 @@ function storyOf(
   });
 }
 
-function rejectionMessage(warnings: string[]): string {
-  const text = warnings.map((warning) => warning.trim()).filter(Boolean).join(" ");
-  if (!text || text === "Not a football snap" || text === "Empty transcript") return NOT_A_PLAY;
-  return text;
+/** What the tagger should ask for when the note is not ready to confirm. */
+export function snapAsk(parsed: DictatedPlayInput): string {
+  const specific = parsed.warnings
+    .map((warning) => warning.trim())
+    .filter((warning) => warning && warning !== "Not a football snap" && warning !== "Empty transcript");
+  if (specific.length > 0) return specific.join(" ");
+  if (parsed.playType && parsed.result === undefined) return "Name the result.";
+  if (!parsed.playType && parsed.result !== undefined) return "Name the play.";
+  if (!parsed.playType && parsed.result === undefined) return "Name the play and the result.";
+  return NOT_A_PLAY;
 }
 
 function escapeReg(value: string): string {
@@ -330,7 +352,7 @@ export function parseKickoffNote(
   if (!/\b(defer(?:red|s)?|kicking off|kicks off|will kick|will receive|is receiving)\b/i.test(text)) {
     return null;
   }
-  if (/\b(catch|oob|tackle|tackled|runs?|rush|complete|incomplete|punt|touchback|sack|fumble)\b/i.test(text)) {
+  if (/\b(catch|[0o]{2}b|tackle|tackled|runs?|rush|complete|incomplete|punt|touchback|sack|fumble)\b/i.test(text)) {
     return null;
   }
   if (/\bko\b/i.test(text) && /\d/.test(text)) return null;
@@ -472,6 +494,7 @@ function rejected(
     before,
     next: before,
     canConfirm: false,
+    ask: snapAsk(parsed),
     story: { before: "", happened: "", next: "" },
   };
   preview.story = storyOf(game, preview);
@@ -501,6 +524,7 @@ export function previewSnap(
       before,
       next,
       canConfirm: true,
+      ask: "",
       kickoffRole: kickoff.role,
       kickoffDeferred: kickoff.deferred,
       openingToss,
@@ -527,6 +551,7 @@ export function previewSnap(
         before,
         next: otOpeningChain(game.plays.length + 1),
         canConfirm: true,
+        ask: "",
         story: { before: "", happened: "", next: "" },
       };
       preview.story = storyOf(game, preview);
@@ -540,6 +565,7 @@ export function previewSnap(
       before,
       next: before,
       canConfirm: true,
+      ask: "",
       story: { before: "", happened: "", next: "" },
     };
     preview.story = storyOf(game, preview);
@@ -547,10 +573,11 @@ export function previewSnap(
   }
 
   const parsed = applyAdjust(applyParseGuards(parseWithRules(text, before)), adjust);
-  const canConfirm = Boolean(parsed.playType && parsed.result !== undefined && parsed.confidence === "high");
-  if (!canConfirm) {
+  const built = Boolean(parsed.playType && parsed.result !== undefined);
+  if (!built) {
     return rejected(game, transcript, parsed, before);
   }
+  const canConfirm = parsed.confidence === "high";
   const compiled = compileSnap(game, parsed);
   const preview: SnapPreview = {
     transcript,
@@ -559,7 +586,8 @@ export function previewSnap(
     play: compiled.play,
     before,
     next: compiled.next,
-    canConfirm: true,
+    canConfirm,
+    ask: canConfirm ? "" : snapAsk(parsed),
     story: { before: "", happened: "", next: "" },
   };
   preview.story = storyOf(game, preview);
@@ -573,7 +601,7 @@ export function confirmSnap(
 ): BrowserGame {
   const preview = previewSnap(game, transcript, adjust);
   if (!preview.canConfirm) {
-    throw new Error(preview.story.happened || "Not a football snap — nothing confirmed");
+    throw new Error(preview.ask || preview.story.happened || "Not a football snap — nothing confirmed");
   }
   if (preview.kind === "kickoff" && preview.kickoffRole) {
     return {

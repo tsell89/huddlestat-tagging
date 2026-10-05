@@ -84,6 +84,8 @@ function replaceNumberWords(text: string): string {
 
 function normalizeTranscript(raw: string): string {
   let text = raw.toLowerCase().replace(/[.,!?]+/g, " ").replace(/\s+/g, " ").trim();
+  // Speech and shorthand write out of bounds as OOB, O0B, 0OB, or 00B.
+  text = text.replace(/\b[0o]{2}b\b/g, "oob");
   text = text.replace(/\b(to|too|two)\s+(runs?|rushes|rush)\b/g, "2 $2");
   text = replaceNumberWords(text);
   return text.replace(/\s+/g, " ").trim();
