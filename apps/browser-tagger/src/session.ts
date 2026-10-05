@@ -2,6 +2,8 @@ import {
   Result,
   decodePenalty,
   encodePenaltySpotEncoding,
+  fieldPositionToHudl,
+  hudlToFieldPosition,
   nextDraftAfterPlay,
   openingDictatedChain,
   parseWithRules,
@@ -45,6 +47,25 @@ export type SnapPreview = {
 };
 
 const SACK_YARDS_WARNING = "Sack needs loss yards";
+
+/** Move a return's end spot by the corrected return yards, same direction as the parsed end. */
+function spotEncodingForReturnYards(spotEncoding: string, returnYards: number): string | undefined {
+  const match = /^(catch|recv):(-?\d+)\|end:(TD|SA|-?\d+)$/.exec(spotEncoding);
+  if (!match) return undefined;
+  const startHudl = Number(match[2]);
+  const startPos = hudlToFieldPosition(startHudl);
+  const endToken = match[3]!;
+  let direction: number;
+  if (endToken === "TD") direction = 1;
+  else if (endToken === "SA") direction = -1;
+  else {
+    const delta = hudlToFieldPosition(Number(endToken)) - startPos;
+    direction = delta === 0 ? (startHudl > 0 ? -1 : 1) : Math.sign(delta);
+  }
+  const endPos = startPos + direction * returnYards;
+  const end = endPos >= 100 ? "TD" : endPos <= 0 ? "SA" : String(fieldPositionToHudl(endPos));
+  return `${match[1]}:${startHudl}|end:${end}`;
+}
 
 export function openingGame(opponent = "Northrop"): BrowserGame {
   const name = opponent.trim() || "Northrop";
@@ -112,6 +133,10 @@ export function applyAdjust(
     }
   } else if (adjust.gainLoss !== undefined && next.result === Result.Return) {
     next.returnYards = adjust.gainLoss;
+  }
+  if (next.result === Result.Return && typeof next.returnYards === "number" && next.spotEncoding) {
+    const shifted = spotEncodingForReturnYards(next.spotEncoding, next.returnYards);
+    if (shifted) next.spotEncoding = shifted;
   }
 
   if (next.result === Result.Sack && typeof next.gainLoss === "number") {

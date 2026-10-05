@@ -96,4 +96,17 @@ describe("browser tagger session", () => {
     assert.match(moved.play?.spotEncoding ?? "", /foul:-30/);
     assert.notEqual(moved.next.yardLine, unadjusted.next.yardLine);
   });
+
+  test("edited return yards move the next ball spot", () => {
+    const original = previewSnap(openingGame("Northrop"), KICKOFF);
+    const edited = previewSnap(openingGame("Northrop"), KICKOFF, {
+      gainLoss: 25,
+      returnYards: 25,
+    });
+    assert.equal(original.play?.spotEncoding, "catch:20|end:38");
+    assert.equal(original.next.yardLine, 38);
+    assert.equal(edited.play?.spotEncoding, "catch:20|end:45");
+    assert.equal(edited.play?.returnYards, 25);
+    assert.equal(edited.next.yardLine, 45);
+  });
 });
