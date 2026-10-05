@@ -1,0 +1,21 @@
+{
+  "name": "@huddlestat/browser-tagger",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Static browser tagger. Parses and chains on the phone and downloads a Hudl CSV. No server write.",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/main.ts --bundle --format=esm --target=es2022 --outfile=dist/tagger.js && cp index.html dist/index.html",
+    "test": "tsx --test src/session.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@huddlestat/shared": "*"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}

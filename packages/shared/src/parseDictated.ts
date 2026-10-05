@@ -1,6 +1,8 @@
 import { Hash, PlayType, Result, emptyPlayerRef } from "./constants.js";
 import { defaultKickoffPlay } from "./defaults.js";
+import { yardsAdvanced, yardsToScoringGoal } from "./fieldPosition100.js";
 import type { PlaylistData } from "./index.js";
+import { encodePenaltySpotEncoding, type PenaltyYards } from "./penalty.js";
 import { nextDraftAfterPlay, normalizePlayOnSave } from "./playChain.js";
 
 export type DictatedChain = {
@@ -35,6 +37,8 @@ export type DictatedPlayInput = {
   recoveredByJersey?: string;
   returnYards?: number;
   kickYards?: number;
+  /** Ball-spot chain string. Down / distance / yard line / ODK still come from playChain. */
+  spotEncoding?: string;
   confidence: "high" | "low";
   warnings: string[];
 };
@@ -140,9 +144,496 @@ function base(chain: DictatedChain, extra: Partial<DictatedPlayInput> = {}): Dic
   };
 }
 
+const NOTE_STOP = new Set([
+  "own",
+  "opp",
+  "opponent",
+  "the",
+  "to",
+  "at",
+  "by",
+  "and",
+  "us",
+  "them",
+  "blank",
+  "return",
+  "catch",
+  "oob",
+  "tackle",
+  "tackles",
+  "tackled",
+  "snider",
+  "shs",
+  "ball",
+  "from",
+  "on",
+  "vs",
+  "of",
+  "a",
+  "an",
+]);
+
+function explicitGain(text: string): number | undefined {
+  const signed = [...text.matchAll(/(?:^|[\s,])([+-])\s?(\d+)\b/g)];
+  if (signed.length > 0) {
+    const last = signed[signed.length - 1]!;
+    return (last[1] === "+" ? 1 : -1) * Number(last[2]);
+  }
+  if (/\bno gain\b/.test(text)) return 0;
+  const yards = /(\d+)\s*-?\s*yards?\b/.exec(text);
+  if (yards && /\btd\b|touchdown/.test(text)) return Number(yards[1]);
+  return undefined;
+}
+
+function tdYards(text: string, chain: DictatedChain): number {
+  const gain = explicitGain(text);
+  if (gain !== undefined && gain > 0) return gain;
+  const toGoal = yardsToScoringGoal(chain.yardLine, chain.odk === "D" ? "D" : "O");
+  return toGoal > 0 ? toGoal : 0;
+}
+
+function themJersey(text: string, jersey: string | undefined): boolean {
+  if (!jersey) return false;
+  if (new RegExp(`#?${jersey}\\s+them\\s+blank`).test(text)) return true;
+  if (new RegExp(`#${jersey}\\s+catch[^()]{0,40}\\(\\s*them\\s+blank`).test(text)) return true;
+  return false;
+}
+
+function keepJersey(text: string, jersey: string | undefined): string | undefined {
+  if (!jersey || themJersey(text, jersey)) return undefined;
+  return jersey;
+}
+
+function tacklersFromNote(text: string): { t1?: string; t2?: string } {
+  const m = /tackles?\s+#?(\d+)(?:\s+and\s+#?(\d+))?/.exec(text);
+  if (!m) return {};
+  return { t1: keepJersey(text, m[1]), t2: keepJersey(text, m[2]) };
+}
+
+/** Own on a kick we boot is the receiving team's own side (positive). */
+function noteYard(side: string, yards: number, weKick: boolean): number {
+  if (yards === 50) return 50;
+  const name = side.toLowerCase();
+  if (name === "opp" || name === "opponent") return yards;
+  if (name === "snider" || name === "shs") return -yards;
+  if (name === "own") return weKick ? yards : -yards;
+  if (NOTE_STOP.has(name)) return yards;
+  return yards;
+}
+
+function spotMention(text: string, kind: "catch" | "end"): { side: string; yards: number } | null {
+  const pattern =
+    kind === "catch"
+      ? /(?:catch|caught)\s+(?:by\s+)?#?\d*\s*(?:at\s+)?(own|opp|opponent|snider|shs|[a-z]{3,})\s+(\d+)/
+      : /(?:return|oob|to)\s+(?:at\s+)?(own|opp|opponent|snider|shs|[a-z]{3,})\s+(\d+)/;
+  const match = pattern.exec(text);
+  if (!match || NOTE_STOP.has(match[1]) && match[1] !== "own" && match[1] !== "opp") {
+    if (!match) return null;
+  }
+  if (!match) return null;
+  if (NOTE_STOP.has(match[1]) && match[1] !== "own" && match[1] !== "opp" && match[1] !== "opponent" && match[1] !== "snider" && match[1] !== "shs") {
+    return null;
+  }
+  return { side: match[1], yards: Number(match[2]) };
+}
+
+function weKickThisPlay(text: string, chain: DictatedChain): boolean {
+  if (/\bko rec\b/.test(text)) return false;
+  if (/\b(snider|shs)\s+\d+\s+ko\b/.test(text)) return true;
+  const koAt = text.search(/\bko\b/);
+  if (koAt >= 0) {
+    const before = text.slice(0, koAt);
+    if (/\b(snider|shs)\b/.test(before)) return true;
+    if (/[a-z]{3,}\s+\d+\s+$/.test(before)) return false;
+  }
+  if (chain.playTypeGuess === PlayType.KickoffReceive || chain.odk === "D") return false;
+  return chain.playTypeGuess === PlayType.Kickoff || chain.odk === "K" || chain.playNumber === 1;
+}
+
+function penaltyYards(text: string): PenaltyYards {
+  const match = /(\d+)\s*-?\s*yards?\b/.exec(text);
+  const n = match ? Number(match[1]) : 10;
+  if (n === 5 || n === 10 || n === 15) return n;
+  return 10;
+}
+
+function penaltyAgainst(text: string, chain: DictatedChain): "O" | "D" {
+  if (/\bvs\s+d\b|\bdpi\b|\bdefensive holding\b|\bencroach|\boffside|\bface\s*mask\b|\bfacemask\b/.test(text)) {
+    return "D";
+  }
+  if (/\bfalse start\b|\bdelay of game\b|\billegal procedure\b|\bvs\s+o\b/.test(text)) return "O";
+  const againstUs = /\b(?:vs|on|by)\s+(?:snider|shs)\b/.test(text);
+  if (againstUs) return chain.odk === "O" ? "O" : "D";
+  return chain.odk === "D" ? "O" : "D";
+}
+
+function looksLikeGameNote(text: string): boolean {
+  return (
+    /\bko rec\b|\bko\b/.test(text) ||
+    /\brun\b/.test(text) ||
+    /\bcomplete\s+#?\d+\b/.test(text) ||
+    /\bpass\s+#?\d+\b/.test(text) ||
+    /\bincomplete\b/.test(text) ||
+    /\bxp\b/.test(text) ||
+    /\bfg\b/.test(text) ||
+    /\bpunts?\b/.test(text) ||
+    /\bsack\b/.test(text) ||
+    /\bkneel\b|\bkeeper\b|\bqb\s+#?\d+\s+to\b/.test(text) ||
+    /\b(pre-snap|dead-ball|dead ball|encroachment|encroach|offsides|false start|delay of game|dpi|face\s*mask|facemask|illegal|holding|penalt(?:y|ies)|late hit|uns|\bur vs\b)\b/.test(text) ||
+    /\bintercept|\bint\s+#?\d+\b|\bpass\b[^.]{0,50}\bint\b/.test(text) ||
+    /\bfumble\b/.test(text)
+  );
+}
+
+function isPenaltyNote(text: string): boolean {
+  const playAt = text.search(/\b(pass|run|complete|intercept|fumble|kneel)\b/);
+  if (/\bwaved off\b/.test(text)) return false;
+  const foulAt = text.search(
+    /\b(pre-snap|dead-ball|dead ball|encroachment|encroach|offsides|false start|holding|delay of game|dpi|face\s*mask|facemask|illegal|uns|late hit|penalt(?:y|ies)|\bur vs\b)\b/,
+  );
+  if (playAt !== -1 && foulAt !== -1 && playAt < foulAt && /\b(intercept|fumble)\b/.test(text)) {
+    return false;
+  }
+  if (playAt !== -1 && foulAt !== -1 && playAt < foulAt && /\b(run|complete|pass)\b/.test(text) && !/^\s*(pre-snap|dead-ball|dead ball|encroach|penalty|offsides|false start)/.test(text)) {
+    return false;
+  }
+  return foulAt !== -1;
+}
+
+/**
+ * Game-log notes: "Run 4 to Snider 15, +5. Tackle 24 US."
+ * Situation in the sentence is ignored. The chain still owns down, distance, and the ball spot.
+ */
+function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | null {
+  if (!looksLikeGameNote(text)) return null;
+  const tackles = tacklersFromNote(text);
+  const withTackle = (play: DictatedPlayInput): DictatedPlayInput => ({
+    ...play,
+    tackler1Jersey: play.tackler1Jersey ?? tackles.t1,
+    tackler2Jersey: play.tackler2Jersey ?? tackles.t2,
+  });
+
+  if (/\bkneel\b|\bkeeper\b/.test(text)) {
+    const rusher = keepJersey(
+      text,
+      /\bkneel\s+#?(\d+)/.exec(text)?.[1] ?? /\bqb\s+#?(\d+)\s+keeper/.exec(text)?.[1],
+    );
+    return withTackle(
+      base(chain, {
+        playType: PlayType.Run,
+        result: Result.Rush,
+        gainLoss: explicitGain(text) ?? -1,
+        rusherJersey: rusher,
+      }),
+    );
+  }
+
+  if (
+    (/\bintercept/.test(text) || /\bint\s+#?\d+\b/.test(text) || /\bpass\b[^.]{0,50}\bint\b/.test(text)) &&
+    !(/\bwiped\b/.test(text) && isPenaltyNote(text))
+  ) {
+    const passer = keepJersey(text, /\bpass\s+#?(\d+)/.exec(text)?.[1]);
+    const picked = keepJersey(
+      text,
+      /\bint(?:ercept(?:ed|ion)?)?(?:\s+by)?\s+#?(\d+)/.exec(text)?.[1],
+    );
+    const weKick = false;
+    const caught = spotMention(text, "catch") ?? spotMention(text.replace(/\bat\s+/, "catch "), "catch");
+    const ended = spotMention(text, "end");
+    let spotEncoding: string | undefined;
+    let returnYards: number | undefined;
+    if (caught && ended) {
+      const catchHudl = noteYard(caught.side, caught.yards, weKick);
+      const endHudl = noteYard(ended.side, ended.yards, weKick);
+      spotEncoding = `catch:${catchHudl}|end:${endHudl}`;
+      returnYards = Math.abs(ended.yards - caught.yards);
+    }
+    return withTackle(
+      base(chain, {
+        playType: PlayType.Pass,
+        result: Result.Interception,
+        gainLoss: chain.down === 4 ? chain.distance : 0,
+        passerJersey: passer,
+        interceptedByJersey: picked,
+        returnYards,
+        spotEncoding,
+      }),
+    );
+  }
+
+  if (/\bfumble\b/.test(text)) {
+    const gain = explicitGain(text) ?? 0;
+    return withTackle(
+      base(chain, {
+        playType: /\bpass\b|\bcomplete\b/.test(text) ? PlayType.Pass : PlayType.Run,
+        result: Result.Fumble,
+        gainLoss: gain,
+      }),
+    );
+  }
+
+  if (isPenaltyNote(text)) {
+    const yards = penaltyYards(text);
+    const against = penaltyAgainst(text, chain);
+    const afd = /\bafd\b|automatic first|crosses the sticks|\bdpi\b|\bdefensive holding\b/.test(text);
+    const wipedPunt = /\bwiped punt\b|\bpunt\b/.test(text) && /\b(wiped|penalty|illegal)\b/.test(text);
+    return base(chain, {
+      playType: wipedPunt
+        ? PlayType.Punt
+        : /\b(pass|complete|incomplete)\b/.test(text)
+          ? PlayType.Pass
+          : PlayType.Run,
+      result: Result.Penalty,
+      gainLoss: 0,
+      spotEncoding: encodePenaltySpotEncoding({
+        foulSpot: chain.yardLine,
+        yards,
+        against,
+        autoFirstDown: afd,
+      }),
+    });
+  }
+
+  if (/\bko\b/.test(text.replace(/next is[^.]{0,40}\bko\b/g, ""))) {
+    const weKick = weKickThisPlay(text, chain);
+    const kicker = keepJersey(text, /(?:snider|shs|[a-z]+)\s+(\d+)\s+ko\b/.exec(text)?.[1] ?? /\bko\b[^.]{0,12}#?(\d+)/.exec(text)?.[1]);
+    if (/\btouchback\b/.test(text)) {
+      return base(chain, {
+        playType: weKick ? PlayType.Kickoff : PlayType.KickoffReceive,
+        result: Result.Touchback,
+        kickerJersey: weKick ? kicker : undefined,
+      });
+    }
+    const caught = spotMention(text, "catch");
+    const ended = spotMention(text, "end");
+    let gain = explicitGain(text);
+    if (gain === undefined && caught && ended) {
+      gain = Math.abs(
+        yardsAdvanced(
+          noteYard(caught.side, caught.yards, weKick),
+          noteYard(ended.side, ended.yards, weKick),
+        ),
+      );
+    }
+    gain = gain ?? 0;
+    let spotEncoding: string | undefined;
+    if (caught && ended) {
+      spotEncoding = `catch:${noteYard(caught.side, caught.yards, weKick)}|end:${noteYard(ended.side, ended.yards, weKick)}`;
+    } else if (ended) {
+      spotEncoding = `catch:${weKick ? 20 : -20}|end:${noteYard(ended.side, ended.yards, weKick)}`;
+    }
+    const returner = keepJersey(text, /#(\d+)\s+catch/.exec(text)?.[1]);
+    return withTackle(
+      base(chain, {
+        playType: weKick ? PlayType.Kickoff : PlayType.KickoffReceive,
+        result: Result.Return,
+        gainLoss: gain,
+        returnYards: gain,
+        kickerJersey: weKick ? kicker : undefined,
+        returnerJersey: weKick ? undefined : returner,
+        spotEncoding,
+      }),
+    );
+  }
+
+  if (/\bpunts?\b/.test(text)) {
+    const kicker = keepJersey(
+      text,
+      /\bpunts?\s+#?(\d+)/.exec(text)?.[1] ?? /(\d+)\s+punts?\b/.exec(text)?.[1],
+    );
+    const weKick = Boolean(kicker) || chain.odk !== "D";
+    if (/\btouchback\b/.test(text)) {
+      return base(chain, {
+        playType: PlayType.Punt,
+        result: Result.Touchback,
+        kickerJersey: kicker,
+      });
+    }
+    const ended = spotMention(text, "end");
+    const gain = explicitGain(text);
+    if (/\bblocked\b/.test(text)) {
+      return withTackle(
+        base(chain, {
+          playType: PlayType.Punt,
+          result: Result.Blocked,
+          gainLoss: 0,
+          kickerJersey: kicker,
+        }),
+      );
+    }
+    if (/\bfair catch\b/.test(text)) {
+      return base(chain, {
+        playType: PlayType.Punt,
+        result: Result.FairCatch,
+        gainLoss: 0,
+        kickerJersey: kicker,
+        spotEncoding: ended ? `end:${noteYard(ended.side, ended.yards, weKick)}` : undefined,
+      });
+    }
+    if (/\boob\b|\bdowned\b/.test(text)) {
+      return base(chain, {
+        playType: PlayType.Punt,
+        result: Result.Downed,
+        gainLoss: 0,
+        kickerJersey: kicker,
+        spotEncoding: ended ? `end:${noteYard(ended.side, ended.yards, weKick)}` : undefined,
+      });
+    }
+    if (/\bno return\b/.test(text) && ended) {
+      const endHudl = noteYard(ended.side, ended.yards, weKick);
+      return base(chain, {
+        playType: PlayType.Punt,
+        result: Result.Return,
+        gainLoss: 0,
+        returnYards: 0,
+        kickerJersey: kicker,
+        spotEncoding: `recv:${endHudl}|end:${endHudl}`,
+      });
+    }
+    const caught = spotMention(text, "catch");
+    const returnYards = gain ?? 0;
+    let spotEncoding: string | undefined;
+    if (caught && ended) {
+      spotEncoding = `recv:${noteYard(caught.side, caught.yards, weKick)}|end:${noteYard(ended.side, ended.yards, weKick)}`;
+    } else if (ended) {
+      spotEncoding = `end:${noteYard(ended.side, ended.yards, weKick)}`;
+    }
+    return withTackle(
+      base(chain, {
+        playType: PlayType.Punt,
+        result: Result.Return,
+        gainLoss: returnYards,
+        returnYards,
+        kickerJersey: kicker,
+        spotEncoding,
+      }),
+    );
+  }
+
+  if (/\bxp\b|\bextra\s+pt\b/.test(text)) {
+    const blocked = /\bblocked\b/.test(text);
+    const blockUnit = /\bextra\s+pt\.?\s+block\b/.test(text) || (blocked && /\bblocked\s+by\b/.test(text));
+    const good = /\bno good\b/.test(text) ? Result.NoGood : blocked && blockUnit ? Result.Blocked : Result.Good;
+    const kicker = keepJersey(text, /\bxp\s+#?(\d+)/.exec(text)?.[1]);
+    return withTackle(
+      base(chain, {
+        playType: blockUnit ? PlayType.ExtraPointBlock : PlayType.ExtraPoint,
+        result: blockUnit && blocked ? Result.Blocked : good,
+        kickerJersey: blockUnit ? undefined : kicker,
+        gainLoss: 0,
+      }),
+    );
+  }
+
+  if (/\bfg\b|\bfield\s+goal\b/.test(text)) {
+    const good = /\bno good\b/.test(text) ? Result.NoGood : Result.Good;
+    const kicker = keepJersey(text, /\bfg\s+#?(\d+)/.exec(text)?.[1]);
+    return base(chain, {
+      playType: PlayType.FieldGoal,
+      result: good,
+      kickerJersey: kicker,
+      gainLoss: 0,
+      spotEncoding: good === Result.NoGood && /\btouchback\b/.test(text) ? "end:TB" : undefined,
+    });
+  }
+
+  if (/\bsack\b/.test(text)) {
+    const ofPasser =
+      /\bsack\s+of\s+#?(\d+)/.exec(text)?.[1] ?? /\bqb\s+#?(\d+)\s+sack/.exec(text)?.[1];
+    const byTackler = /\bby\s+#?(\d+)/.exec(text)?.[1] ?? /\bsack\s+#?(\d+)/.exec(text)?.[1];
+    const assist = /\bassist\s+#?(\d+)/.exec(text)?.[1];
+    const gain = explicitGain(text);
+    return withTackle(
+      base(chain, {
+        playType: PlayType.Pass,
+        result: Result.Sack,
+        gainLoss: gain,
+        passerJersey: keepJersey(text, ofPasser),
+        tackler1Jersey: keepJersey(text, byTackler),
+        tackler2Jersey: keepJersey(text, assist),
+        confidence: gain === undefined ? "low" : "high",
+        warnings: gain === undefined ? ["Sack needs loss yards"] : [],
+      }),
+    );
+  }
+
+  if (/\bincomplete\b/.test(text)) {
+    const passer = keepJersey(text, /\bincomplete\s+#?(\d+)/.exec(text)?.[1]);
+    return withTackle(
+      base(chain, {
+        playType: PlayType.Pass,
+        result: Result.Incomplete,
+        gainLoss: 0,
+        passerJersey: passer,
+      }),
+    );
+  }
+
+  if (/\bcomplete\b/.test(text)) {
+    const players = /\bcomplete\s+#?(\d+)(?:\s*(?:to\s+)?#?(\d+))?/.exec(text);
+    const themSkill = /\bcomplete\s+#?\d+(?:\s+to\s+#?\d+)?\s+them\s+blank/.test(text);
+    const td = /\btd\b|touchdown/.test(text);
+    return withTackle(
+      base(chain, {
+        playType: PlayType.Pass,
+        result: td ? Result.CompleteTd : Result.Complete,
+        gainLoss: td ? tdYards(text, chain) : (explicitGain(text) ?? 0),
+        passerJersey: themSkill ? undefined : keepJersey(text, players?.[1]),
+        receiverJersey: themSkill ? undefined : keepJersey(text, players?.[2]),
+      }),
+    );
+  }
+
+  const qbScramble = /\bqb\s+#?(\d+)\s+to\b/.exec(text);
+  if (qbScramble) {
+    return withTackle(
+      base(chain, {
+        playType: PlayType.Run,
+        result: Result.Rush,
+        gainLoss: explicitGain(text) ?? 0,
+        rusherJersey: keepJersey(text, qbScramble[1]),
+      }),
+    );
+  }
+
+  const thrown = /\bpass\s+#?(\d+)\s+to\s+#?(\d+)/.exec(text);
+  if (thrown) {
+    const td = /\btd\b|touchdown/.test(text);
+    const themSkill = /\bpass\s+#?\d+\s+to\s+#?\d+\s+them\s+blank/.test(text);
+    return withTackle(
+      base(chain, {
+        playType: PlayType.Pass,
+        result: td ? Result.CompleteTd : Result.Complete,
+        gainLoss: td ? tdYards(text, chain) : (explicitGain(text) ?? 0),
+        passerJersey: themSkill ? undefined : keepJersey(text, thrown[1]),
+        receiverJersey: themSkill ? undefined : keepJersey(text, thrown[2]),
+      }),
+    );
+  }
+
+  const run = /\brun\s+#?(\d+)\b/.exec(text) ?? /\b(?:qb\s+)?#?(\d+)\s+run\b/.exec(text);
+  if (run || /\brun\b/.test(text)) {
+    const td = /\btd\b|touchdown/.test(text);
+    return withTackle(
+      base(chain, {
+        playType: PlayType.Run,
+        result: td ? Result.RushTd : Result.Rush,
+        gainLoss: td ? tdYards(text, chain) : (explicitGain(text) ?? 0),
+        rusherJersey: keepJersey(text, run?.[1]),
+      }),
+    );
+  }
+
+  return null;
+}
+
 /** Deterministic text → DictatedPlayInput. Does not invent down/distance/YL/ODK. */
 export function parseWithRules(rawTranscript: string, chain: DictatedChain): DictatedPlayInput {
-  const raw = rawTranscript.trim();
+  const raw = rawTranscript
+    .trim()
+    .replace(/[−–]/g, "-")
+    .replace(/→/g, " to ")
+    .replace(/->/g, " to ");
   if (!raw) {
     return {
       quarter: chain.quarter,
@@ -151,6 +642,8 @@ export function parseWithRules(rawTranscript: string, chain: DictatedChain): Dic
     };
   }
   const text = normalizeTranscript(raw);
+  const note = parseGameNote(text, chain);
+  if (note) return note;
 
   if (/turnover on downs/.test(text)) {
     const gain = /\bfor\s+(-?\d+)/.exec(text);
@@ -391,8 +884,12 @@ export function previewParsedPlay(
     interceptedBy: parsed.interceptedByJersey
       ? jerseyOnly(parsed.interceptedByJersey)
       : draft.interceptedBy,
+    recoveredBy: parsed.recoveredByJersey
+      ? jerseyOnly(parsed.recoveredByJersey)
+      : draft.recoveredBy,
     returnYards: parsed.returnYards,
     kickYards: parsed.kickYards,
+    spotEncoding: parsed.spotEncoding ?? draft.spotEncoding,
   });
   return {
     play,

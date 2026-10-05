@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Snider tagger</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        background-color: #0b1220;
+        color: #e8eef8;
+      }
+      html, body {
+        background-color: #0b1220;
+        color: #e8eef8;
+        min-height: 100%;
+      }
+      body { margin: 0; }
+      main {
+        max-width: 40rem;
+        margin: 0 auto;
+        padding: 1.75rem 1.25rem 3rem;
+        box-sizing: border-box;
+      }
+      h2 {
+        font-size: 0.78rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #9bb0cc;
+        margin: 0;
+        font-weight: 700;
+      }
+      section { margin: 0 0 1.6rem; }
+      .lead {
+        font-size: 1.85rem;
+        line-height: 1.25;
+        font-weight: 700;
+        margin: 0.35rem 0 0.35rem;
+        overflow-wrap: anywhere;
+      }
+      .who, .note, .hint {
+        margin: 0.2rem 0 0;
+        overflow-wrap: anywhere;
+      }
+      .who { font-size: 1.2rem; }
+      .note { color: #cbd5e1; font-size: 1.05rem; }
+      .hint { color: #9bb0cc; font-size: 0.95rem; }
+      textarea, input, select {
+        background: #111b2e;
+        border: 1px solid #2a3b55;
+        border-radius: 0.6rem;
+        color: inherit;
+        box-sizing: border-box;
+      }
+      textarea {
+        width: 100%;
+        min-height: 8.5rem;
+        font-size: 1.4rem;
+        line-height: 1.4;
+        padding: 0.85rem 0.9rem;
+        margin-top: 0.45rem;
+        overflow-wrap: anywhere;
+      }
+      .fields {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.55rem;
+        margin-top: 0.75rem;
+      }
+      .fields.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        font-size: 0.75rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #9bb0cc;
+      }
+      input, select {
+        padding: 0.5rem 0.55rem;
+        font-size: 1.15rem;
+        text-transform: none;
+        letter-spacing: 0;
+        color: #e8eef8;
+      }
+      .row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.85rem; }
+      button {
+        border: 0;
+        border-radius: 0.45rem;
+        padding: 0.7rem 0.95rem;
+        font-size: 1.05rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      button:disabled { opacity: 0.45; cursor: default; }
+      .primary { background: #3b82f6; color: white; }
+      .ok { background: #16a34a; color: white; }
+      .warn { background: #334155; color: white; }
+      .chain {
+        margin-top: 1rem;
+        padding: 0.15rem 0 0.15rem 0.9rem;
+        border-left: 3px solid #3b82f6;
+      }
+      .chain p {
+        margin: 0.75rem 0;
+        font-size: 1.35rem;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+      }
+      .k {
+        display: block;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #9bb0cc;
+        font-weight: 700;
+        margin-bottom: 0.15rem;
+      }
+      .chain .next { color: #fde68a; }
+      .msg { min-height: 1.25rem; color: #fbbf24; font-size: 1.05rem; }
+      .setup { margin-top: 0.5rem; }
+      .setup summary { cursor: pointer; color: #9bb0cc; font-size: 1rem; }
+      .setup label { margin-top: 0.7rem; text-transform: none; letter-spacing: 0; font-size: 0.85rem; }
+      .setup input { width: 100%; }
+      .quiet { color: #9bb0cc; font-size: 0.9rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section id="previous" hidden>
+        <h2>Previous play</h2>
+        <p class="lead" id="previousLine"></p>
+        <p class="who" id="previousWho" hidden></p>
+        <p class="note" id="previousNote" hidden></p>
+        <div class="fields two">
+          <label>Result
+            <select id="result">
+              <option>Rush</option>
+              <option>Complete</option>
+              <option>Incomplete</option>
+              <option>Penalty</option>
+              <option>Sack</option>
+              <option>Interception</option>
+              <option>Fumble</option>
+              <option>Return</option>
+              <option>Touchback</option>
+              <option>Downed</option>
+              <option>Fair Catch</option>
+              <option>Blocked</option>
+              <option>Rush, TD</option>
+              <option>Complete, TD</option>
+              <option>Good</option>
+              <option>No Good</option>
+              <option>Safety</option>
+              <option>Timeout</option>
+              <option>Tipped Pass</option>
+              <option>COP</option>
+            </select>
+          </label>
+          <label>Yards
+            <input id="yards" type="number" step="1" value="0" />
+          </label>
+        </div>
+        <p class="hint" id="previousHint">Undo last puts this play back in the box. Confirm replaces it.</p>
+      </section>
+
+      <section>
+        <h2>Current situation</h2>
+        <p class="lead" id="situationLine">Kickoff. Snider kicks from Snider 40.</p>
+        <div class="fields">
+          <label>Down
+            <input id="down" type="number" min="0" max="4" step="1" value="0" />
+          </label>
+          <label>Distance
+            <input id="distance" type="number" min="0" max="99" step="1" value="0" />
+          </label>
+          <label>Yard line
+            <input id="yard" type="text" value="Snider 40" autocomplete="off" />
+          </label>
+        </div>
+      </section>
+
+      <section>
+        <h2>This play</h2>
+        <textarea id="transcript" placeholder="Snider 88 KO. #0 catch Own 20, OOB Own 38, +18." autocomplete="off" spellcheck="false" autofocus></textarea>
+        <div class="row">
+          <button class="primary" id="preview" type="button">Preview</button>
+          <button class="ok" id="confirm" type="button" disabled>Confirm</button>
+          <button class="warn" id="rewrite" type="button">Rewrite</button>
+          <button class="warn" id="undo" type="button">Undo last</button>
+        </div>
+        <div class="chain" id="storyCard" hidden>
+          <p><span class="k">Starts in</span> <span id="storyBefore"></span></p>
+          <p><span class="k">This snap</span> <span id="storyHappened"></span></p>
+          <p class="next"><span class="k">Next snap</span> <span id="storyNext"></span></p>
+        </div>
+      </section>
+
+      <p class="msg" id="msg"></p>
+
+      <details class="setup">
+        <summary>Game setup</summary>
+        <p class="quiet">Confirm saves this game on this phone. Start over returns to the opening kickoff.</p>
+        <label>Opponent <input id="opponent" value="Northrop" autocomplete="off" /></label>
+        <div class="row">
+          <button class="warn" id="start" type="button">Start over</button>
+          <button class="warn" id="csv" type="button">Download CSV</button>
+        </div>
+      </details>
+    </main>
+    <script type="module" src="./tagger.js"></script>
+  </body>
+</html>
