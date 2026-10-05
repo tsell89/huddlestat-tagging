@@ -1,6 +1,12 @@
 import {
+  Hash,
+  HS_OT_DISTANCE,
+  HS_OT_OFFENSE_YARD_LINE,
+  ODK,
+  PlayType,
   Result,
   decodePenalty,
+  deriveScoreFromPlays,
   encodePenaltySpotEncoding,
   fieldPositionToHudl,
   hudlToFieldPosition,
@@ -8,19 +14,43 @@ import {
   openingDictatedChain,
   parseWithRules,
   previewParsedPlay,
+  shouldFinalizeOtGame,
   type DictatedChain,
   type DictatedPlayInput,
   type PlaylistData,
 } from "@huddlestat/shared";
 import { serializeBrowserHudlCsv } from "./csv.js";
-import { TEAM_CODE, TEAM_NAME, chainStory, type ChainStory } from "./story.js";
+import {
+  BEFORE_KICKOFF,
+  COIN_TOSS_FIRST,
+  COIN_TOSS_SITUATION,
+  NOT_A_PLAY,
+  OT_CONTINUES,
+  TEAM_CODE,
+  TEAM_NAME,
+  chainStory,
+  scoreSentence,
+  situationSentence,
+  type ChainStory,
+  type SpotNames,
+} from "./story.js";
 
 export const STORAGE_KEY = "hs_browser_tagger_v1";
+
+export type KickRole = "kick" | "receive";
+export type BrowserPhase = "tag" | "ot" | "final";
 
 export type BrowserGame = {
   opponent: string;
   plays: PlaylistData[];
   transcripts: string[];
+  /** Opening coin-toss choice. Null until that note confirms. */
+  kickoff: KickRole | null;
+  /** Next snap is this kickoff. Set by a toss or second-half note. Cleared when that snap confirms. */
+  nextKickoff: KickRole | null;
+  phase: BrowserPhase;
+  /** True after Continue. Start over keeps it so the opponent field is not asked again. */
+  started: boolean;
 };
 
 export type StoredGame = BrowserGame & {
@@ -36,17 +66,29 @@ export type SituationAdjust = {
   returnYards?: number;
 };
 
+export type PreviewKind = "play" | "kickoff" | "final" | "overtime" | "rejected";
+
 export type SnapPreview = {
   transcript: string;
+  kind: PreviewKind;
   parsed: DictatedPlayInput;
   play: PlaylistData | null;
   before: DictatedChain;
   next: DictatedChain;
   story: ChainStory;
   canConfirm: boolean;
+  kickoffRole?: KickRole;
+  /** The toss note said someone deferred. The this-snap sentence keeps that word. */
+  kickoffDeferred?: boolean;
+  /** Opening toss. Starts in is “Before the kickoff.” A later kickoff note uses the current situation. */
+  openingToss?: boolean;
 };
 
 const SACK_YARDS_WARNING = "Sack needs loss yards";
+
+function namesOf(game: BrowserGame): SpotNames {
+  return { team: TEAM_NAME, opponent: game.opponent };
+}
 
 function encodingForResult(
   encoding: string,
@@ -82,14 +124,71 @@ function spotEncodingForReturnYards(spotEncoding: string, returnYards: number): 
 
 export function openingGame(opponent = "Northrop"): BrowserGame {
   const name = opponent.trim() || "Northrop";
-  return { opponent: name, plays: [], transcripts: [] };
+  return {
+    opponent: name,
+    plays: [],
+    transcripts: [],
+    kickoff: null,
+    nextKickoff: null,
+    phase: "tag",
+    started: false,
+  };
 }
 
-export function currentChain(plays: PlaylistData[]): DictatedChain {
+/** Kickoff waiting to be tagged: a second-half note, or the opening toss before any snap. */
+export function pendingKick(game: BrowserGame): KickRole | null {
+  if (game.phase === "ot" || game.phase === "final") return null;
+  if (game.nextKickoff) return game.nextKickoff;
+  if (game.plays.length === 0 && game.kickoff) return game.kickoff;
+  return null;
+}
+
+export function hasOpeningSituation(game: BrowserGame): boolean {
+  return game.kickoff != null || game.nextKickoff != null || game.plays.length > 0 || game.phase === "ot";
+}
+
+function kickoffQuarter(game: BrowserGame): number {
+  if (game.plays.length === 0) return 1;
+  const last = game.plays[game.plays.length - 1]!.quarter;
+  return last < 3 ? 3 : last;
+}
+
+export function kickoffChain(role: KickRole, playNumber: number, quarter: number): DictatedChain {
+  if (role === "receive") {
+    return {
+      down: 0,
+      distance: 0,
+      yardLine: 40,
+      odk: ODK.Kicking,
+      hash: Hash.Middle,
+      quarter,
+      playNumber,
+      playTypeGuess: PlayType.KickoffReceive,
+    };
+  }
+  return { ...openingDictatedChain(quarter), playNumber, playTypeGuess: PlayType.Kickoff };
+}
+
+/** First OT snap. Snider has the ball at the opponent 10. */
+function otOpeningChain(playNumber: number): DictatedChain {
+  return {
+    down: 1,
+    distance: HS_OT_DISTANCE,
+    yardLine: HS_OT_OFFENSE_YARD_LINE,
+    odk: ODK.Offense,
+    hash: Hash.Middle,
+    quarter: 5,
+    playNumber,
+    playTypeGuess: "",
+  };
+}
+
+export function currentChain(plays: PlaylistData[], phase: BrowserPhase = "tag"): DictatedChain {
   if (plays.length === 0) return openingDictatedChain(1);
   const last = plays[plays.length - 1]!;
   const next = nextDraftAfterPlay(last, last.playNumber + 1, TEAM_CODE, {
     rules: "HS",
+    overtime: phase === "ot" || last.quarter === 5,
   });
   return {
     down: next.down,
@@ -101,6 +200,164 @@ export function currentChain(plays: PlaylistData[]): DictatedChain {
     playNumber: next.playNumber,
     playTypeGuess: next.playType || "",
   };
+}
+
+export function situationChain(game: BrowserGame): DictatedChain {
+  const kick = pendingKick(game);
+  if (kick) return kickoffChain(kick, game.plays.length + 1, kickoffQuarter(game));
+  if (game.phase === "ot" && !game.plays.some((play) => play.quarter === 5)) {
+    return otOpeningChain(game.plays.length + 1);
+  }
+  return currentChain(game.plays, game.phase);
+}
+
+export function scoreLine(game: BrowserGame): string {
+  const score = deriveScoreFromPlays(game.plays);
+  return scoreSentence(namesOf(game), score.us, score.them);
+}
+
+export function situationLine(game: BrowserGame): string {
+  if (game.phase === "final") return scoreLine(game);
+  if (!hasOpeningSituation(game)) return COIN_TOSS_SITUATION;
+  return situationSentence(situationChain(game), namesOf(game));
+}
+
+export function fileStem(opponent: string, year = new Date().getFullYear()): string {
+  const safe = opponent.trim().replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "") || "Opponent";
+  return `Snider-${safe}-${year}`;
+}
+
+function emptyParsed(quarter: number, warnings: string[] = []): DictatedPlayInput {
+  return { quarter, confidence: "low", warnings };
+}
+
+function storyOf(
+  game: BrowserGame,
+  preview: Pick<
+    SnapPreview,
+    | "kind"
+    | "before"
+    | "next"
+    | "play"
+    | "canConfirm"
+    | "kickoffRole"
+    | "kickoffDeferred"
+    | "openingToss"
+    | "parsed"
+  >,
+): ChainStory {
+  const names = namesOf(game);
+  if (preview.kind === "kickoff" && preview.kickoffRole) {
+    const next = kickoffChain(preview.kickoffRole, game.plays.length + 1, kickoffQuarter(game));
+    return {
+      before: preview.openingToss ? BEFORE_KICKOFF : situationSentence(preview.before, names),
+      happened: kickoffSnapSentence(preview.kickoffRole, names, preview.kickoffDeferred === true),
+      next: situationSentence(next, names),
+    };
+  }
+  if (preview.kind === "final") {
+    return {
+      before: situationSentence(preview.before, names),
+      happened: "Game over.",
+      next: scoreLine(game),
+    };
+  }
+  if (preview.kind === "overtime") {
+    return {
+      before: situationSentence(preview.before, names),
+      happened: "Overtime.",
+      next: situationSentence(otOpeningChain(game.plays.length + 1), names),
+    };
+  }
+  if (!preview.canConfirm || !preview.play) {
+    return {
+      before: hasOpeningSituation(game) ? situationSentence(preview.before, names) : BEFORE_KICKOFF,
+      happened: rejectionMessage(preview.parsed.warnings),
+      next: "The next snap stays put until this one confirms.",
+    };
+  }
+  return chainStory({
+    names,
+    before: preview.before,
+    play: preview.play,
+    next: preview.next,
+    canConfirm: true,
+    warnings: preview.parsed.warnings,
+  });
+}
+
+function rejectionMessage(warnings: string[]): string {
+  const text = warnings.map((warning) => warning.trim()).filter(Boolean).join(" ");
+  if (!text || text === "Not a football snap" || text === "Empty transcript") return NOT_A_PLAY;
+  return text;
+}
+
+function escapeReg(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function actorBefore(text: string, phrase: RegExp, team: string, opponent: string): string | null {
+  const match = phrase.exec(text);
+  if (!match || match.index === undefined) return null;
+  const before = text.slice(0, match.index);
+  let found: { name: string; at: number } | null = null;
+  for (const name of [team, opponent]) {
+    if (!name) continue;
+    const re = new RegExp(`\\b${escapeReg(name)}\\b`, "gi");
+    let hit: RegExpExecArray | null;
+    while ((hit = re.exec(before))) {
+      if (!found || hit.index >= found.at) found = { name, at: hit.index };
+    }
+  }
+  return found?.name ?? null;
+}
+
+/** Coin-toss and second-half notes. The note chooses who kicks. The chain supplies the 40. */
+export function parseKickoffNote(
+  raw: string,
+  labels: SpotNames,
+): { role: KickRole; thisSnap: string; deferred: boolean } | null {
+  const text = raw.trim().replace(/\s+/g, " ");
+  if (!text) return null;
+  if (!/\b(defer(?:red|s)?|kicking off|kicks off|will kick|will receive|is receiving)\b/i.test(text)) {
+    return null;
+  }
+  if (/\b(catch|oob|tackle|tackled|runs?|rush|complete|incomplete|punt|touchback|sack|fumble)\b/i.test(text)) {
+    return null;
+  }
+  if (/\bko\b/i.test(text) && /\d/.test(text)) return null;
+
+  const team = labels.team;
+  const opponent = labels.opponent;
+  const kicking = actorBefore(text, /\b(?:kicking off|kicks off|will kick|is kicking)\b/i, team, opponent);
+  const receiving = actorBefore(text, /\b(?:will receive|receives|is receiving)\b/i, team, opponent);
+  let role: KickRole | null = null;
+  if (kicking && kicking.toLowerCase() === team.toLowerCase()) role = "kick";
+  else if (kicking && kicking.toLowerCase() === opponent.toLowerCase()) role = "receive";
+  else if (receiving && receiving.toLowerCase() === team.toLowerCase()) role = "receive";
+  else if (receiving && receiving.toLowerCase() === opponent.toLowerCase()) role = "kick";
+  if (!role) return null;
+  const deferred = /\bdefer/i.test(text);
+  return { role, thisSnap: kickoffSnapSentence(role, labels, deferred), deferred };
+}
+
+function kickoffSnapSentence(role: KickRole, labels: SpotNames, deferred: boolean): string {
+  if (deferred && role === "kick") return `${labels.team} deferred. ${labels.team} is kicking off.`;
+  if (deferred && role === "receive") return `${labels.opponent} deferred. ${labels.team} will receive.`;
+  if (role === "kick") return `${labels.team} is kicking off.`;
+  return `${labels.opponent} is kicking off.`;
+}
+
+function isFinalNote(text: string): boolean {
+  return /^(?:final|game over)\.?$/i.test(text.trim());
+}
+
+function canEndGame(game: BrowserGame): boolean {
+  const score = deriveScoreFromPlays(game.plays);
+  if (game.phase === "ot") return shouldFinalizeOtGame(game.plays, "OT", score);
+  const quarter = game.plays.length ? game.plays[game.plays.length - 1]!.quarter : 1;
+  if (quarter >= 4 && score.us === score.them) return false;
+  return true;
 }
 
 function applyParseGuards(parsed: DictatedPlayInput): DictatedPlayInput {
@@ -166,54 +423,139 @@ export function applyAdjust(
   return next;
 }
 
+function compileSnap(
+  game: BrowserGame,
+  parsed: DictatedPlayInput,
+): { play: PlaylistData; next: DictatedChain } {
+  const before = situationChain(game);
+  const kick = pendingKick(game);
+  const freshKick = kick != null;
+  const compiled = previewParsedPlay(freshKick ? [] : game.plays, parsed, TEAM_CODE);
+  let play = compiled.play;
+  if (freshKick || game.phase === "ot") {
+    const kickoffType =
+      kick === "receive" ? PlayType.KickoffReceive : kick === "kick" ? PlayType.Kickoff : play.playType;
+    play = {
+      ...play,
+      playNumber: game.plays.length + 1,
+      quarter: game.phase === "ot" ? 5 : before.quarter,
+      down: before.down,
+      distance: before.distance,
+      yardLine: parsed.yardLine ?? before.yardLine,
+      odk: game.phase === "ot" ? before.odk : ODK.Kicking,
+      playType: parsed.playType || kickoffType,
+    };
+  }
+  const next = currentChain([...game.plays, play], game.phase === "ot" ? "ot" : "tag");
+  return { play, next };
+}
+
+function rejected(
+  game: BrowserGame,
+  transcript: string,
+  parsed: DictatedPlayInput,
+  before: DictatedChain,
+): SnapPreview {
+  const preview: SnapPreview = {
+    transcript,
+    kind: "rejected",
+    parsed,
+    play: null,
+    before,
+    next: before,
+    canConfirm: false,
+    story: { before: "", happened: "", next: "" },
+  };
+  preview.story = storyOf(game, preview);
+  return preview;
+}
+
 export function previewSnap(
   game: BrowserGame,
   transcript: string,
   adjust?: SituationAdjust,
 ): SnapPreview {
-  const before = currentChain(game.plays);
-  const parsed = applyAdjust(applyParseGuards(parseWithRules(transcript, before)), adjust);
-  const names = { team: TEAM_NAME, opponent: game.opponent };
-  const canConfirm = Boolean(
-    parsed.playType && parsed.result !== undefined && parsed.confidence === "high",
-  );
-  if (!canConfirm) {
-    return {
+  const text = transcript.trim();
+  const names = namesOf(game);
+  const before = hasOpeningSituation(game) ? situationChain(game) : openingDictatedChain(1);
+
+  if (!text) return rejected(game, transcript, emptyParsed(before.quarter, ["Empty transcript"]), before);
+
+  const kickoff = adjust ? null : parseKickoffNote(text, names);
+  if (kickoff) {
+    const openingToss = game.plays.length === 0 && game.kickoff == null && game.phase === "tag";
+    const next = kickoffChain(kickoff.role, game.plays.length + 1, kickoffQuarter(game));
+    const preview: SnapPreview = {
       transcript,
-      parsed,
+      kind: "kickoff",
+      parsed: emptyParsed(before.quarter),
+      play: null,
+      before,
+      next,
+      canConfirm: true,
+      kickoffRole: kickoff.role,
+      kickoffDeferred: kickoff.deferred,
+      openingToss,
+      story: { before: "", happened: "", next: "" },
+    };
+    preview.story = storyOf(game, preview);
+    return preview;
+  }
+
+  if (!hasOpeningSituation(game)) {
+    return rejected(game, transcript, emptyParsed(before.quarter, [COIN_TOSS_FIRST]), before);
+  }
+
+  if (!adjust && isFinalNote(text)) {
+    if (game.phase === "ot" && !canEndGame(game)) {
+      return rejected(game, transcript, emptyParsed(before.quarter, [OT_CONTINUES]), before);
+    }
+    if (!canEndGame(game)) {
+      const preview: SnapPreview = {
+        transcript,
+        kind: "overtime",
+        parsed: emptyParsed(before.quarter),
+        play: null,
+        before,
+        next: otOpeningChain(game.plays.length + 1),
+        canConfirm: true,
+        story: { before: "", happened: "", next: "" },
+      };
+      preview.story = storyOf(game, preview);
+      return preview;
+    }
+    const preview: SnapPreview = {
+      transcript,
+      kind: "final",
+      parsed: emptyParsed(before.quarter),
       play: null,
       before,
       next: before,
-      canConfirm: false,
-      story: chainStory({
-        names,
-        before,
-        play: null,
-        next: before,
-        canConfirm: false,
-        warnings: parsed.warnings,
-      }),
+      canConfirm: true,
+      story: { before: "", happened: "", next: "" },
     };
+    preview.story = storyOf(game, preview);
+    return preview;
   }
-  const compiled = previewParsedPlay(game.plays, parsed, TEAM_CODE);
-  const withPlay = [...game.plays, compiled.play];
-  const next = currentChain(withPlay);
-  return {
+
+  const parsed = applyAdjust(applyParseGuards(parseWithRules(text, before)), adjust);
+  const canConfirm = Boolean(parsed.playType && parsed.result !== undefined && parsed.confidence === "high");
+  if (!canConfirm) {
+    return rejected(game, transcript, parsed, before);
+  }
+  const compiled = compileSnap(game, parsed);
+  const preview: SnapPreview = {
     transcript,
+    kind: "play",
     parsed,
     play: compiled.play,
     before,
-    next,
+    next: compiled.next,
     canConfirm: true,
-    story: chainStory({
-      names,
-      before,
-      play: compiled.play,
-      next,
-      canConfirm: true,
-      warnings: parsed.warnings,
-    }),
+    story: { before: "", happened: "", next: "" },
   };
+  preview.story = storyOf(game, preview);
+  return preview;
 }
 
 export function confirmSnap(
@@ -222,26 +564,50 @@ export function confirmSnap(
   adjust?: SituationAdjust,
 ): BrowserGame {
   const preview = previewSnap(game, transcript, adjust);
-  if (!preview.canConfirm || !preview.play) {
-    throw new Error(
-      preview.parsed.warnings.join(" ") || "Not a football snap — nothing confirmed",
-    );
+  if (!preview.canConfirm) {
+    throw new Error(preview.story.happened || "Not a football snap — nothing confirmed");
+  }
+  if (preview.kind === "kickoff" && preview.kickoffRole) {
+    return {
+      ...game,
+      kickoff: game.kickoff ?? preview.kickoffRole,
+      nextKickoff: preview.kickoffRole,
+    };
+  }
+  if (preview.kind === "overtime") {
+    return { ...game, phase: "ot", nextKickoff: null };
+  }
+  if (preview.kind === "final") {
+    return { ...game, phase: "final", nextKickoff: null };
+  }
+  if (!preview.play) {
+    throw new Error(preview.story.happened || "Not a football snap — nothing confirmed");
   }
   return {
     ...game,
     plays: [...game.plays, preview.play],
     transcripts: [...game.transcripts, transcript.trim()],
+    nextKickoff: null,
+  };
+}
+
+/** Drop the last snap so the next confirm writes that slot again. */
+export function withoutLastPlay(game: BrowserGame): BrowserGame {
+  if (game.plays.length === 0) return game;
+  const plays = game.plays.slice(0, -1);
+  return {
+    ...game,
+    plays,
+    transcripts: game.transcripts.slice(0, -1),
+    nextKickoff: plays.length === 0 ? game.kickoff : game.nextKickoff,
+    phase: game.phase === "final" ? "tag" : game.phase,
   };
 }
 
 export function undoLast(game: BrowserGame): { game: BrowserGame; transcript: string } {
   if (game.plays.length === 0) return { game, transcript: "" };
   return {
-    game: {
-      ...game,
-      plays: game.plays.slice(0, -1),
-      transcripts: game.transcripts.slice(0, -1),
-    },
+    game: withoutLastPlay(game),
     transcript: game.transcripts[game.transcripts.length - 1] ?? "",
   };
 }
@@ -298,21 +664,15 @@ export function parseSpotLabel(
 }
 
 export function startOver(game: BrowserGame): BrowserGame {
-  return openingGame(game.opponent);
+  return { ...openingGame(game.opponent), started: game.started };
 }
 
 export function hudlCsv(game: BrowserGame): string {
   return serializeBrowserHudlCsv(game.plays);
 }
 
-export function csvFilename(opponent: string): string {
-  const safe =
-    opponent
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "") || "game";
-  return `snider-vs-${safe}.playlist.csv`;
+export function csvFilename(opponent: string, year = new Date().getFullYear()): string {
+  return `${fileStem(opponent, year)}.playlist.csv`;
 }
 
 export function storedGame(game: BrowserGame): StoredGame {
@@ -320,8 +680,16 @@ export function storedGame(game: BrowserGame): StoredGame {
     opponent: game.opponent,
     plays: game.plays,
     transcripts: game.transcripts,
-    situation: currentChain(game.plays),
+    kickoff: game.kickoff,
+    nextKickoff: game.nextKickoff,
+    phase: game.phase,
+    started: game.started,
+    situation: hasOpeningSituation(game) ? situationChain(game) : openingDictatedChain(1),
   };
+}
+
+function kickRole(value: unknown): KickRole | null {
+  return value === "kick" || value === "receive" ? value : null;
 }
 
 export function gameFromStored(raw: string | null): BrowserGame {
@@ -335,10 +703,16 @@ export function gameFromStored(raw: string | null): BrowserGame {
       typeof data.opponent === "string" && data.opponent.trim()
         ? data.opponent.trim()
         : "Northrop";
+    const plays = data.plays as PlaylistData[];
+    const kickoff = kickRole(data.kickoff) ?? (plays.length > 0 ? "kick" : null);
     return {
       opponent,
-      plays: data.plays as PlaylistData[],
+      plays,
       transcripts: data.transcripts.filter((line) => typeof line === "string"),
+      kickoff,
+      nextKickoff: kickRole(data.nextKickoff),
+      phase: data.phase === "ot" || data.phase === "final" ? data.phase : "tag",
+      started: data.started === true || plays.length > 0,
     };
   } catch {
     return openingGame();

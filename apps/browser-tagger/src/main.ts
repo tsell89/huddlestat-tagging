@@ -1,26 +1,21 @@
-import type { DictatedChain, PlaylistData } from "@huddlestat/shared";
 import {
   STORAGE_KEY,
   confirmSnap,
   csvFilename,
-  currentChain,
+  fileStem,
   gameFromStored,
+  hasOpeningSituation,
   hudlCsv,
-  parseSpotLabel,
   previewSnap,
+  situationChain,
+  situationLine,
   startOver,
   storedGame,
-  takeBackLastPlay,
+  withoutLastPlay,
   type BrowserGame,
-  type SituationAdjust,
+  type SnapPreview,
 } from "./session.js";
-import {
-  TEAM_NAME,
-  pageSituationSentence,
-  previousHappened,
-  spotLabel,
-  whoLine,
-} from "./story.js";
+import { TEAM_NAME, previousHappened, whoLine } from "./story.js";
 
 const $ = (id: string) => {
   const el = document.getElementById(id);
@@ -28,18 +23,21 @@ const $ = (id: string) => {
   return el;
 };
 
+const startOpponent = $("startOpponent") as HTMLInputElement;
+const continueBtn = $("continue") as HTMLButtonElement;
 const opponentInput = $("opponent") as HTMLInputElement;
-const confirmBtn = $("confirm") as HTMLButtonElement;
 const transcriptField = $("transcript") as HTMLTextAreaElement;
+const previewBtn = $("preview") as HTMLButtonElement;
+const editBtn = $("edit") as HTMLButtonElement;
+const confirmBtn = $("confirm") as HTMLButtonElement;
 
 let game: BrowserGame = openingFromStorage();
-let lastPreviewKey = "";
-let situationTouched = new Set<string>();
-let playTouched = new Set<string>();
-let filling = false;
-let previewTimer = 0;
-let previewGen = 0;
-let correction: { transcript: string } | null = null;
+let mode: "dictate" | "ready" = "dictate";
+let replacing = false;
+let lastPreview: SnapPreview | null = null;
+let lastKey = "";
+let messageText = "";
+let modalOpen = false;
 
 function openingFromStorage(): BrowserGame {
   try {
@@ -57,373 +55,153 @@ function persist() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(storedGame(game)));
 }
 
-function syncOpponent() {
-  const name = opponentInput.value.trim() || "Northrop";
-  if (game.opponent !== name) {
-    game = { ...game, opponent: name };
-    persist();
-  }
-}
-
 function transcriptText() {
   return transcriptField.value.trim();
 }
 
-function formatSpot(yardLine: number) {
-  return spotLabel(yardLine, names());
+function targetGame(): BrowserGame {
+  return replacing ? withoutLastPlay(game) : game;
 }
 
-function parseSpot(text: string) {
-  return parseSpotLabel(text, names());
+function placeholder(): string {
+  if (!hasOpeningSituation(game)) return "Snider deferred their choice and is kicking off.";
+  if (game.plays.length === 0) return "Snider 88 KO. #0 catch Own 20, OOB Own 38, +18.";
+  return "12 runs for 4, tackled by 11";
 }
 
-function currentSetup(): DictatedChain {
-  const base = currentChain(game.plays);
-  const down = situationTouched.has("down") ? Number(($("down") as HTMLInputElement).value) : base.down;
-  const distance = situationTouched.has("distance")
-    ? Number(($("distance") as HTMLInputElement).value)
-    : base.distance;
-  let yardLine = base.yardLine;
-  if (situationTouched.has("yard")) {
-    const spot = parseSpot(($("yard") as HTMLInputElement).value);
-    if (spot.ok) yardLine = spot.yardLine;
-  }
-  return {
-    ...base,
-    down: Number.isInteger(down) ? down : base.down,
-    distance: Number.isInteger(distance) ? distance : base.distance,
-    yardLine,
-  };
+function selectNote() {
+  requestAnimationFrame(() => {
+    transcriptField.focus();
+    const end = transcriptField.value.length;
+    transcriptField.setSelectionRange(0, end);
+  });
 }
 
-function paintSituation() {
-  const scrimmageEdit = situationTouched.has("down") || situationTouched.has("distance");
-  $("situationLine").textContent = pageSituationSentence(currentSetup(), names(), scrimmageEdit);
+function show(el: HTMLElement, on: boolean) {
+  el.hidden = !on;
 }
 
-function lastPlay(): PlaylistData | null {
-  return game.plays.length ? game.plays[game.plays.length - 1]! : null;
-}
+function render() {
+  const started = game.started;
+  show($("startScreen"), !started);
+  show($("tagger"), started);
+  show($("modal"), modalOpen);
 
-function fillPlayFields(play: PlaylistData) {
-  filling = true;
-  const result = $("result") as HTMLSelectElement;
-  const value = play.result || "Rush";
-  if (!Array.from(result.options).some((option) => option.value === value)) {
-    const extra = document.createElement("option");
-    extra.value = value;
-    extra.textContent = value;
-    result.appendChild(extra);
-  }
-  result.value = value;
-  ($("yards") as HTMLInputElement).value = String(play.gainLoss ?? 0);
-  filling = false;
-}
-
-function renderPrevious() {
-  const section = $("previous");
-  if (correction) {
-    section.hidden = false;
-    $("previousHint").textContent = "Confirm replaces this play and rebuilds the situation.";
-    $("previousNote").hidden = true;
-    return;
-  }
-  const play = lastPlay();
-  if (!play) {
-    section.hidden = true;
-    return;
-  }
-  section.hidden = false;
-  const end = currentChain(game.plays).yardLine;
-  $("previousLine").textContent = previousHappened(play, formatSpot(end));
-  const who = whoLine(play);
-  $("previousWho").hidden = !who;
-  $("previousWho").textContent = who;
-  const note = game.transcripts[play.playNumber - 1] || "";
-  $("previousNote").hidden = !note;
-  $("previousNote").textContent = note;
-  $("previousHint").textContent = playTouched.size
-    ? "Undo last, then Confirm, to replace this play."
-    : "Undo last puts this play back in the box. Confirm replaces it.";
-  if (playTouched.size === 0) fillPlayFields(play);
-}
-
-function syncSituationFields() {
-  const chain = currentChain(game.plays);
-  filling = true;
-  if (!situationTouched.has("down")) ($("down") as HTMLInputElement).value = String(chain.down ?? 0);
-  if (!situationTouched.has("distance")) {
-    ($("distance") as HTMLInputElement).value = String(chain.distance ?? 0);
-  }
-  if (!situationTouched.has("yard")) ($("yard") as HTMLInputElement).value = formatSpot(chain.yardLine ?? -40);
-  filling = false;
-  paintSituation();
-}
-
-function renderState() {
-  syncSituationFields();
-  renderPrevious();
-}
-
-function wholeNumber(raw: string, label: string) {
-  if (String(raw).trim() === "") throw new Error(`${label} needs a whole number`);
-  const n = Number(raw);
-  if (!Number.isInteger(n)) throw new Error(`${label} needs a whole number`);
-  return n;
-}
-
-function buildAdjust(): SituationAdjust | undefined {
-  const adjust: SituationAdjust = {};
-  if (situationTouched.has("down")) {
-    const down = wholeNumber(($("down") as HTMLInputElement).value, "Down");
-    if (down < 0 || down > 4) throw new Error("Down is 0–4");
-    adjust.down = down;
-  }
-  if (situationTouched.has("distance")) {
-    const distance = wholeNumber(($("distance") as HTMLInputElement).value, "Distance");
-    if (distance < 0 || distance > 99) throw new Error("Distance is 0–99");
-    adjust.distance = distance;
-  }
-  if (situationTouched.has("yard")) {
-    const spot = parseSpot(($("yard") as HTMLInputElement).value);
-    if (!spot.ok) throw new Error(spot.message);
-    adjust.yardLine = spot.yardLine;
-  }
-  if (correction) {
-    if (playTouched.has("result")) adjust.result = ($("result") as HTMLSelectElement).value as PlaylistData["result"];
-    if (playTouched.has("yards")) {
-      const yards = wholeNumber(($("yards") as HTMLInputElement).value, "Yards");
-      adjust.gainLoss = yards;
-      if (($("result") as HTMLSelectElement).value === "Return") adjust.returnYards = yards;
-    }
-  }
-  return Object.keys(adjust).length ? adjust : undefined;
-}
-
-function previewKey(adjust: SituationAdjust | undefined) {
-  return JSON.stringify({ text: transcriptText(), adjust: adjust ?? null });
-}
-
-function showStory(data: ReturnType<typeof previewSnap>) {
-  const story = data.story;
-  $("storyBefore").textContent = story.before;
-  $("storyHappened").textContent = story.happened;
-  $("storyNext").textContent = String(story.next || "").replace(/^Next:\s*/, "");
-  $("storyCard").hidden = false;
-  if (correction) {
-    $("previousLine").textContent = story.happened;
-    const who = whoLine(data.play);
-    $("previousWho").hidden = !who;
+  const ended = game.phase === "final" && !replacing && mode !== "ready";
+  const play = game.plays.length ? game.plays[game.plays.length - 1]! : null;
+  show($("previous"), Boolean(play));
+  if (play) {
+    const nextYard = situationChain(game).yardLine;
+    $("previousLine").textContent = previousHappened(play, names(), nextYard);
+    const who = whoLine(play);
+    show($("previousWho"), Boolean(who));
     $("previousWho").textContent = who;
-    if (playTouched.size === 0 && data.play) fillPlayFields(data.play);
+    const note = game.transcripts[play.playNumber - 1] || game.transcripts[game.transcripts.length - 1] || "";
+    show($("previousNote"), Boolean(note));
+    $("previousNote").textContent = note;
   }
+
+  $("situationLine").textContent = situationLine(game);
+  show($("finalActions"), ended);
+  show($("thisPlay"), !ended);
+  transcriptField.placeholder = placeholder();
+
+  const ready = mode === "ready" && lastPreview?.canConfirm === true;
+  show(previewBtn, !ready);
+  show(editBtn, ready);
+  confirmBtn.disabled = !ready;
+  confirmBtn.classList.toggle("h-double", ready);
+  confirmBtn.classList.toggle("h-single", !ready);
+  show($("storyCard"), ready);
+  if (ready && lastPreview) {
+    $("storyBefore").textContent = lastPreview.story.before;
+    $("storyHappened").textContent = lastPreview.story.happened;
+    $("storyNext").textContent = lastPreview.story.next.replace(/^Next:\s*/, "");
+  }
+
+  show($("msg"), Boolean(messageText));
+  $("msg").textContent = messageText;
+
+  const stem = fileStem(game.opponent);
+  $("fileName").textContent = stem;
+  const downloadName = csvFilename(game.opponent);
+  $("csv").dataset.download = downloadName;
+  $("finalCsv").dataset.download = downloadName;
+  if (document.activeElement !== opponentInput) opponentInput.value = game.opponent;
 }
 
-function message(err: unknown) {
-  return err instanceof Error ? err.message : String(err);
+function resetToDictate() {
+  mode = "dictate";
+  lastPreview = null;
+  lastKey = "";
 }
 
 function previewNow() {
-  const gen = ++previewGen;
   const text = transcriptText();
+  transcriptField.blur();
   if (!text) {
-    confirmBtn.disabled = true;
-    $("storyCard").hidden = true;
-    paintSituation();
+    resetToDictate();
+    messageText = "";
+    render();
     return;
   }
-  let adjust: SituationAdjust | undefined;
-  try {
-    adjust = buildAdjust();
-  } catch (err) {
-    $("msg").textContent = message(err);
-    confirmBtn.disabled = true;
+  const data = previewSnap(targetGame(), text);
+  if (!data.canConfirm) {
+    resetToDictate();
+    messageText = data.story.happened;
+    render();
+    selectNote();
     return;
   }
-  const data = previewSnap(game, text, adjust);
-  if (gen !== previewGen || transcriptText() !== text) return;
-  lastPreviewKey = previewKey(adjust);
-  confirmBtn.disabled = !data.canConfirm;
-  showStory(data);
-  $("msg").textContent = data.canConfirm ? "" : data.story.happened || "Rewrite the dictation";
+  mode = "ready";
+  lastPreview = data;
+  lastKey = text;
+  messageText = "";
+  render();
 }
 
-function schedulePreview() {
-  clearTimeout(previewTimer);
-  previewTimer = window.setTimeout(() => {
-    try {
-      previewNow();
-    } catch (err) {
-      $("msg").textContent = message(err);
-    }
-  }, 350);
-}
-
-function mark(bucket: Set<string>, key: string) {
-  if (filling) return;
-  bucket.add(key);
-  confirmBtn.disabled = true;
-  lastPreviewKey = "";
-  if (bucket === situationTouched) paintSituation();
-  if (bucket === playTouched && !correction) {
-    $("previousHint").textContent = "Undo last, then Confirm, to replace this play.";
-    return;
-  }
-  if (transcriptText()) schedulePreview();
-}
-
-for (const id of ["down", "distance", "yard"]) {
-  $(id).addEventListener("input", () => mark(situationTouched, id));
-  $(id).addEventListener("change", () => mark(situationTouched, id));
-}
-for (const id of ["result", "yards"]) {
-  $(id).addEventListener("input", () => mark(playTouched, id));
-  $(id).addEventListener("change", () => mark(playTouched, id));
-}
-
-transcriptField.addEventListener("input", () => {
-  lastPreviewKey = "";
-  confirmBtn.disabled = true;
-  $("storyCard").hidden = true;
+function commitNow() {
   const text = transcriptText();
-  if (correction && text !== correction.transcript) playTouched = new Set();
-  if (!correction && playTouched.size) {
-    playTouched = new Set();
-    const play = lastPlay();
-    if (play) fillPlayFields(play);
-    renderPrevious();
-  }
-  if (text) schedulePreview();
-  else paintSituation();
-});
-
-$("preview").addEventListener("click", () => {
-  try {
-    previewNow();
-  } catch (err) {
-    $("msg").textContent = message(err);
-  }
-});
-
-confirmBtn.addEventListener("click", () => {
-  try {
-    const text = transcriptText();
-    const adjust = buildAdjust();
-    if (!text || previewKey(adjust) !== lastPreviewKey) {
-      $("msg").textContent = "Preview is stale — check the chain again";
-      confirmBtn.disabled = true;
-      return;
-    }
-    game = confirmSnap(game, text, adjust);
-    correction = null;
-    playTouched = new Set();
-    situationTouched = new Set();
-    transcriptField.value = "";
-    lastPreviewKey = "";
-    confirmBtn.disabled = true;
-    $("storyCard").hidden = true;
-    persist();
-    renderState();
-    $("msg").textContent = "Confirmed.";
-    transcriptField.focus();
-  } catch (err) {
-    $("msg").textContent = message(err);
-  }
-});
-
-function undoLastPlay(opts: { rewrite?: boolean } = {}) {
-  clearTimeout(previewTimer);
-  previewGen += 1;
-  const taken = takeBackLastPlay(game, correction !== null);
-  if (taken.kind === "already") {
-    $("msg").textContent = "That play is already back in the box.";
-    if (!transcriptText() && correction) transcriptField.value = correction.transcript;
-    if (opts.rewrite) {
-      transcriptField.focus();
-      transcriptField.select();
-    }
+  if (mode !== "ready" || !lastPreview?.canConfirm || text !== lastKey) {
+    resetToDictate();
+    render();
     return;
   }
-  if (taken.kind === "empty") {
-    $("msg").textContent = "No play to undo.";
+  const base = targetGame();
+  const again = previewSnap(base, text);
+  if (!again.canConfirm || again.kind !== lastPreview.kind) {
+    resetToDictate();
+    render();
     return;
   }
-  const pending = {
-    result: ($("result") as HTMLSelectElement).value,
-    yards: ($("yards") as HTMLInputElement).value,
-    useResult: playTouched.has("result") && !opts.rewrite,
-    useYards: playTouched.has("yards") && !opts.rewrite,
-  };
-  const undone = taken;
-  game = undone.game;
-  correction = { transcript: undone.transcript.trim() };
-  situationTouched = new Set();
-  playTouched = new Set();
-  if (pending.useResult) playTouched.add("result");
-  if (pending.useYards) playTouched.add("yards");
-  lastPreviewKey = "";
-  confirmBtn.disabled = true;
-  $("storyCard").hidden = true;
-  $("previousLine").textContent = "This play is back in the box.";
+  game = confirmSnap(base, text);
+  replacing = false;
+  resetToDictate();
+  transcriptField.value = "";
+  messageText = "";
   persist();
-  renderState();
-  filling = true;
-  if (pending.useResult) ($("result") as HTMLSelectElement).value = pending.result;
-  if (pending.useYards) ($("yards") as HTMLInputElement).value = pending.yards;
-  filling = false;
-  transcriptField.value = undone.transcript;
-  $("msg").textContent = opts.rewrite
-    ? "Rewrite the dictation, then confirm."
-    : "This play is back in the box. Confirm replaces it.";
-  if (opts.rewrite) {
-    transcriptField.focus();
-    transcriptField.select();
-  }
-  if (transcriptText()) previewNow();
+  render();
+  if (game.phase !== "final") transcriptField.focus();
 }
 
-$("rewrite").addEventListener("click", () => {
-  if (!transcriptText() && game.plays.length) {
-    try {
-      undoLastPlay({ rewrite: true });
-    } catch (err) {
-      $("msg").textContent = message(err);
-    }
-    return;
-  }
-  playTouched = new Set();
-  lastPreviewKey = "";
-  confirmBtn.disabled = true;
-  transcriptField.focus();
-  transcriptField.select();
-  if (transcriptText()) schedulePreview();
-});
+function editNote() {
+  mode = "dictate";
+  lastPreview = null;
+  lastKey = "";
+  messageText = "";
+  render();
+  selectNote();
+}
 
-$("undo").addEventListener("click", () => {
-  try {
-    undoLastPlay();
-  } catch (err) {
-    $("msg").textContent = message(err);
-  }
-});
+function editPrevious() {
+  if (game.plays.length === 0) return;
+  const note = game.transcripts[game.transcripts.length - 1] ?? "";
+  replacing = true;
+  transcriptField.value = note;
+  editNote();
+}
 
-$("start").addEventListener("click", () => {
-  if (!window.confirm("Wipe this playlist back to the kickoff?")) return;
-  game = startOver(game);
-  correction = null;
-  playTouched = new Set();
-  situationTouched = new Set();
-  transcriptField.value = "";
-  lastPreviewKey = "";
-  confirmBtn.disabled = true;
-  $("storyCard").hidden = true;
-  persist();
-  renderState();
-  $("msg").textContent = "Back to the kickoff.";
-  transcriptField.focus();
-});
-
-$("csv").addEventListener("click", () => {
+function downloadCsv() {
   try {
     const text = hudlCsv(game);
     const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
@@ -434,15 +212,93 @@ $("csv").addEventListener("click", () => {
     a.click();
     URL.revokeObjectURL(url);
   } catch (err) {
-    $("msg").textContent = message(err);
+    messageText = err instanceof Error ? err.message : String(err);
+    render();
   }
+}
+
+startOpponent.addEventListener("input", () => {
+  continueBtn.disabled = startOpponent.value.trim() === "";
 });
 
-opponentInput.addEventListener("change", () => {
-  syncOpponent();
-  situationTouched = new Set();
-  renderState();
+startOpponent.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !continueBtn.disabled) continueBtn.click();
 });
 
-opponentInput.value = game.opponent;
-renderState();
+continueBtn.addEventListener("click", () => {
+  const name = startOpponent.value.trim();
+  if (!name) return;
+  game = { ...game, opponent: name, started: true };
+  persist();
+  render();
+  transcriptField.focus();
+});
+
+transcriptField.addEventListener("input", () => {
+  if (mode === "dictate" && !lastPreview && !messageText) return;
+  resetToDictate();
+  messageText = "";
+  render();
+});
+
+previewBtn.addEventListener("click", () => {
+  previewNow();
+});
+
+editBtn.addEventListener("click", () => {
+  editNote();
+});
+
+confirmBtn.addEventListener("click", () => {
+  commitNow();
+});
+
+$("editPrevious").addEventListener("click", () => {
+  editPrevious();
+});
+
+opponentInput.addEventListener("input", () => {
+  const name = opponentInput.value.trim();
+  if (!name || name === game.opponent) return;
+  game = { ...game, opponent: name };
+  if (mode === "ready") {
+    const data = previewSnap(targetGame(), transcriptText());
+    if (data.canConfirm) lastPreview = data;
+  }
+  persist();
+  render();
+});
+
+$("csv").addEventListener("click", () => {
+  downloadCsv();
+});
+
+$("finalCsv").addEventListener("click", () => {
+  downloadCsv();
+});
+
+$("start").addEventListener("click", () => {
+  modalOpen = true;
+  render();
+});
+
+$("cancelStart").addEventListener("click", () => {
+  modalOpen = false;
+  render();
+});
+
+$("doStart").addEventListener("click", () => {
+  game = startOver({ ...game, started: true });
+  replacing = false;
+  resetToDictate();
+  transcriptField.value = "";
+  messageText = "";
+  modalOpen = false;
+  persist();
+  render();
+  transcriptField.focus();
+});
+
+continueBtn.disabled = startOpponent.value.trim() === "";
+render();
+if (game.started && game.phase !== "final") transcriptField.focus();

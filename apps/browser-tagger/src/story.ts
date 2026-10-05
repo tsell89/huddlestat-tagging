@@ -11,11 +11,36 @@ export const TEAM_NAME = "Snider";
 
 export type SpotNames = { team: string; opponent: string };
 
+export const COIN_TOSS_SITUATION = "Dictate the coin toss.";
+export const COIN_TOSS_FIRST = "Dictate the coin toss first.";
+export const NOT_A_PLAY = "That doesn't look like a play yet. Edit it.";
+export const BEFORE_KICKOFF = "Before the kickoff.";
+export const OT_CONTINUES = "Overtime continues.";
+
 export function spotLabel(yardLine: number, names: SpotNames): string {
   if (yardLine === 50) return "the 50";
-  if (yardLine === 0) return "the end zone";
+  if (yardLine === 0) return "Touchdown";
   if (yardLine < 0) return `${names.team} ${Math.abs(yardLine)}`;
   return `${names.opponent} ${yardLine}`;
+}
+
+/** End-zone results read Safety or Touchdown. A yard line of 0 is not shown as 0. */
+export function playEndLabel(play: PlaylistData, nextYard: number, names: SpotNames): string {
+  const encoding = play.spotEncoding ?? "";
+  if (encoding.includes("end:SA") || play.result === Result.Safety) return "Safety";
+  if (
+    encoding.includes("end:TD") ||
+    play.result === Result.RushTd ||
+    play.result === Result.CompleteTd
+  ) {
+    return "Touchdown";
+  }
+  if (nextYard === 0) return "Touchdown";
+  return spotLabel(nextYard, names);
+}
+
+export function scoreSentence(names: SpotNames, us: number, them: number): string {
+  return `${names.team} ${us}, ${names.opponent} ${them}.`;
 }
 
 export function situationSentence(
@@ -114,7 +139,8 @@ export function chainHappened(play: PlaylistData, endSpot: string): string {
   return `${who} ${play.result}. Ball at ${endSpot}.${tackle}`;
 }
 
-export function previousHappened(play: PlaylistData, endSpot: string): string {
+export function previousHappened(play: PlaylistData, names: SpotNames, nextYard: number): string {
+  const endSpot = playEndLabel(play, nextYard, names);
   const line = chainHappened(play, endSpot);
   if (line.includes(endSpot)) return line;
   return `${line.replace(/\.\s*$/, "")}. Ball at ${endSpot}.`;
@@ -156,7 +182,7 @@ export function chainStory(input: {
       before,
       happened:
         input.warnings.filter(Boolean).join(" ") ||
-        "That doesn't look like a play yet. Rewrite it.",
+        NOT_A_PLAY,
       next: "The next snap stays put until this one confirms.",
     };
   }
@@ -168,10 +194,10 @@ export function chainStory(input: {
     odk: input.play.odk,
     playTypeGuess: input.play.playType,
   };
-  const endSpot = spotLabel(input.next.yardLine, input.names);
+  const endSpot = playEndLabel(input.play, input.next.yardLine, input.names);
   return {
     before: situationSentence(start, input.names),
     happened: chainHappened(input.play, endSpot),
-    next: `Next: ${situationSentence(input.next, input.names)}`,
+    next: situationSentence(input.next, input.names),
   };
 }

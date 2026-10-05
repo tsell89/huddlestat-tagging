@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Snider tagger</title>
     <style>
       :root {
@@ -17,11 +17,18 @@
         min-height: 100%;
       }
       body { margin: 0; }
+      [hidden] { display: none !important; }
       main {
         max-width: 40rem;
         margin: 0 auto;
-        padding: 1.75rem 1.25rem 3rem;
+        padding: 1.75rem 1.25rem calc(3.5rem + env(safe-area-inset-bottom));
         box-sizing: border-box;
+      }
+      h1 {
+        font-size: 1.85rem;
+        line-height: 1.25;
+        font-weight: 700;
+        margin: 0;
       }
       h2 {
         font-size: 0.78rem;
@@ -32,21 +39,40 @@
         font-weight: 700;
       }
       section { margin: 0 0 1.6rem; }
+      .status {
+        color: #9bb0cc;
+        font-size: 0.95rem;
+        margin: 0.35rem 0 0;
+      }
       .lead {
         font-size: 1.85rem;
         line-height: 1.25;
         font-weight: 700;
-        margin: 0.35rem 0 0.35rem;
+        margin: 0.35rem 0 0;
         overflow-wrap: anywhere;
       }
-      .who, .note, .hint {
+      .who, .note, .hint, .quiet {
         margin: 0.2rem 0 0;
         overflow-wrap: anywhere;
       }
       .who { font-size: 1.2rem; }
-      .note { color: #cbd5e1; font-size: 1.05rem; }
-      .hint { color: #9bb0cc; font-size: 0.95rem; }
-      textarea, input, select {
+      .note {
+        color: #cbd5e1;
+        font-size: 1.05rem;
+        max-height: 4.6em;
+        overflow-y: auto;
+      }
+      .quiet { color: #9bb0cc; font-size: 0.9rem; line-height: 1.4; }
+      .field-label {
+        display: block;
+        margin: 0.85rem 0 0.35rem;
+        font-size: 0.78rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #9bb0cc;
+        font-weight: 700;
+      }
+      textarea, input {
         background: #111b2e;
         border: 1px solid #2a3b55;
         border-radius: 0.6rem;
@@ -62,31 +88,16 @@
         margin-top: 0.45rem;
         overflow-wrap: anywhere;
       }
-      .fields {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 0.55rem;
-        margin-top: 0.75rem;
-      }
-      .fields.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      label {
-        display: flex;
-        flex-direction: column;
-        gap: 0.3rem;
-        font-size: 0.75rem;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        color: #9bb0cc;
-      }
-      input, select {
-        padding: 0.5rem 0.55rem;
+      input {
+        width: 100%;
+        padding: 0.7rem 0.75rem;
         font-size: 1.15rem;
-        text-transform: none;
-        letter-spacing: 0;
         color: #e8eef8;
       }
-      .row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.85rem; }
+      .stack { display: flex; flex-direction: column; gap: 0.5rem; }
+      .stack.tight { margin-top: 0.85rem; }
       button {
+        width: 100%;
         border: 0;
         border-radius: 0.45rem;
         padding: 0.7rem 0.95rem;
@@ -94,10 +105,17 @@
         font-weight: 700;
         cursor: pointer;
       }
-      button:disabled { opacity: 0.45; cursor: default; }
+      button.h-single { min-height: 2.75rem; }
+      button.h-double { min-height: 5.5rem; }
+      button.h-triple { min-height: 8.25rem; }
+      button:disabled {
+        background: #1a2436;
+        color: #64748b;
+        cursor: default;
+      }
       .primary { background: #3b82f6; color: white; }
-      .ok { background: #16a34a; color: white; }
-      .warn { background: #334155; color: white; }
+      .quiet-btn { background: #1e293b; color: #e8eef8; }
+      .grey { background: #334155; color: #cbd5e1; }
       .chain {
         margin-top: 1rem;
         padding: 0.15rem 0 0.15rem 0.9rem;
@@ -118,98 +136,123 @@
         font-weight: 700;
         margin-bottom: 0.15rem;
       }
-      .chain .next { color: #fde68a; }
-      .msg { min-height: 1.25rem; color: #fbbf24; font-size: 1.05rem; }
-      .setup { margin-top: 0.5rem; }
-      .setup summary { cursor: pointer; color: #9bb0cc; font-size: 1rem; }
-      .setup label { margin-top: 0.7rem; text-transform: none; letter-spacing: 0; font-size: 0.85rem; }
-      .setup input { width: 100%; }
-      .quiet { color: #9bb0cc; font-size: 0.9rem; }
+      .chain .next { color: #fde68a; font-weight: 700; }
+      .file-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin: 0.2rem 0 0.85rem;
+        overflow-wrap: anywhere;
+      }
+      .msg { color: #fbbf24; font-size: 1.05rem; margin: 0 0 1.2rem; }
+      .setup { margin-top: 0.25rem; }
+      .setup summary {
+        cursor: pointer;
+        color: #9bb0cc;
+        font-size: 1rem;
+        font-weight: 700;
+      }
+      .rule {
+        border: 0;
+        border-top: 1px solid #2a3b55;
+        margin: 0.35rem 0;
+      }
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: #0b1220;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.25rem;
+        box-sizing: border-box;
+      }
+      .modal-panel {
+        width: min(100%, 40rem);
+      }
+      #startScreen { margin-top: 0.25rem; }
+      #startScreen .stack { margin-top: 1.4rem; }
     </style>
   </head>
   <body>
     <main>
-      <section id="previous" hidden>
-        <h2>Previous play</h2>
-        <p class="lead" id="previousLine"></p>
-        <p class="who" id="previousWho" hidden></p>
-        <p class="note" id="previousNote" hidden></p>
-        <div class="fields two">
-          <label>Result
-            <select id="result">
-              <option>Rush</option>
-              <option>Complete</option>
-              <option>Incomplete</option>
-              <option>Penalty</option>
-              <option>Sack</option>
-              <option>Interception</option>
-              <option>Fumble</option>
-              <option>Return</option>
-              <option>Touchback</option>
-              <option>Downed</option>
-              <option>Fair Catch</option>
-              <option>Blocked</option>
-              <option>Rush, TD</option>
-              <option>Complete, TD</option>
-              <option>Good</option>
-              <option>No Good</option>
-              <option>Safety</option>
-              <option>Timeout</option>
-              <option>Tipped Pass</option>
-              <option>COP</option>
-            </select>
-          </label>
-          <label>Yards
-            <input id="yards" type="number" step="1" value="0" />
-          </label>
-        </div>
-        <p class="hint" id="previousHint">Undo last puts this play back in the box. Confirm replaces it.</p>
-      </section>
-
-      <section>
-        <h2>Current situation</h2>
-        <p class="lead" id="situationLine">Kickoff. Snider kicks from Snider 40.</p>
-        <div class="fields">
-          <label>Down
-            <input id="down" type="number" min="0" max="4" step="1" value="0" />
-          </label>
-          <label>Distance
-            <input id="distance" type="number" min="0" max="99" step="1" value="0" />
-          </label>
-          <label>Yard line
-            <input id="yard" type="text" value="Snider 40" autocomplete="off" />
-          </label>
+      <section id="startScreen">
+        <h1>Snider tagger</h1>
+        <p class="status">Signed in</p>
+        <label class="field-label" for="startOpponent">Opponent</label>
+        <input id="startOpponent" autocomplete="off" placeholder="Northrop" />
+        <div class="stack tight">
+          <button class="primary h-single" id="continue" type="button" disabled>Continue</button>
         </div>
       </section>
 
-      <section>
-        <h2>This play</h2>
-        <textarea id="transcript" placeholder="Snider 88 KO. #0 catch Own 20, OOB Own 38, +18." autocomplete="off" spellcheck="false" autofocus></textarea>
-        <div class="row">
-          <button class="primary" id="preview" type="button">Preview</button>
-          <button class="ok" id="confirm" type="button" disabled>Confirm</button>
-          <button class="warn" id="rewrite" type="button">Rewrite</button>
-          <button class="warn" id="undo" type="button">Undo last</button>
-        </div>
-        <div class="chain" id="storyCard" hidden>
-          <p><span class="k">Starts in</span> <span id="storyBefore"></span></p>
-          <p><span class="k">This snap</span> <span id="storyHappened"></span></p>
-          <p class="next"><span class="k">Next snap</span> <span id="storyNext"></span></p>
-        </div>
-      </section>
+      <div id="tagger" hidden>
+        <section id="previous" hidden>
+          <h2>Previous play</h2>
+          <p class="lead" id="previousLine"></p>
+          <p class="who" id="previousWho" hidden></p>
+          <p class="note" id="previousNote" hidden></p>
+          <div class="stack tight">
+            <button class="grey h-single" id="editPrevious" type="button">Edit</button>
+          </div>
+        </section>
 
-      <p class="msg" id="msg"></p>
+        <section>
+          <h2>Down &amp; Distance</h2>
+          <p class="lead" id="situationLine">Dictate the coin toss.</p>
+        </section>
 
-      <details class="setup">
-        <summary>Game setup</summary>
-        <p class="quiet">Confirm saves this game on this phone. Start over returns to the opening kickoff.</p>
-        <label>Opponent <input id="opponent" value="Northrop" autocomplete="off" /></label>
-        <div class="row">
-          <button class="warn" id="start" type="button">Start over</button>
-          <button class="warn" id="csv" type="button">Download CSV</button>
+        <div class="stack" id="finalActions" hidden>
+          <button class="primary h-triple" id="finalCsv" type="button">Download CSV</button>
         </div>
-      </details>
+
+        <section id="thisPlay">
+          <h2>This play</h2>
+          <textarea
+            id="transcript"
+            placeholder="Snider deferred their choice and is kicking off."
+            autocomplete="off"
+            spellcheck="false"
+          ></textarea>
+          <div class="chain" id="storyCard" hidden>
+            <p><span class="k">Starts in</span> <span id="storyBefore"></span></p>
+            <p><span class="k">This snap</span> <span id="storyHappened"></span></p>
+            <p class="next"><span class="k">Next snap</span> <span id="storyNext"></span></p>
+          </div>
+          <div class="stack tight">
+            <button class="primary h-double" id="preview" type="button">Preview</button>
+            <button class="quiet-btn h-single" id="edit" type="button" hidden>Edit</button>
+            <button class="primary h-single" id="confirm" type="button" disabled>Confirm</button>
+          </div>
+        </section>
+
+        <p class="msg" id="msg" hidden></p>
+
+        <details class="setup" id="setup">
+          <summary>Game management</summary>
+          <p class="quiet">Confirm, edit, and start over stay on this phone. Download CSV saves the whole game.</p>
+          <label class="field-label" for="opponent">Opponent</label>
+          <input id="opponent" autocomplete="off" />
+          <p class="field-label">File name</p>
+          <p class="file-name" id="fileName"></p>
+          <div class="stack">
+            <button class="quiet-btn h-single" id="csv" type="button">Download CSV</button>
+          </div>
+          <hr class="rule" />
+          <div class="stack">
+            <button class="quiet-btn h-single" id="start" type="button">Start over</button>
+          </div>
+        </details>
+      </div>
     </main>
+
+    <div id="modal" class="modal" hidden>
+      <div class="modal-panel stack">
+        <p class="lead">Start over from before the coin toss?</p>
+        <button class="primary h-single" id="cancelStart" type="button">Cancel</button>
+        <button class="grey h-single" id="doStart" type="button">Start over</button>
+      </div>
+    </div>
     <script type="module" src="./tagger.js"></script>
   </body>
 </html>
