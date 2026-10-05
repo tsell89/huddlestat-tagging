@@ -214,6 +214,19 @@ describe("browser tagger session", () => {
     assert.equal(game.plays.length, 1);
   });
 
+  test("replacing a snap uses the situation that snap started in", () => {
+    const kicked = confirmSnap(ready(), KICKOFF);
+    assert.match(situationLine(kicked), /Northrop ball/);
+    assert.equal(situationLine(withoutLastPlay(kicked)), "Kickoff. Snider kicks from Snider 40.");
+
+    const ended = confirmSnap(kicked, "Final.");
+    assert.equal(situationLine(ended), "Snider 0, Northrop 0.");
+    assert.equal(
+      situationLine(withoutLastPlay(ended)),
+      "Kickoff. Snider kicks from Snider 40.",
+    );
+  });
+
   test("confirm replaces the previous play", () => {
     const game = confirmSnap(ready(), KICKOFF);
     const replaced = confirmSnap(withoutLastPlay(game), "Kickoff touchback, kicker 94");

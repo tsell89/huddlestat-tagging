@@ -101,7 +101,7 @@ function render() {
     $("previousNote").textContent = note;
   }
 
-  $("situationLine").textContent = situationLine(game);
+  $("situationLine").textContent = situationLine(replacing ? targetGame() : game);
   show($("finalActions"), ended);
   show($("thisPlay"), !ended);
   transcriptField.placeholder = placeholder();

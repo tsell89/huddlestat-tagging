@@ -392,6 +392,16 @@ describe("dictation path — parse then chain", () => {
     assert.equal(fair.spotEncoding, undefined);
   });
 
+  test("a kickoff that names only the end spot counts return yards from the catch", () => {
+    const parsed = parseWithRules("Snider 88 KO. OOB Own 38.", openingDictatedChain());
+    assert.equal(parsed.playType, PlayType.Kickoff);
+    assert.equal(parsed.result, Result.Return);
+    assert.equal(parsed.spotEncoding, "catch:20|end:38");
+    assert.equal(parsed.returnYards, 18);
+    assert.equal(parsed.gainLoss, 18);
+    assert.equal(parsed.confidence, "high");
+  });
+
   test("a bare run word is not a zero-yard rush", () => {
     for (const note of ["run play", "run the clock"]) {
       const parsed = parseWithRules(note, givenChain({}));

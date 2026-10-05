@@ -422,22 +422,23 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
     }
     const caught = spotMention(text, "catch");
     const ended = spotMention(text, "end");
+    const catchHudl = caught
+      ? noteYard(caught.side, caught.yards, weKick)
+      : ended
+        ? weKick
+          ? 20
+          : -20
+        : undefined;
+    const endHudl = ended ? noteYard(ended.side, ended.yards, weKick) : undefined;
     let gain = explicitGain(text);
-    if (gain === undefined && caught && ended) {
-      gain = Math.abs(
-        yardsAdvanced(
-          noteYard(caught.side, caught.yards, weKick),
-          noteYard(ended.side, ended.yards, weKick),
-        ),
-      );
+    if (gain === undefined && catchHudl !== undefined && endHudl !== undefined) {
+      gain = Math.abs(yardsAdvanced(catchHudl, endHudl));
     }
     gain = gain ?? 0;
-    let spotEncoding: string | undefined;
-    if (caught && ended) {
-      spotEncoding = `catch:${noteYard(caught.side, caught.yards, weKick)}|end:${noteYard(ended.side, ended.yards, weKick)}`;
-    } else if (ended) {
-      spotEncoding = `catch:${weKick ? 20 : -20}|end:${noteYard(ended.side, ended.yards, weKick)}`;
-    }
+    const spotEncoding =
+      catchHudl !== undefined && endHudl !== undefined
+        ? `catch:${catchHudl}|end:${endHudl}`
+        : undefined;
     const returner = keepJersey(text, /#(\d+)\s+catch/.exec(text)?.[1]);
     const returned = base(chain, {
       playType: weKick ? PlayType.Kickoff : PlayType.KickoffReceive,
