@@ -317,6 +317,8 @@ export function toPlaylistDataRow(row: PlaylistData): string[] {
   ];
 }
 
+export { yardLineForHudlExport } from "./hudlYardLine.js";
+
 export type GameStatus = "pregame" | "live" | "final";
 
 export const gameStatusSchema = z.enum(["pregame", "live", "final"]);

@@ -121,6 +121,8 @@ describe("dictation path — parse then chain", () => {
       yardLine: 8,
       odk: ODK.Offense,
     }));
+    assert.equal(parsed.result, Result.Incomplete);
+    assert.equal(parsed.passerJersey, "7");
     const { next } = previewParsedPlay([], {
       ...parsed,
       down: 1,
@@ -211,6 +213,84 @@ describe("dictation path — parse then chain", () => {
     assert.equal(next.yardLine, -28);
   });
 
+  test("O0B is out of bounds on the Northrop opening kick return", () => {
+    const note = "Snider 88 KO. #0 catch Own 20 (THEM blank), OOB Own 38, +18.";
+    const chain = openingDictatedChain();
+    const oob = parseWithRules(note, chain);
+    for (const token of ["O0B", "0OB", "00B", "o0b"]) {
+      const parsed = parseWithRules(note.replace("OOB", token), chain);
+      assert.equal(parsed.confidence, "high", token);
+      assert.equal(parsed.playType, oob.playType, token);
+      assert.equal(parsed.result, oob.result, token);
+      assert.equal(parsed.spotEncoding, "catch:20|end:38", token);
+      assert.equal(parsed.returnYards, 18, token);
+      assert.equal(parsed.gainLoss, 18, token);
+      assert.equal(parsed.kickerJersey, "88", token);
+      assert.equal(parsed.returnerJersey, undefined, token);
+    }
+  });
+
+  test("game note: Snider kickoff return is a snap", () => {
+    const parsed = parseWithRules(
+      "Snider 88 KO. #0 catch Own 20 (THEM blank), OOB Own 38, +18.",
+      openingDictatedChain(),
+    );
+    assert.equal(parsed.confidence, "high");
+    assert.equal(parsed.playType, PlayType.Kickoff);
+    assert.equal(parsed.result, Result.Return);
+    assert.equal(parsed.kickerJersey, "88");
+    assert.equal(parsed.returnYards, 18);
+    assert.equal(parsed.gainLoss, 18);
+    assert.equal(parsed.spotEncoding, "catch:20|end:38");
+    assert.equal(parserOmitsSituation(parsed), true);
+    const { play, next } = previewParsedPlay([], parsed);
+    assert.equal(play.down, 0);
+    assert.equal(play.distance, 0);
+    assert.equal(play.yardLine, -40);
+    assert.equal(play.odk, ODK.Kicking);
+    assert.equal(play.spotEncoding, "catch:20|end:38");
+    assert.equal(next.odk, ODK.Defense);
+    assert.equal(next.down, 1);
+    assert.equal(next.distance, 10);
+    assert.equal(next.yardLine, 38);
+  });
+
+  test("game note: opponent run credits the Snider tackle only", () => {
+    const parsed = parseWithRules(
+      "1st & 10 Northrop 38. Run 4 THEM blank to Snider 44, +9. Tackle 24 US.",
+      givenChain({}),
+    );
+    assert.equal(parsed.playType, PlayType.Run);
+    assert.equal(parsed.result, Result.Rush);
+    assert.equal(parsed.gainLoss, 9);
+    assert.equal(parsed.rusherJersey, undefined);
+    assert.equal(parsed.tackler1Jersey, "24");
+    assert.equal(parserOmitsSituation(parsed), true);
+  });
+
+  test("game note: our completion and a sack with a loss", () => {
+    const complete = parseWithRules(
+      "1st & 10 Opp 35. Complete 17→12 to Opp 24, +10. Tackle 6 THEM blank.",
+      givenChain({ odk: ODK.Offense }),
+    );
+    assert.equal(complete.playType, PlayType.Pass);
+    assert.equal(complete.result, Result.Complete);
+    assert.equal(complete.gainLoss, 10);
+    assert.equal(complete.passerJersey, "17");
+    assert.equal(complete.receiverJersey, "12");
+    assert.equal(complete.tackler1Jersey, undefined);
+
+    const sack = parseWithRules(
+      "3rd & 7 Own 39. Sack of 17 by 25 THEM blank, Own 33, −6.",
+      givenChain({ odk: ODK.Offense }),
+    );
+    assert.equal(sack.result, Result.Sack);
+    assert.equal(sack.gainLoss, -6);
+    assert.equal(sack.passerJersey, "17");
+    assert.equal(sack.tackler1Jersey, undefined);
+    assert.equal(sack.confidence, "high");
+  });
+
   test("start over in-memory is empty playlist + KO Play 1", () => {
     const tb = parseWithRules("Kickoff touchback, kicker 94", openingDictatedChain());
     const { play } = previewParsedPlay([], tb);
@@ -235,5 +315,153 @@ describe("dictation path — parse then chain", () => {
     assert.equal(parsed.result, Result.Sack);
     assert.equal(parsed.gainLoss, -7);
     assert.equal(parsed.confidence, "high");
+  });
+
+  test("downed and fair-catch punts keep the dead-ball spot", () => {
+    const downed = parseWithRules(
+      "Punt 88, downed Opp 45.",
+      givenChain({ odk: ODK.Offense, down: 4, distance: 8, yardLine: -21 }),
+    );
+    assert.equal(downed.result, Result.Downed);
+    assert.equal(downed.spotEncoding, "end:45");
+
+    const fair = parseWithRules(
+      "Punt 88, fair catch 18 THEM blank at Homestead 13.",
+      givenChain({ odk: ODK.Offense, down: 4, distance: 1, yardLine: 50 }),
+    );
+    assert.equal(fair.result, Result.FairCatch);
+    assert.equal(fair.spotEncoding, "end:13");
+  });
+
+  test("an opponent punter does not flip Own to their side", () => {
+    const parsed = parseWithRules(
+      "Wayne 6 punts, downed Own 12.",
+      givenChain({ odk: ODK.Defense, down: 4, distance: 12, yardLine: 32 }),
+    );
+    assert.equal(parsed.kickerJersey, "6");
+    assert.equal(parsed.playType, PlayType.PuntReceive);
+    assert.equal(parsed.odk, ODK.Offense);
+    assert.equal(parsed.result, Result.Downed);
+    assert.equal(parsed.spotEncoding, "end:-12");
+  });
+
+  test("a two-point run is not a scrimmage rush", () => {
+    const blocked = parseWithRules(
+      "Wayne 2-pt run 6 THEM blank, good. 2 Pt. Block.",
+      givenChain({ odk: ODK.Defense, down: 1, distance: 2, yardLine: 3 }),
+    );
+    assert.equal(blocked.playType, PlayType.TwoPointBlock);
+    assert.equal(blocked.result, Result.Good);
+    assert.equal(blocked.rusherJersey, undefined);
+    assert.equal(blocked.confidence, "high");
+
+    const ours = parseWithRules(
+      "2-pt run 6, good.",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 2, yardLine: 3 }),
+    );
+    assert.equal(ours.playType, PlayType.TwoPoint);
+    assert.equal(ours.result, Result.Good);
+    assert.equal(ours.rusherJersey, "6");
+  });
+
+  test("interception return yards use the field, not the raw numbers", () => {
+    const parsed = parseWithRules(
+      "Pass 7 intercepted by 24, catch Opp 40, return Snider 20.",
+      givenChain({ odk: ODK.Offense, down: 2, distance: 7, yardLine: 40 }),
+    );
+    assert.equal(parsed.result, Result.Interception);
+    assert.equal(parsed.spotEncoding, "catch:40|end:-20");
+    assert.equal(parsed.returnYards, 40);
+  });
+
+  test("a bare punt stays unconfirmed until the end spot is named", () => {
+    const parsed = parseWithRules(
+      "punt",
+      givenChain({ odk: ODK.Offense, down: 4, distance: 8, yardLine: -35 }),
+    );
+    assert.equal(parsed.playType, PlayType.Punt);
+    assert.equal(parsed.result, Result.Downed);
+    assert.equal(parsed.confidence, "low");
+    assert.equal(parsed.spotEncoding, undefined);
+    assert.match(parsed.warnings.join(" "), /end spot/i);
+  });
+
+  test("a kickoff return without an end spot cannot confirm", () => {
+    const parsed = parseWithRules("Snider 88 KO +18", openingDictatedChain());
+    assert.equal(parsed.playType, PlayType.Kickoff);
+    assert.equal(parsed.result, Result.Return);
+    assert.equal(parsed.confidence, "low");
+    assert.equal(parsed.spotEncoding, undefined);
+    assert.match(parsed.warnings.join(" "), /end spot/i);
+  });
+
+  test("a punt that only names the end spot chains to that spot", () => {
+    const parsed = parseWithRules(
+      "Punt 88 to Opp 35.",
+      givenChain({ odk: ODK.Offense, down: 4, distance: 10, yardLine: -40 }),
+    );
+    assert.equal(parsed.result, Result.Return);
+    assert.equal(parsed.spotEncoding, "recv:35|end:35");
+    const { next } = previewParsedPlay([], {
+      ...parsed,
+      down: 4,
+      distance: 10,
+      yardLine: -40,
+      odk: ODK.Offense,
+    });
+    assert.equal(next.yardLine, 35);
+  });
+
+  test("downed and fair catch without a spot cannot confirm", () => {
+    const downed = parseWithRules(
+      "Punt 88 downed",
+      givenChain({ odk: ODK.Offense, down: 4, distance: 5, yardLine: -30 }),
+    );
+    assert.equal(downed.result, Result.Downed);
+    assert.equal(downed.confidence, "low");
+    assert.equal(downed.spotEncoding, undefined);
+
+    const fair = parseWithRules(
+      "Punt 88 fair catch",
+      givenChain({ odk: ODK.Offense, down: 4, distance: 5, yardLine: -30 }),
+    );
+    assert.equal(fair.result, Result.FairCatch);
+    assert.equal(fair.confidence, "low");
+    assert.equal(fair.spotEncoding, undefined);
+  });
+
+  test("a kickoff that names only the end spot counts return yards from the catch", () => {
+    const parsed = parseWithRules("Snider 88 KO. OOB Own 38.", openingDictatedChain());
+    assert.equal(parsed.playType, PlayType.Kickoff);
+    assert.equal(parsed.result, Result.Return);
+    assert.equal(parsed.spotEncoding, "catch:20|end:38");
+    assert.equal(parsed.returnYards, 18);
+    assert.equal(parsed.gainLoss, 18);
+    assert.equal(parsed.confidence, "high");
+  });
+
+  test("a bare run word is not a zero-yard rush", () => {
+    for (const note of ["run play", "run the clock"]) {
+      const parsed = parseWithRules(note, givenChain({}));
+      assert.equal(parsed.playType, undefined);
+      assert.equal(parsed.result, undefined);
+      assert.equal(parsed.confidence, "low");
+    }
+    const rushed = parseWithRules("Run 4, +9", givenChain({}));
+    assert.equal(rushed.playType, PlayType.Run);
+    assert.equal(rushed.result, Result.Rush);
+    assert.equal(rushed.rusherJersey, "4");
+    assert.equal(rushed.gainLoss, 9);
+    assert.equal(rushed.confidence, "high");
+  });
+
+  test("an interception without an end spot cannot confirm", () => {
+    const parsed = parseWithRules(
+      "Pass 7 intercepted by 24",
+      givenChain({ odk: ODK.Offense, down: 2, distance: 7, yardLine: 40 }),
+    );
+    assert.equal(parsed.result, Result.Interception);
+    assert.equal(parsed.confidence, "low");
+    assert.equal(parsed.spotEncoding, undefined);
   });
 });
