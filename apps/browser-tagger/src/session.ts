@@ -616,14 +616,19 @@ export function previewSnap(
   return preview;
 }
 
-/** Replace the last snap. A finished game stays finished. */
+/** Replace the last snap. A finished game stays finished. A coin-toss, final, or overtime note does not delete the snap. */
 export function confirmReplacing(
   game: BrowserGame,
   transcript: string,
   adjust?: SituationAdjust,
 ): BrowserGame {
   const phase = game.phase;
-  const next = confirmSnap(withoutLastPlay(game), transcript, adjust);
+  const base = withoutLastPlay(game);
+  const preview = previewSnap(base, transcript, adjust);
+  if (!preview.canConfirm) {
+    throw new Error(preview.ask || preview.story.happened || "Not a football snap — nothing confirmed");
+  }
+  const next = confirmSnap(preview.kind === "play" ? base : game, transcript, adjust);
   if ((phase === "final" || phase === "ot") && next.phase === "tag") {
     return { ...next, phase };
   }

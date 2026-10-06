@@ -274,6 +274,25 @@ describe("browser tagger session", () => {
     assert.equal(replaced.plays[0]!.kicker.jersey, "94");
   });
 
+  test("a coin-toss or final note does not erase the snap being edited", () => {
+    const game = confirmSnap(ready(), KICKOFF);
+    const kickoff = confirmReplacing(game, "Northrop is kicking off.");
+    assert.equal(kickoff.plays.length, 1);
+    assert.equal(kickoff.plays[0]!.result, "Return");
+    assert.equal(kickoff.nextKickoff, "receive");
+
+    const ended = confirmReplacing(game, "Final.");
+    assert.equal(ended.plays.length, 1);
+    assert.equal(ended.phase, "final");
+
+    const ot = confirmReplacing(
+      { ...game, plays: [{ ...game.plays[0]!, quarter: 4 }] },
+      "Final.",
+    );
+    assert.equal(ot.plays.length, 1);
+    assert.equal(ot.phase, "ot");
+  });
+
   test("editing the last play of a finished game stays finished", () => {
     const ended = confirmSnap(confirmSnap(ready(), KICKOFF), "Final.");
     assert.equal(ended.phase, "final");
