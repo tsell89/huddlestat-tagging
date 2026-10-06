@@ -453,27 +453,41 @@ export function applyAdjust(
   return next;
 }
 
+function isKickoffPlayType(playType: string | undefined): boolean {
+  return playType === PlayType.Kickoff || playType === PlayType.KickoffReceive;
+}
+
 function compileSnap(
   game: BrowserGame,
   parsed: DictatedPlayInput,
 ): { play: PlaylistData; next: DictatedChain } {
   const before = situationChain(game);
   const kick = pendingKick(game);
-  const freshKick = kick != null;
-  const compiled = previewParsedPlay(freshKick ? [] : game.plays, parsed, TEAM_CODE);
+  const taggingKick = kick != null && isKickoffPlayType(parsed.playType);
+  const compiled = previewParsedPlay(taggingKick ? [] : game.plays, parsed, TEAM_CODE);
   let play = compiled.play;
-  if (freshKick || game.phase === "ot") {
-    const kickoffType =
-      kick === "receive" ? PlayType.KickoffReceive : kick === "kick" ? PlayType.Kickoff : play.playType;
+  if (taggingKick && kick) {
+    const kickoffType = kick === "receive" ? PlayType.KickoffReceive : PlayType.Kickoff;
     play = {
       ...play,
       playNumber: game.plays.length + 1,
-      quarter: game.phase === "ot" ? 5 : before.quarter,
+      quarter: before.quarter,
       down: before.down,
       distance: before.distance,
       yardLine: parsed.yardLine ?? before.yardLine,
-      odk: game.phase === "ot" ? before.odk : ODK.Kicking,
+      odk: ODK.Kicking,
       playType: parsed.playType || kickoffType,
+    };
+  } else if (game.phase === "ot") {
+    play = {
+      ...play,
+      playNumber: game.plays.length + 1,
+      quarter: 5,
+      down: before.down,
+      distance: before.distance,
+      yardLine: parsed.yardLine ?? before.yardLine,
+      odk: before.odk,
+      playType: parsed.playType || play.playType,
     };
   }
   const next = currentChain([...game.plays, play], game.phase === "ot" ? "ot" : "tag");
@@ -577,6 +591,14 @@ export function previewSnap(
   if (!built) {
     return rejected(game, transcript, parsed, before);
   }
+  if (pendingKick(game) && !isKickoffPlayType(parsed.playType)) {
+    return rejected(
+      game,
+      transcript,
+      { ...parsed, confidence: "low", warnings: ["Tag the kickoff first."] },
+      before,
+    );
+  }
   const canConfirm = parsed.confidence === "high";
   const compiled = compileSnap(game, parsed);
   const preview: SnapPreview = {
@@ -637,7 +659,7 @@ export function confirmSnap(
     ...game,
     plays: [...game.plays, preview.play],
     transcripts: [...game.transcripts, transcript.trim()],
-    nextKickoff: null,
+    nextKickoff: kickRoleFromPlay(preview.play) ? null : game.nextKickoff,
   };
 }
 

@@ -116,11 +116,30 @@ describe("browser tagger session", () => {
 
   test("a yard-line correction moves the penalty foul spot", () => {
     const note = "False start, 5 yards.";
-    const unadjusted = previewSnap(ready(), note);
-    const moved = previewSnap(ready(), note, { yardLine: -30 });
-    assert.match(unadjusted.play?.spotEncoding ?? "", /foul:-40/);
+    const game = confirmSnap(ready(), "Kickoff touchback, kicker 94");
+    const unadjusted = previewSnap(game, note);
+    const moved = previewSnap(game, note, { yardLine: -30 });
+    assert.match(unadjusted.play?.spotEncoding ?? "", /foul:20/);
     assert.match(moved.play?.spotEncoding ?? "", /foul:-30/);
     assert.notEqual(moved.next.yardLine, unadjusted.next.yardLine);
+  });
+
+  test("a run while the kickoff is waiting does not replace the kickoff", () => {
+    const game = ready();
+    const preview = previewSnap(game, "12 runs for 4, tackled by 11");
+    assert.equal(preview.canConfirm, false);
+    assert.equal(preview.play, null);
+    assert.equal(preview.ask, "Tag the kickoff first.");
+    assert.throws(() => confirmSnap(game, "12 runs for 4, tackled by 11"), /kickoff/);
+    assert.equal(game.nextKickoff, "kick");
+    assert.equal(game.plays.length, 0);
+
+    const receiving = confirmSnap(confirmSnap(game, KICKOFF), "Northrop is kicking off.");
+    const rush = previewSnap(receiving, "12 runs for 4, tackled by 11");
+    assert.equal(rush.canConfirm, false);
+    assert.equal(rush.ask, "Tag the kickoff first.");
+    assert.equal(receiving.nextKickoff, "receive");
+    assert.equal(receiving.plays.length, 1);
   });
 
   test("edited return yards move the next ball spot", () => {
