@@ -59,3 +59,63 @@ export function liveBoxRequest(game: BrowserGame, config: LiveBoxConfig): LiveBo
     plays: game.plays,
   };
 }
+
+export type LiveBoxPublisher = {
+  publish: () => Promise<void>;
+  isPublishing: () => boolean;
+};
+
+export function createLiveBoxPublisher(options: {
+  getGame: () => BrowserGame;
+  getConfig?: () => LiveBoxConfig | null;
+  onError?: (message: string) => void;
+  fetchFn?: typeof fetch;
+}): LiveBoxPublisher {
+  const getConfig = options.getConfig ?? (() => readLiveBoxConfig());
+  const fetchFn = options.fetchFn ?? (typeof fetch !== "undefined" ? fetch : undefined);
+  let isPublishing = false;
+  let hasPending = false;
+
+  async function publish() {
+    const config = getConfig();
+    const game = options.getGame();
+    if (!config || game.plays.length === 0 || !fetchFn) return;
+
+    if (isPublishing) {
+      hasPending = true;
+      return;
+    }
+
+    isPublishing = true;
+    try {
+      do {
+        hasPending = false;
+        const currentConfig = getConfig();
+        const currentGame = options.getGame();
+        if (!currentConfig || currentGame.plays.length === 0) break;
+
+        const payload = liveBoxRequest(currentGame, currentConfig);
+        try {
+          const response = await fetchFn(currentConfig.publishPath, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (!response.ok) {
+            const data = (await response.json().catch(() => null)) as { message?: string } | null;
+            options.onError?.(data?.message || "The live box did not update.");
+          }
+        } catch {
+          options.onError?.("The live box did not update.");
+        }
+      } while (hasPending);
+    } finally {
+      isPublishing = false;
+    }
+  }
+
+  return {
+    publish,
+    isPublishing: () => isPublishing,
+  };
+}
