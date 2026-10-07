@@ -16,6 +16,7 @@ import {
   type BrowserGame,
   type SnapPreview,
 } from "./session.js";
+import { createLiveBoxPublisher } from "./liveBox.js";
 import { TEAM_NAME, previousHappened, whoLine } from "./story.js";
 
 const $ = (id: string) => {
@@ -184,8 +185,17 @@ function commitNow() {
   messageText = "";
   persist();
   render();
+  void liveBoxPublisher.publish();
   if (game.phase !== "final") transcriptField.focus();
 }
+
+const liveBoxPublisher = createLiveBoxPublisher({
+  getGame: () => game,
+  onError: (msg) => {
+    messageText = msg;
+    render();
+  },
+});
 
 function editNote() {
   mode = "dictate";
@@ -299,6 +309,7 @@ $("doStart").addEventListener("click", () => {
   modalOpen = false;
   persist();
   render();
+  void liveBoxPublisher.publish({ allowEmpty: true });
   transcriptField.focus();
 });
 

@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "build": "esbuild src/main.ts --bundle --format=esm --target=es2022 --outfile=dist/tagger.js && cp index.html dist/index.html",
-    "test": "tsx --test src/session.test.ts src/replay.test.ts",
+    "test": "tsx --test src/session.test.ts src/replay.test.ts src/liveBox.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
