@@ -282,10 +282,6 @@ opponentInput.addEventListener("input", () => {
   render();
 });
 
-opponentInput.addEventListener("change", () => {
-  void liveBoxPublisher.publish();
-});
-
 $("csv").addEventListener("click", () => {
   downloadCsv();
 });
