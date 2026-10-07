@@ -16,6 +16,7 @@ import {
   type BrowserGame,
   type SnapPreview,
 } from "./session.js";
+import { liveBoxRequest, readLiveBoxConfig } from "./liveBox.js";
 import { TEAM_NAME, previousHappened, whoLine } from "./story.js";
 
 const $ = (id: string) => {
@@ -184,7 +185,28 @@ function commitNow() {
   messageText = "";
   persist();
   render();
+  void publishLiveBox();
   if (game.phase !== "final") transcriptField.focus();
+}
+
+async function publishLiveBox() {
+  const config = readLiveBoxConfig();
+  if (!config) return;
+  try {
+    const response = await fetch(config.publishPath, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(liveBoxRequest(game, config)),
+    });
+    if (!response.ok) {
+      const data = (await response.json().catch(() => null)) as { message?: string } | null;
+      messageText = data?.message || "The live box did not update.";
+      render();
+    }
+  } catch {
+    messageText = "The live box did not update.";
+    render();
+  }
 }
 
 function editNote() {
@@ -270,6 +292,7 @@ opponentInput.addEventListener("input", () => {
   }
   persist();
   render();
+  void publishLiveBox();
 });
 
 $("csv").addEventListener("click", () => {
@@ -299,9 +322,11 @@ $("doStart").addEventListener("click", () => {
   modalOpen = false;
   persist();
   render();
+  void publishLiveBox();
   transcriptField.focus();
 });
 
 continueBtn.disabled = startOpponent.value.trim() === "";
 render();
+void publishLiveBox();
 if (game.started && game.phase !== "final") transcriptField.focus();
