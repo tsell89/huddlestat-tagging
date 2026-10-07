@@ -61,7 +61,7 @@ export function liveBoxRequest(game: BrowserGame, config: LiveBoxConfig): LiveBo
 }
 
 export type LiveBoxPublisher = {
-  publish: () => Promise<void>;
+  publish: (options?: { allowEmpty?: boolean }) => Promise<void>;
   isPublishing: () => boolean;
 };
 
@@ -75,24 +75,32 @@ export function createLiveBoxPublisher(options: {
   const fetchFn = options.fetchFn ?? (typeof fetch !== "undefined" ? fetch : undefined);
   let isPublishing = false;
   let hasPending = false;
+  let pendingAllowEmpty = false;
 
-  async function publish() {
+  async function publish(publishOptions?: { allowEmpty?: boolean }) {
+    const allowEmpty = publishOptions?.allowEmpty ?? false;
     const config = getConfig();
     const game = options.getGame();
-    if (!config || game.plays.length === 0 || !fetchFn) return;
+    if (!config || (!allowEmpty && game.plays.length === 0) || !fetchFn) return;
 
     if (isPublishing) {
       hasPending = true;
+      if (allowEmpty) pendingAllowEmpty = true;
       return;
     }
 
     isPublishing = true;
+    let currentAllowEmpty = allowEmpty;
     try {
       do {
         hasPending = false;
+        const allowThisRound = currentAllowEmpty || pendingAllowEmpty;
+        pendingAllowEmpty = false;
+        currentAllowEmpty = false;
+
         const currentConfig = getConfig();
         const currentGame = options.getGame();
-        if (!currentConfig || currentGame.plays.length === 0) break;
+        if (!currentConfig || (!allowThisRound && currentGame.plays.length === 0)) break;
 
         const payload = liveBoxRequest(currentGame, currentConfig);
         try {
@@ -111,6 +119,7 @@ export function createLiveBoxPublisher(options: {
       } while (hasPending);
     } finally {
       isPublishing = false;
+      pendingAllowEmpty = false;
     }
   }
 

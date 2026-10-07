@@ -62,8 +62,8 @@ describe("live box publish", () => {
     assert.equal(playlistDataSchema.safeParse(body.plays[0]).success, true);
   });
 
-  test("createLiveBoxPublisher skips publish when plays are empty", async () => {
-    let fetchCalled = false;
+  test("createLiveBoxPublisher skips publish when plays are empty by default, but publishes with allowEmpty", async () => {
+    let fetchCount = 0;
     const publisher = createLiveBoxPublisher({
       getGame: () => openingGame("Northrop"),
       getConfig: () => ({
@@ -72,13 +72,16 @@ describe("live box publish", () => {
         publishPath: "/v1/tagger/publish",
       }),
       fetchFn: (async () => {
-        fetchCalled = true;
+        fetchCount++;
         return new Response(JSON.stringify({ ok: true }), { status: 200 });
       }) as unknown as typeof fetch,
     });
 
     await publisher.publish();
-    assert.equal(fetchCalled, false, "Should not publish empty plays");
+    assert.equal(fetchCount, 0, "Should not publish empty plays by default");
+
+    await publisher.publish({ allowEmpty: true });
+    assert.equal(fetchCount, 1, "Publishes empty plays when allowEmpty: true");
   });
 
   test("createLiveBoxPublisher sequences concurrent publishes and sends latest state", async () => {

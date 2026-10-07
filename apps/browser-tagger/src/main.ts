@@ -313,6 +313,7 @@ $("doStart").addEventListener("click", () => {
   modalOpen = false;
   persist();
   render();
+  void liveBoxPublisher.publish({ allowEmpty: true });
   transcriptField.focus();
 });
 
