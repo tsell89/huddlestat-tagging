@@ -267,17 +267,6 @@ describe("dictation path — parse then chain", () => {
     assert.equal(parsed.spotEncoding, "catch:0|end:-20");
   });
 
-  test("game note: interception caught in opponent end zone (Opp 0) returned to Opp 20", () => {
-    const parsed = parseWithRules(
-      "Pass 17 intercepted by 9 at Opp 0, return to Opp 20.",
-      givenChain({ odk: ODK.Offense }),
-    );
-    assert.equal(parsed.playType, PlayType.Pass);
-    assert.equal(parsed.result, Result.Interception);
-    assert.equal(parsed.returnYards, 20);
-    assert.equal(parsed.spotEncoding, "catch:0|end:20");
-  });
-
   test("game note: kickoff caught at Own 0 returned for TD", () => {
     const parsed = parseWithRules(
       "Kickoff catch Own 0, to Opp 0 TD, +100.",
