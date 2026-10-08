@@ -10,6 +10,7 @@ import {
   previewParsedPlay,
   type DictatedChain,
 } from "./parseDictated.js";
+import { decodePenalty } from "./penalty.js";
 import { checkSituationDistanceToGoal } from "./situationInvariants.js";
 
 function givenChain(partial: Partial<DictatedChain>): DictatedChain {
@@ -463,5 +464,208 @@ describe("dictation path — parse then chain", () => {
     assert.equal(parsed.result, Result.Interception);
     assert.equal(parsed.confidence, "low");
     assert.equal(parsed.spotEncoding, undefined);
+  });
+});
+
+describe("scrimmage and pre-snap penalties", () => {
+  test("pre-snap encroachment 5 yards vs D", () => {
+    const parsed = parseWithRules(
+      "Pre-snap encroachment defense 5 yards",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 10, yardLine: -20 }),
+    );
+    assert.equal(parsed.playType, PlayType.Run);
+    assert.equal(parsed.result, Result.Penalty);
+    assert.equal(parsed.gainLoss, 0);
+    assert.equal(parsed.spotEncoding, "foul:-20|yd:5|vs:D|afd:0");
+  });
+
+  test("false start 5 yards vs O", () => {
+    const parsed = parseWithRules(
+      "False start offense 5 yards",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 10, yardLine: -20 }),
+    );
+    assert.equal(parsed.playType, PlayType.Run);
+    assert.equal(parsed.result, Result.Penalty);
+    assert.equal(parsed.gainLoss, 0);
+    assert.equal(parsed.spotEncoding, "foul:-20|yd:5|vs:O|afd:0");
+  });
+
+  test("delay of game 5 yards vs O", () => {
+    const parsed = parseWithRules(
+      "Delay of game offense 5 yards",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 10, yardLine: -20 }),
+    );
+    assert.equal(parsed.playType, PlayType.Run);
+    assert.equal(parsed.result, Result.Penalty);
+    assert.equal(parsed.gainLoss, 0);
+    assert.equal(parsed.spotEncoding, "foul:-20|yd:5|vs:O|afd:0");
+  });
+
+  test("incomplete pass with defensive pass interference", () => {
+    const parsed = parseWithRules(
+      "1st & 10 Own 20. Incomplete pass, pass interference defense 15 yards AFD",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 10, yardLine: -20 }),
+    );
+    assert.equal(parsed.playType, PlayType.Pass);
+    assert.equal(parsed.result, Result.Penalty);
+    assert.equal(parsed.gainLoss, 0);
+    assert.equal(parsed.spotEncoding, "foul:-20|yd:15|vs:D|afd:1");
+  });
+
+  test("completed pass wiped by offensive holding", () => {
+    const parsed = parseWithRules(
+      "2nd & 5 Opp 40. Complete 17 to 12 wiped: offensive holding 10 yards",
+      givenChain({ odk: ODK.Offense, down: 2, distance: 5, yardLine: 40 }),
+    );
+    assert.equal(parsed.playType, PlayType.Pass);
+    assert.equal(parsed.result, Result.Penalty);
+    assert.equal(parsed.gainLoss, 0);
+    assert.deepEqual(decodePenalty(parsed.spotEncoding), {
+      foulSpot: 40,
+      yards: 10,
+      against: "O",
+      autoFirstDown: false,
+    });
+  });
+
+  test("roughing the passer on an incomplete pass", () => {
+    const parsed = parseWithRules(
+      "Incomplete 17, roughing the passer defense 15 yards AFD",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 10, yardLine: -20 }),
+    );
+    assert.equal(parsed.playType, PlayType.Pass);
+    assert.equal(parsed.result, Result.Penalty);
+    assert.equal(parsed.gainLoss, 0);
+    assert.equal(parsed.spotEncoding, "foul:-20|yd:15|vs:D|afd:1");
+  });
+
+  test("run play with holding on offense", () => {
+    const parsed = parseWithRules(
+      "1st & 10 Own 20. Run 5, holding offense 10 yards",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 10, yardLine: -20 }),
+    );
+    assert.equal(parsed.playType, PlayType.Run);
+    assert.equal(parsed.result, Result.Penalty);
+    assert.equal(parsed.gainLoss, 0);
+    assert.deepEqual(decodePenalty(parsed.spotEncoding), {
+      foulSpot: -20,
+      yards: 10,
+      against: "O",
+      autoFirstDown: false,
+    });
+  });
+
+  test("run play wiped by penalty", () => {
+    const parsed = parseWithRules(
+      "2nd & 4 Carroll 44. Run to 43 wiped: holding 10 vs O from LOS",
+      givenChain({ odk: ODK.Defense, down: 2, distance: 4, yardLine: 44 }),
+    );
+    assert.equal(parsed.playType, PlayType.Run);
+    assert.equal(parsed.result, Result.Penalty);
+    assert.deepEqual(decodePenalty(parsed.spotEncoding), {
+      foulSpot: 44,
+      yards: 10,
+      against: "O",
+      autoFirstDown: false,
+    });
+  });
+
+  test("wiped play with next down mentioned remains penalty", () => {
+    const parsed = parseWithRules(
+      "Complete 17 to 12 wiped: offensive holding 10 yards. 1st & 20 next.",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 10, yardLine: -20 }),
+    );
+    assert.equal(parsed.playType, PlayType.Pass);
+    assert.equal(parsed.result, Result.Penalty);
+    assert.equal(parsed.gainLoss, 0);
+    assert.deepEqual(decodePenalty(parsed.spotEncoding), {
+      foulSpot: -20,
+      yards: 10,
+      against: "O",
+      autoFirstDown: false,
+    });
+  });
+
+  test("interception wiped by penalty (wipes synonym) becomes penalty row", () => {
+    const parsed = parseWithRules(
+      "Pass 7 intercepted by 24, but defensive holding wipes the play 10 yards AFD",
+      givenChain({ odk: ODK.Offense, down: 2, distance: 8, yardLine: -20 }),
+    );
+    assert.equal(parsed.playType, PlayType.Pass);
+    assert.equal(parsed.result, Result.Penalty);
+    assert.equal(parsed.gainLoss, 0);
+    assert.equal(parsed.spotEncoding, "foul:-20|yd:10|vs:D|afd:1");
+  });
+
+  test("run play with defensive facemask", () => {
+    const parsed = parseWithRules(
+      "Run 6 to Wayne 35. Facemask defense 15 yards AFD",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 10, yardLine: -20 }),
+    );
+    assert.equal(parsed.playType, PlayType.Run);
+    assert.equal(parsed.result, Result.Penalty);
+    assert.equal(parsed.spotEncoding, "foul:-20|yd:15|vs:D|afd:1");
+  });
+
+  test("declined penalty (catch stands)", () => {
+    const parsed = parseWithRules(
+      "3rd & 8 Own 22. Complete 17 to 12 to Own 48, +26. DPI declined — catch stands.",
+      givenChain({ odk: ODK.Offense, down: 3, distance: 8, yardLine: -22 }),
+    );
+    assert.equal(parsed.playType, PlayType.Pass);
+    assert.equal(parsed.result, Result.Complete);
+    assert.equal(parsed.gainLoss, 26);
+  });
+
+  test("waved off penalty (incomplete stands)", () => {
+    const parsed = parseWithRules(
+      "1st & 10 Snider 47. Incomplete 10. Penalty on the play waved off.",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 10, yardLine: -47 }),
+    );
+    assert.equal(parsed.playType, PlayType.Pass);
+    assert.equal(parsed.result, Result.Incomplete);
+    assert.equal(parsed.gainLoss, 0);
+  });
+
+  test("notes mentioning next snap penalties", () => {
+    const parsed = parseWithRules(
+      "2nd & 7 Wayne 29. Incomplete 19 THEM blank. Defensive holding vs SHS next.",
+      givenChain({ odk: ODK.Defense, down: 2, distance: 7, yardLine: 29 }),
+    );
+    assert.equal(parsed.playType, PlayType.Pass);
+    assert.equal(parsed.result, Result.Incomplete);
+    assert.equal(parsed.gainLoss, 0);
+
+    const falseStartNext = parseWithRules(
+      "Run 4 to Snider 25, +5. False start offense 5 yards next.",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 10, yardLine: -20 }),
+    );
+    assert.equal(falseStartNext.playType, PlayType.Run);
+    assert.equal(falseStartNext.result, Result.Rush);
+    assert.equal(falseStartNext.gainLoss, 5);
+
+    const delayNext = parseWithRules(
+      "Complete 17 to 12, +10. Then delay of game vs O.",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 10, yardLine: -20 }),
+    );
+    assert.equal(delayNext.playType, PlayType.Pass);
+    assert.equal(delayNext.result, Result.Complete);
+    assert.equal(delayNext.gainLoss, 10);
+  });
+
+  test("offensive pass interference does not award automatic first down", () => {
+    const parsed = parseWithRules(
+      "1st & 10 Own 20. Incomplete pass, offensive pass interference 15 yards",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 10, yardLine: -20 }),
+    );
+    assert.equal(parsed.playType, PlayType.Pass);
+    assert.equal(parsed.result, Result.Penalty);
+    assert.equal(parsed.gainLoss, 0);
+    assert.deepEqual(decodePenalty(parsed.spotEncoding), {
+      foulSpot: -20,
+      yards: 15,
+      against: "O",
+      autoFirstDown: false,
+    });
   });
 });
