@@ -608,5 +608,37 @@ describe("scrimmage and pre-snap penalties", () => {
     assert.equal(parsed.playType, PlayType.Pass);
     assert.equal(parsed.result, Result.Incomplete);
     assert.equal(parsed.gainLoss, 0);
+
+    const falseStartNext = parseWithRules(
+      "Run 4 to Snider 25, +5. False start offense 5 yards next.",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 10, yardLine: -20 }),
+    );
+    assert.equal(falseStartNext.playType, PlayType.Run);
+    assert.equal(falseStartNext.result, Result.Rush);
+    assert.equal(falseStartNext.gainLoss, 5);
+
+    const delayNext = parseWithRules(
+      "Complete 17 to 12, +10. Then delay of game vs O.",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 10, yardLine: -20 }),
+    );
+    assert.equal(delayNext.playType, PlayType.Pass);
+    assert.equal(delayNext.result, Result.Complete);
+    assert.equal(delayNext.gainLoss, 10);
+  });
+
+  test("offensive pass interference does not award automatic first down", () => {
+    const parsed = parseWithRules(
+      "1st & 10 Own 20. Incomplete pass, offensive pass interference 15 yards",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 10, yardLine: -20 }),
+    );
+    assert.equal(parsed.playType, PlayType.Pass);
+    assert.equal(parsed.result, Result.Penalty);
+    assert.equal(parsed.gainLoss, 0);
+    assert.deepEqual(decodePenalty(parsed.spotEncoding), {
+      foulSpot: -20,
+      yards: 15,
+      against: "O",
+      autoFirstDown: false,
+    });
   });
 });

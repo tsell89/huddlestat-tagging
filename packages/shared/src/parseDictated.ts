@@ -264,13 +264,13 @@ function penaltyYards(text: string): PenaltyYards {
 
 function penaltyAgainst(text: string, chain: DictatedChain): "O" | "D" {
   if (
-    /\b(vs\s+d|defense|defensive|dpi|pass interference|defensive holding|encroach|offside|face\s*mask|facemask|roughing|late hit|unnecessary roughness)\b/.test(text) &&
-    !/\b(vs\s+o|offense|offensive)\b/.test(text)
+    /\b(vs\s+d|defense|defensive|dpi|defensive pass interference|pass interference|defensive holding|encroach|offside|face\s*mask|facemask|roughing|late hit|unnecessary roughness)\b/.test(text) &&
+    !/\b(vs\s+o|offense|offensive|opi|offensive pass interference)\b/.test(text)
   ) {
     return "D";
   }
   if (
-    /\b(false start|delay of game|illegal procedure|illegal formation|illegal shift|illegal motion|vs\s+o|offense|offensive|holding vs o|offensive holding)\b/.test(text)
+    /\b(false start|delay of game|illegal procedure|illegal formation|illegal shift|illegal motion|vs\s+o|offense|offensive|holding vs o|offensive holding|opi|offensive pass interference)\b/.test(text)
   ) {
     return "O";
   }
@@ -280,7 +280,12 @@ function penaltyAgainst(text: string, chain: DictatedChain): "O" | "D" {
 }
 
 const FOUL_PATTERN =
-  /\b(?:pass interference|dpi|holding|face\s*mask|facemask|false start|encroach(?:ment)?|offsides?|delay of game|illegal(?:\s+(?:procedure|formation|shift|motion|block|use of hands|substitution))?|uns|unsportsmanlike|roughing(?:\s+(?:the\s+)?passer)?|late hit|unnecessary roughness|ur\b|targeting|chop block|clipping|block in the back|horse\s*collar|pre-snap|dead[- ]ball|penalt(?:y|ies))\b/;
+  /\b(?:pass interference|dpi|opi|holding|face\s*mask|facemask|false start|encroach(?:ment)?|offsides?|delay of game|illegal(?:\s+(?:procedure|formation|shift|motion|block|use of hands|substitution))?|uns|unsportsmanlike|roughing(?:\s+(?:the\s+)?passer)?|late hit|unnecessary roughness|ur\b|targeting|chop block|clipping|block in the back|horse\s*collar|pre-snap|dead[- ]ball|penalt(?:y|ies))\b/;
+
+const NEXT_SNAP_FOUL_RE = new RegExp(
+  `\\b(?:then|next)\\b[^.]{0,40}\\b(?:${FOUL_PATTERN.source}|vs\\s+[od])|\\b(?:${FOUL_PATTERN.source}|vs\\s+[od])\\b[^.]{0,30}\\bnext\\b`,
+  "i",
+);
 
 function looksLikeGameNote(text: string): boolean {
   return (
@@ -309,10 +314,7 @@ function isPenaltyNote(text: string): boolean {
   if (/\b(declined|waved off|offsetting)\b/.test(text)) {
     return false;
   }
-  if (
-    /\b(then|next)\s+.*(penalty|holding|dpi|vs\s+[od])/i.test(text) ||
-    /\b(holding|dpi|penalty)\b[^.]{0,30}\bnext\b/i.test(text)
-  ) {
+  if (NEXT_SNAP_FOUL_RE.test(text)) {
     return false;
   }
   const isWiped = /\b(wiped|nullified|called back|wipes)\b/.test(text);
@@ -424,7 +426,9 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
   if (isPenaltyNote(text)) {
     const yards = penaltyYards(text);
     const against = penaltyAgainst(text, chain);
-    const afd = /\b(afd|automatic first|crosses the sticks|dpi|pass interference|defensive holding)\b/.test(text);
+    const afd =
+      against === "D" &&
+      /\b(afd|automatic first|crosses the sticks|dpi|pass interference|defensive holding)\b/.test(text);
     const wipedPunt = /\bwiped punt\b|\bpunt\b/.test(text) && /\b(wiped|penalty|illegal)\b/.test(text);
     return base(chain, {
       playType: wipedPunt
