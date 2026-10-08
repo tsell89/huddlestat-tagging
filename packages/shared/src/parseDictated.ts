@@ -227,6 +227,14 @@ function noteYard(side: string, yards: number, weKick: boolean): number {
   return yards;
 }
 
+function noteEndZoneSide(side: string, weKick: boolean): EndZoneSide {
+  const name = side.toLowerCase();
+  if (name === "opp" || name === "opponent") return "opponent";
+  if (name === "snider" || name === "shs") return "own";
+  if (name === "own") return weKick ? "opponent" : "own";
+  return "own";
+}
+
 function spotMention(text: string, kind: "catch" | "end"): { side: string; yards: number } | null {
   const side = "(own|opp|opponent|snider|shs|[a-z]{3,})";
   const pattern =
@@ -249,7 +257,7 @@ function spotMention(text: string, kind: "catch" | "end"): { side: string; yards
 function weKickThisPlay(text: string, chain: DictatedChain): boolean {
   if (/\b(?:ko|kickoff)\s*rec\b/.test(text)) return false;
   if (/\b(?:snider|shs)\s+\d+\s+(?:ko|kickoff)\b/.test(text)) return true;
-  if (/\bto\s+(?:opp|opponent)\b/.test(text)) return false;
+  if (/\b(?:catch|caught)\s+(?:at\s+)?own\b[^\n.]*\bto\s+(?:opp|opponent)\b/.test(text)) return false;
   const koAt = text.search(/\b(?:ko|kickoff)\b/);
   if (koAt >= 0) {
     const before = text.slice(0, koAt);
@@ -391,8 +399,9 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
       const catchHudl = noteYard(caught.side, caught.yards, weKick);
       const endHudl = noteYard(ended.side, ended.yards, weKick);
       spotEncoding = `catch:${catchHudl}|end:${endHudl}`;
-      const toEndZone: EndZoneSide = endHudl === 0 ? "opponent" : "opponent";
-      returnYards = Math.abs(yardsAdvanced(catchHudl, endHudl, toEndZone, "own"));
+      const fromEndZone: EndZoneSide = noteEndZoneSide(caught.side, weKick);
+      const toEndZone: EndZoneSide = noteEndZoneSide(ended.side, weKick);
+      returnYards = Math.abs(yardsAdvanced(catchHudl, endHudl, toEndZone, fromEndZone));
     }
     if (!spotEncoding) {
       return withTackle(
@@ -478,11 +487,19 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
     const endHudl = ended ? noteYard(ended.side, ended.yards, weKick) : undefined;
     let spotEncoding: string | undefined;
     let gain = explicitGain(text);
+    const fromEndZone: EndZoneSide = caught
+      ? noteEndZoneSide(caught.side, weKick)
+      : weKick
+        ? "opponent"
+        : "own";
+    const toEndZone: EndZoneSide = ended
+      ? noteEndZoneSide(ended.side, weKick)
+      : "opponent";
     if (caught && ended && catchHudl !== undefined && endHudl !== undefined) {
-      gain = explicitGain(text) ?? Math.abs(yardsAdvanced(catchHudl, endHudl, "opponent", "own"));
+      gain = explicitGain(text) ?? Math.abs(yardsAdvanced(catchHudl, endHudl, toEndZone, fromEndZone));
       spotEncoding = `catch:${catchHudl}|end:${endHudl}`;
     } else if (gain === undefined && catchHudl !== undefined && endHudl !== undefined) {
-      gain = Math.abs(yardsAdvanced(catchHudl, endHudl, "opponent", "own"));
+      gain = Math.abs(yardsAdvanced(catchHudl, endHudl, toEndZone, fromEndZone));
     }
     gain = gain ?? 0;
     if (!spotEncoding && catchHudl !== undefined && endHudl !== undefined) {
