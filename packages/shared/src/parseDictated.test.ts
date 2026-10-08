@@ -256,6 +256,26 @@ describe("dictation path — parse then chain", () => {
     assert.equal(next.yardLine, 38);
   });
 
+  test("game note: interception caught at Own 0 returned to Own 20", () => {
+    const parsed = parseWithRules(
+      "Pass 17 intercepted by 9 at Own 0, return to Own 20.",
+      givenChain({ odk: ODK.Offense }),
+    );
+    assert.equal(parsed.playType, PlayType.Pass);
+    assert.equal(parsed.result, Result.Interception);
+    assert.equal(parsed.returnYards, 20);
+    assert.equal(parsed.spotEncoding, "catch:0|end:-20");
+  });
+
+  test("game note: kickoff caught at Own 0 returned for TD", () => {
+    const parsed = parseWithRules(
+      "Kickoff catch Own 0, to Opp 0 TD, +100.",
+      openingDictatedChain(),
+    );
+    assert.equal(parsed.playType, PlayType.KickoffReceive);
+    assert.equal(parsed.gainLoss, 100);
+  });
+
   test("game note: opponent run credits the Snider tackle only", () => {
     const parsed = parseWithRules(
       "1st & 10 Northrop 38. Run 4 THEM blank to Snider 44, +9. Tackle 24 US.",

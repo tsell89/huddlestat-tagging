@@ -1,6 +1,10 @@
 import { Hash, ODK, PlayType, Result, emptyPlayerRef } from "./constants.js";
 import { defaultKickoffPlay } from "./defaults.js";
-import { yardsAdvanced, yardsToScoringGoal } from "./fieldPosition100.js";
+import {
+  yardsAdvanced,
+  yardsToScoringGoal,
+  type EndZoneSide,
+} from "./fieldPosition100.js";
 import type { PlaylistData } from "./index.js";
 import { encodePenaltySpotEncoding, type PenaltyYards } from "./penalty.js";
 import { nextDraftAfterPlay, normalizePlayOnSave } from "./playChain.js";
@@ -243,12 +247,13 @@ function spotMention(text: string, kind: "catch" | "end"): { side: string; yards
 }
 
 function weKickThisPlay(text: string, chain: DictatedChain): boolean {
-  if (/\bko rec\b/.test(text)) return false;
-  if (/\b(snider|shs)\s+\d+\s+ko\b/.test(text)) return true;
-  const koAt = text.search(/\bko\b/);
+  if (/\b(?:ko|kickoff)\s*rec\b/.test(text)) return false;
+  if (/\b(?:snider|shs)\s+\d+\s+(?:ko|kickoff)\b/.test(text)) return true;
+  if (/\bto\s+(?:opp|opponent)\b/.test(text)) return false;
+  const koAt = text.search(/\b(?:ko|kickoff)\b/);
   if (koAt >= 0) {
     const before = text.slice(0, koAt);
-    if (/\b(snider|shs)\b/.test(before)) return true;
+    if (/\b(?:snider|shs)\b/.test(before)) return true;
     if (/[a-z]{3,}\s+\d+\s+$/.test(before)) return false;
   }
   if (chain.playTypeGuess === PlayType.KickoffReceive || chain.odk === "D") return false;
@@ -291,7 +296,7 @@ const NEXT_SNAP_FOUL_RE = new RegExp(
 
 function looksLikeGameNote(text: string): boolean {
   return (
-    /\bko rec\b|\bko\b/.test(text) ||
+    /\bko rec\b|\bko\b|\bkickoff\s+(?:catch|caught)\b/.test(text) ||
     /\brun\b/.test(text) ||
     /\bcomplete\s+#?\d+\b/.test(text) ||
     /\bpass\s+#?\d+\b/.test(text) ||
@@ -386,7 +391,8 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
       const catchHudl = noteYard(caught.side, caught.yards, weKick);
       const endHudl = noteYard(ended.side, ended.yards, weKick);
       spotEncoding = `catch:${catchHudl}|end:${endHudl}`;
-      returnYards = Math.abs(yardsAdvanced(catchHudl, endHudl));
+      const toEndZone: EndZoneSide = endHudl === 0 ? "opponent" : "opponent";
+      returnYards = Math.abs(yardsAdvanced(catchHudl, endHudl, toEndZone, "own"));
     }
     if (!spotEncoding) {
       return withTackle(
@@ -450,9 +456,9 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
     });
   }
 
-  if (/\bko\b/.test(text.replace(/next is[^.]{0,40}\bko\b/g, ""))) {
+  if (/\b(?:ko|kickoff)\b/.test(text.replace(/next is[^.]{0,40}\b(?:ko|kickoff)\b/g, ""))) {
     const weKick = weKickThisPlay(text, chain);
-    const kicker = keepJersey(text, /(?:snider|shs|[a-z]+)\s+(\d+)\s+ko\b/.exec(text)?.[1] ?? /\bko\b[^.]{0,12}#?(\d+)/.exec(text)?.[1]);
+    const kicker = keepJersey(text, /(?:snider|shs|[a-z]+)\s+(\d+)\s+(?:ko|kickoff)\b/.exec(text)?.[1] ?? /\b(?:ko|kickoff)\b[^.]{0,12}#?(\d+)/.exec(text)?.[1]);
     if (/\btouchback\b/.test(text)) {
       return base(chain, {
         playType: weKick ? PlayType.Kickoff : PlayType.KickoffReceive,
@@ -470,15 +476,18 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
           : -20
         : undefined;
     const endHudl = ended ? noteYard(ended.side, ended.yards, weKick) : undefined;
+    let spotEncoding: string | undefined;
     let gain = explicitGain(text);
-    if (gain === undefined && catchHudl !== undefined && endHudl !== undefined) {
-      gain = Math.abs(yardsAdvanced(catchHudl, endHudl));
+    if (caught && ended && catchHudl !== undefined && endHudl !== undefined) {
+      gain = explicitGain(text) ?? Math.abs(yardsAdvanced(catchHudl, endHudl, "opponent", "own"));
+      spotEncoding = `catch:${catchHudl}|end:${endHudl}`;
+    } else if (gain === undefined && catchHudl !== undefined && endHudl !== undefined) {
+      gain = Math.abs(yardsAdvanced(catchHudl, endHudl, "opponent", "own"));
     }
     gain = gain ?? 0;
-    const spotEncoding =
-      catchHudl !== undefined && endHudl !== undefined
-        ? `catch:${catchHudl}|end:${endHudl}`
-        : undefined;
+    if (!spotEncoding && catchHudl !== undefined && endHudl !== undefined) {
+      spotEncoding = `catch:${catchHudl}|end:${endHudl}`;
+    }
     const returner = keepJersey(text, /#(\d+)\s+catch/.exec(text)?.[1]);
     const returned = base(chain, {
       playType: weKick ? PlayType.Kickoff : PlayType.KickoffReceive,

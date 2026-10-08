@@ -117,15 +117,16 @@ export function computeReturnYards(
   returnEnd: ReturnEnd,
 ): number {
   if (returnEnd.kind === "touchdown") {
-    return yardsToOpponentGoal(caughtAt);
+    return yardsToOpponentGoal(caughtAt, "own");
   }
   if (returnEnd.kind === "safety") {
-    return yardsToOwnGoal(caughtAt);
+    return yardsToOwnGoal(caughtAt, "own");
   }
   return yardsAdvanced(
     caughtAt,
     returnEnd.yardLine,
     returnEndZoneSide(returnEnd),
+    "own",
   );
 }
 

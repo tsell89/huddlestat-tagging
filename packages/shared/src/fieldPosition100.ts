@@ -53,14 +53,26 @@ export function yardsAdvanced(
   fromHudl: FieldYardLine,
   toHudl: FieldYardLine,
   toEndZone: EndZoneSide = "opponent",
+  fromEndZone: EndZoneSide = "own",
 ): number {
   return (
-    hudlToFieldPosition(toHudl, toEndZone) - hudlToFieldPosition(fromHudl)
+    hudlToFieldPosition(toHudl, toEndZone) -
+    hudlToFieldPosition(fromHudl, fromEndZone)
   );
 }
 
-export function yardsToOpponentGoal(fromHudl: FieldYardLine): number {
-  return FIELD_OPP_GOAL - hudlToFieldPosition(fromHudl);
+export function yardsToOpponentGoal(
+  fromHudl: FieldYardLine,
+  fromEndZone: EndZoneSide = "own",
+): number {
+  return FIELD_OPP_GOAL - hudlToFieldPosition(fromHudl, fromEndZone);
+}
+
+export function yardsToOwnGoal(
+  fromHudl: FieldYardLine,
+  fromEndZone: EndZoneSide = "own",
+): number {
+  return FIELD_OWN_GOAL - hudlToFieldPosition(fromHudl, fromEndZone);
 }
 
 /**
