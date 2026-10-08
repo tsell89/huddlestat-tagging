@@ -586,6 +586,17 @@ describe("scrimmage and pre-snap penalties", () => {
     });
   });
 
+  test("interception wiped by penalty (wipes synonym) becomes penalty row", () => {
+    const parsed = parseWithRules(
+      "Pass 7 intercepted by 24, but defensive holding wipes the play 10 yards AFD",
+      givenChain({ odk: ODK.Offense, down: 2, distance: 8, yardLine: -20 }),
+    );
+    assert.equal(parsed.playType, PlayType.Pass);
+    assert.equal(parsed.result, Result.Penalty);
+    assert.equal(parsed.gainLoss, 0);
+    assert.equal(parsed.spotEncoding, "foul:-20|yd:10|vs:D|afd:1");
+  });
+
   test("run play with defensive facemask", () => {
     const parsed = parseWithRules(
       "Run 6 to Wayne 35. Facemask defense 15 yards AFD",

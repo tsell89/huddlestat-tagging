@@ -282,6 +282,8 @@ function penaltyAgainst(text: string, chain: DictatedChain): "O" | "D" {
 const FOUL_PATTERN =
   /\b(?:pass interference|dpi|opi|holding|face\s*mask|facemask|false start|encroach(?:ment)?|offsides?|delay of game|illegal(?:\s+(?:procedure|formation|shift|motion|block|use of hands|substitution))?|uns|unsportsmanlike|roughing(?:\s+(?:the\s+)?passer)?|late hit|unnecessary roughness|ur\b|targeting|chop block|clipping|block in the back|horse\s*collar|pre-snap|dead[- ]ball|penalt(?:y|ies))\b/;
 
+const WIPED_PATTERN = /\b(wiped|nullified|called back|wipes)\b/;
+
 const NEXT_SNAP_FOUL_RE = new RegExp(
   `\\b(?:then|next)\\b[^.]{0,40}\\b(?:${FOUL_PATTERN.source}|vs\\s+[od])|\\b(?:${FOUL_PATTERN.source}|vs\\s+[od])\\b[^.]{0,30}\\bnext\\b`,
   "i",
@@ -314,7 +316,7 @@ function isPenaltyNote(text: string): boolean {
   if (/\b(declined|waved off|offsetting)\b/.test(text)) {
     return false;
   }
-  const isWiped = /\b(wiped|nullified|called back|wipes)\b/.test(text);
+  const isWiped = WIPED_PATTERN.test(text);
   if (isWiped) {
     return true;
   }
@@ -368,7 +370,7 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
 
   if (
     (/\bintercept/.test(text) || /\bint\s+#?\d+\b/.test(text) || /\bpass\b[^.]{0,50}\bint\b/.test(text)) &&
-    !(/\b(wiped|nullified|called back)\b/.test(text) && isPenaltyNote(text))
+    !(WIPED_PATTERN.test(text) && isPenaltyNote(text))
   ) {
     const passer = keepJersey(text, /\bpass\s+#?(\d+)/.exec(text)?.[1]);
     const picked = keepJersey(
@@ -429,7 +431,8 @@ function parseGameNote(text: string, chain: DictatedChain): DictatedPlayInput | 
     const afd =
       against === "D" &&
       /\b(afd|automatic first|crosses the sticks|dpi|pass interference|defensive holding)\b/.test(text);
-    const wipedPunt = /\bwiped punt\b|\bpunt\b/.test(text) && /\b(wiped|penalty|illegal)\b/.test(text);
+    const wipedPunt =
+      /\bpunt\b/.test(text) && (WIPED_PATTERN.test(text) || /\b(penalty|illegal)\b/.test(text));
     return base(chain, {
       playType: wipedPunt
         ? PlayType.Punt
