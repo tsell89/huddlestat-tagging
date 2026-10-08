@@ -314,12 +314,12 @@ function isPenaltyNote(text: string): boolean {
   if (/\b(declined|waved off|offsetting)\b/.test(text)) {
     return false;
   }
-  if (NEXT_SNAP_FOUL_RE.test(text)) {
-    return false;
-  }
   const isWiped = /\b(wiped|nullified|called back|wipes)\b/.test(text);
   if (isWiped) {
     return true;
+  }
+  if (NEXT_SNAP_FOUL_RE.test(text)) {
+    return false;
   }
   const turnoverAt = text.search(/\b(intercept|fumble)\b/);
   if (turnoverAt !== -1 && turnoverAt < foulAt) {

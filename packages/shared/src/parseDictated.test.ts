@@ -570,6 +570,22 @@ describe("scrimmage and pre-snap penalties", () => {
     });
   });
 
+  test("wiped play with next down mentioned remains penalty", () => {
+    const parsed = parseWithRules(
+      "Complete 17 to 12 wiped: offensive holding 10 yards. 1st & 20 next.",
+      givenChain({ odk: ODK.Offense, down: 1, distance: 10, yardLine: -20 }),
+    );
+    assert.equal(parsed.playType, PlayType.Pass);
+    assert.equal(parsed.result, Result.Penalty);
+    assert.equal(parsed.gainLoss, 0);
+    assert.deepEqual(decodePenalty(parsed.spotEncoding), {
+      foulSpot: -20,
+      yards: 10,
+      against: "O",
+      autoFirstDown: false,
+    });
+  });
+
   test("run play with defensive facemask", () => {
     const parsed = parseWithRules(
       "Run 6 to Wayne 35. Facemask defense 15 yards AFD",
