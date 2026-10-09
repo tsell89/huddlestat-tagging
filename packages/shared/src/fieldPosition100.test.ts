@@ -4,6 +4,7 @@ import {
   capDistanceToGoal,
   isLegalScrimmageDistance,
   labelYardLine,
+  yardsAdvanced,
   yardsToOpponentGoal,
 } from "./fieldPosition100.js";
 import { formatDownDistance } from "./index.js";
@@ -56,5 +57,36 @@ describe("formatDownDistance", () => {
     assert.equal(labelYardLine(-5), "Own 5");
     assert.equal(labelYardLine(4), "Opp 4");
     assert.equal(labelYardLine(50), "50");
+  });
+});
+
+describe("yardsToOpponentGoal with goal line / end zone", () => {
+  test("returns 100 yards when starting from own end zone / goal line (0)", () => {
+    assert.equal(yardsToOpponentGoal(0), 100);
+    assert.equal(yardsToOpponentGoal(0, "own"), 100);
+  });
+
+  test("calculates distance from negative and positive yard lines", () => {
+    assert.equal(yardsToOpponentGoal(-5), 95);
+    assert.equal(yardsToOpponentGoal(50), 50);
+    assert.equal(yardsToOpponentGoal(10), 10);
+  });
+});
+
+describe("yardsAdvanced with goal line / end zone", () => {
+  test("return from own end zone (0) to Own 20 (-20) is 20 yards", () => {
+    assert.equal(yardsAdvanced(0, -20), 20);
+  });
+
+  test("return from own end zone (0) to midfield (50) is 50 yards", () => {
+    assert.equal(yardsAdvanced(0, 50), 50);
+  });
+
+  test("100-yard return from own end zone (0) to opponent TD (0) is 100 yards", () => {
+    assert.equal(yardsAdvanced(0, 0, "opponent", "own"), 100);
+  });
+
+  test("return from Own 5 (-5) to opponent TD (0) is 95 yards", () => {
+    assert.equal(yardsAdvanced(-5, 0, "opponent"), 95);
   });
 });

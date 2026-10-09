@@ -8,6 +8,7 @@ import {
 } from "@huddlestat/shared";
 import {
   applyPuntSpotsToDraft,
+  computeReturnYards,
   defaultPuntSpots,
   initPuntSpotsFromDraft,
   isPuntSpotPlayType,
@@ -66,5 +67,23 @@ describe("Punt Rec spot persistence", () => {
     const spots = defaultPuntSpots(draft.yardLine);
     const saved = applyPuntSpotsToDraft(draft, spots);
     assert.ok(saved.spotEncoding?.startsWith("end:"));
+  });
+});
+
+describe("computeReturnYards with end zone starting spots", () => {
+  test("catch in own end zone (0) returned for TD is 100 yards", () => {
+    assert.equal(computeReturnYards(0, { kind: "touchdown" }), 100);
+  });
+
+  test("catch in own end zone (0) returned to Own 20 (-20) is 20 yards", () => {
+    assert.equal(computeReturnYards(0, { kind: "yardline", yardLine: -20 }), 20);
+  });
+
+  test("catch in own end zone (0) tackled for safety is 0 yards", () => {
+    assert.equal(computeReturnYards(0, { kind: "safety" }), 0);
+  });
+
+  test("catch at Own 5 (-5) returned for TD is 95 yards", () => {
+    assert.equal(computeReturnYards(-5, { kind: "touchdown" }), 95);
   });
 });

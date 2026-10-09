@@ -4,6 +4,7 @@ import {
   isLegalScrimmageDistance,
   labelYardLine,
   yardsToOpponentGoal,
+  yardsToOwnGoal,
   yardsToScoringGoal,
 } from "./fieldPosition100.js";
 
@@ -42,6 +43,7 @@ export {
 } from "./fieldPosition100.js";
 export {
   yardsToOpponentGoal,
+  yardsToOwnGoal,
   yardsToScoringGoal,
   capDistanceToGoal,
   isLegalScrimmageDistance,

@@ -66,25 +66,36 @@ export function yardsAdvanced(
   fromHudl: YardLine,
   toHudl: YardLine,
   toEndZone: EndZoneSide = "opponent",
+  fromEndZone: EndZoneSide = "own",
 ): number {
   return (
-    hudlToFieldPosition(toHudl, toEndZone) - hudlToFieldPosition(fromHudl)
+    hudlToFieldPosition(toHudl, toEndZone) -
+    hudlToFieldPosition(fromHudl, fromEndZone)
   );
 }
 
 /** Yards from a spot to the opponent end zone (touchdown). */
-export function yardsToOpponentGoal(fromHudl: YardLine): number {
-  return FIELD_OPP_GOAL - hudlToFieldPosition(fromHudl);
+export function yardsToOpponentGoal(
+  fromHudl: YardLine,
+  fromEndZone: EndZoneSide = "own",
+): number {
+  return FIELD_OPP_GOAL - hudlToFieldPosition(fromHudl, fromEndZone);
 }
 
 /** Yards from a spot back into the own end zone (safety), negative when retreating. */
-export function yardsToOwnGoal(fromHudl: YardLine): number {
-  return FIELD_OWN_GOAL - hudlToFieldPosition(fromHudl);
+export function yardsToOwnGoal(
+  fromHudl: YardLine,
+  fromEndZone: EndZoneSide = "own",
+): number {
+  return FIELD_OWN_GOAL - hudlToFieldPosition(fromHudl, fromEndZone);
 }
 
 /** @deprecated Use yardsToOpponentGoal */
-export function yardsToTouchdown(fromHudl: YardLine): number {
-  return yardsToOpponentGoal(fromHudl);
+export function yardsToTouchdown(
+  fromHudl: YardLine,
+  fromEndZone: EndZoneSide = "own",
+): number {
+  return yardsToOpponentGoal(fromHudl, fromEndZone);
 }
 
 /** Slider ratio 0–1 from Hudl spot (left −1 → mid 50 → right +1). */
